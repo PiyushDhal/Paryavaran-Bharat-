@@ -73,7 +73,7 @@ export default function LandingPage() {
             src="/images/bharat-climate-hero.png"
             alt="Satellite view of India"
             fill
-            className="object-cover"
+            className="object-cover object-right"
             priority
           />
           <div className="absolute inset-0 hero-gradient-overlay" />
