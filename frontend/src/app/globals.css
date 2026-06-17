@@ -64,14 +64,14 @@
 }
 
 /* ─── Glow text effects ──────────────────────────────────────────── */
-.glow-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
-.glow-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-.glow-rose { text-shadow: 0 0 10px rgba(248, 113, 113, 0.5); }
-.glow-amber { text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+.glow-cyan { text-shadow: 0 1px 3px rgba(34, 211, 238, 0.3); }
+.glow-emerald { text-shadow: 0 1px 3px rgba(52, 211, 153, 0.3); }
+.glow-rose { text-shadow: 0 1px 3px rgba(251, 113, 133, 0.3); }
+.glow-amber { text-shadow: 0 1px 3px rgba(251, 191, 36, 0.3); }
 
 /* ─── Shadow glow ────────────────────────────────────────────────── */
 .shadow-glow {
-  box-shadow: 0 0 40px rgba(34, 211, 238, 0.18);
+  box-shadow: 0 4px 20px rgba(34, 211, 238, 0.06);
 }
 
 /* ─── Map pulse animation ────────────────────────────────────────── */
@@ -144,7 +144,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: #06b6d4;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+  box-shadow: 0 2px 6px rgba(6, 182, 212, 0.25);
 }
 input[type="range"]::-moz-range-thumb {
   width: 16px;
@@ -153,7 +153,7 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 50%;
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+  box-shadow: 0 2px 6px rgba(6, 182, 212, 0.25);
 }
 
 /* ─── Hero gradient overlays ─────────────────────────────────────── */
@@ -182,7 +182,7 @@ input[type="range"]::-moz-range-thumb {
 .step-node:hover {
   border-color: #06b6d4;
   transform: translateY(-4px);
-  box-shadow: 0 0 40px rgba(6, 182, 212, 0.25);
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.12);
 }
 
 /* ─── Custom scrollbar ───────────────────────────────────────────── */
