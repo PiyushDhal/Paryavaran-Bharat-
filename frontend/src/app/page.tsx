@@ -80,7 +80,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 hero-bottom-gradient" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-6 lg:px-16 pt-24 pb-32 lg:pb-40">
+        <div className="relative z-10 container mx-auto px-6 lg:px-16 pt-24 pb-36 lg:pb-48">
           <div className="max-w-3xl animate-fade-in-up">
             <div className="inline-flex items-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-sm font-medium text-cyan-200 backdrop-blur-sm">
               <ShieldAlert className="w-4 h-4" />
@@ -109,7 +109,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Capability Cards ──────────────────────────────────── */}
-      <section className="relative z-20 -mt-20 container mx-auto px-6 lg:px-16 mb-24">
+      <section className="relative z-20 mt-12 lg:-mt-20 container mx-auto px-6 lg:px-16 mb-24">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {capabilities.map((cap, i) => {
             const Icon = cap.icon;
