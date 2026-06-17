@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { AppShell } from "@/components/AppShell";
+import { ClimateProvider } from "@/store/useClimateStore";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -11,8 +12,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark">
-      <body>
-        <AppShell>{children}</AppShell>
+      <body className="bg-slate-950 text-slate-100 min-h-screen">
+        <ClimateProvider>
+          <AppShell>{children}</AppShell>
+        </ClimateProvider>
       </body>
     </html>
   );

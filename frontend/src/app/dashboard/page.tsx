@@ -8,23 +8,23 @@ import { MetricCard } from "@/components/climate/MetricCard";
 import { RankingBarChart, TrendAreaChart } from "@/components/climate/Charts";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { TimelineSlider } from "@/components/climate/TimelineSlider";
+import { useClimate } from "@/store/useClimateStore";
+import { generateAnalytics, generateRankings, MOCK_ALERTS } from "@/lib/mock/engine";
 import type { Analytics, ClimateAlert, Ranking } from "@/lib/types";
 
 export default function DashboardPage() {
+  const { activeYear } = useClimate();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [alerts, setAlerts] = useState<ClimateAlert[]>([]);
 
   useEffect(() => {
-    Promise.all([api.analytics(), api.rankings(8), api.alerts()])
-      .then(([analyticsResponse, rankingResponse, alertResponse]) => {
-        setAnalytics(analyticsResponse);
-        setRankings(rankingResponse);
-        setAlerts(alertResponse);
-      })
-      .catch(() => undefined);
-  }, []);
+    // Dynamically generate based on global active timeline year
+    setAnalytics(generateAnalytics(activeYear));
+    setRankings(generateRankings(activeYear).slice(0, 8));
+    setAlerts(MOCK_ALERTS);
+  }, [activeYear]);
 
   const summary = analytics?.summary;
   const chartData = analytics?.national_trends ?? [];
@@ -36,10 +36,11 @@ export default function DashboardPage() {
           <Badge>National command dashboard</Badge>
           <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">Climate Operations Overview</h1>
           <p className="mt-2 max-w-3xl text-sm text-slate-300">
-            Live mock feeds, district vulnerability rankings, disaster forecast summaries, and command actions.
+            Live mock feeds, district vulnerability rankings, disaster forecast summaries, and command actions for AD {activeYear}.
           </p>
         </div>
-        <div className="rounded-md border border-emerald-300/25 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-100">
+        <div className="rounded-md border border-emerald-300/25 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-100 flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
           {summary?.districts_monitored ?? 0} districts monitored
         </div>
       </div>
@@ -91,9 +92,9 @@ export default function DashboardPage() {
             <CardTitle>Real-time Alerts</CardTitle>
             <CardDescription>District warnings for emergency operation centers.</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-3">
+          <CardContent className="grid gap-3 max-h-[420px] overflow-y-auto pr-1">
             {alerts.map((alert) => (
-              <div key={alert.id} className="rounded-md border border-cyan-300/15 bg-white/[0.03] p-4">
+              <div key={alert.id} className="rounded-md border border-cyan-300/15 bg-white/[0.03] p-4 hover:border-cyan-400/30 transition">
                 <div className="flex items-center justify-between gap-3">
                   <Badge tone={alert.severity}>{alert.severity}</Badge>
                   <AlertTriangle className="h-4 w-4 text-amber-200" />
@@ -129,6 +130,9 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Embedded Floating Timeline Control */}
+      <TimelineSlider />
     </div>
   );
 }
