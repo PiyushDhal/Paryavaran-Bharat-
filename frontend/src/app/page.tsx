@@ -67,7 +67,7 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(34, 211, 238, 0.05) 1px, transparent 0)", backgroundSize: "24px 24px" }}>
       {/* ── Hero Section ──────────────────────────────────────── */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative pt-32 pb-48 lg:pt-40 lg:pb-60 overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="/images/bharat-climate-hero.png"
@@ -80,7 +80,7 @@ export default function LandingPage() {
           <div className="absolute inset-0 hero-bottom-gradient" />
         </div>
 
-        <div className="relative z-10 container mx-auto px-6 lg:px-16 pt-24 pb-28 lg:pb-36">
+        <div className="relative z-10 container mx-auto px-6 lg:px-16">
           <div className="max-w-3xl animate-fade-in-up">
             <div className="inline-flex items-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-sm font-medium text-cyan-200 backdrop-blur-sm">
               <ShieldAlert className="w-4 h-4" />
