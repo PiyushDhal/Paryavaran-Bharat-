@@ -103,13 +103,6 @@ export default function LandingPage() {
                 Open Command Center
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link
-                href="/map"
-                className="inline-flex items-center gap-2 border border-slate-700 bg-slate-900/50 hover:bg-slate-800 text-white font-semibold px-8 py-4 rounded-lg transition-all backdrop-blur-md"
-              >
-                <Map className="w-5 h-5 text-cyan-400" />
-                Launch Digital Twin Map
-              </Link>
             </div>
           </div>
         </div>
