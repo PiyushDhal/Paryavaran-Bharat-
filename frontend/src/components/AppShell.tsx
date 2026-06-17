@@ -52,7 +52,6 @@ const navSections = [
     items: [
       { href: "/simulator", label: "Scenario Simulator", icon: SlidersHorizontal },
       { href: "/timeline", label: "Climate Timeline", icon: CalendarRange },
-      { href: "/alerts", label: "Emergency Alerts", icon: AlertTriangle },
       { href: "/copilot", label: "AI Copilot", icon: Bot },
       { href: "/reports", label: "AI Report Generator", icon: FileText },
       { href: "/story", label: "Story Mode", icon: BookOpen },
