@@ -190,3 +190,67 @@ input[type="range"]::-moz-range-thumb {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(34, 211, 238, 0.2); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.4); }
+
+/* ─── 3D / Realistic Landing Page Animations ─────────────────────── */
+@keyframes radar-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-radar-spin {
+  animation: radar-spin 10s linear infinite;
+}
+
+@keyframes telemetry-ping {
+  0% { transform: scale(0.6); opacity: 0.3; }
+  50% { opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.telemetry-ping {
+  animation: telemetry-ping 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.neon-glow-cyan {
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
+}
+.neon-glow-rose {
+  box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+}
+.neon-glow-emerald {
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* ─── Cinematic Landing Page Scan Animations ──────────────────── */
+@keyframes scanLineV {
+  0% { top: -2px; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes radarPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
