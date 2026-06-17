@@ -67,13 +67,13 @@ export default function LandingPage() {
   return (
     <main className="min-h-screen relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(34, 211, 238, 0.05) 1px, transparent 0)", backgroundSize: "24px 24px" }}>
       {/* ── Hero Section ──────────────────────────────────────── */}
-      <section className="relative pt-32 pb-48 lg:pt-40 lg:pb-60 overflow-hidden">
+      <section className="relative min-h-[80vh] flex flex-col justify-end pt-36 pb-32 overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="/images/bharat-climate-hero.png"
             alt="Satellite view of India"
             fill
-            className="object-cover object-right"
+            className="object-cover object-right-bottom"
             priority
           />
           <div className="absolute inset-0 hero-gradient-overlay" />
