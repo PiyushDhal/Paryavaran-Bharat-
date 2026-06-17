@@ -161,7 +161,7 @@ input[type="range"]::-moz-range-thumb {
   background: linear-gradient(to right, #020617 0%, rgba(2, 6, 23, 0.7) 30%, transparent 80%);
 }
 .hero-bottom-gradient {
-  background: linear-gradient(to top, #020617 0%, transparent 60%);
+  background: linear-gradient(to top, #020617 0%, transparent 25%);
 }
 
 /* ─── Flow line animation (Architecture page) ────────────────────── */
