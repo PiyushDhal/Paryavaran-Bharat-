@@ -28,7 +28,7 @@ export function TimelineSlider() {
       <div className="relative mt-8 px-4">
         {/* Track Line */}
         <div className="absolute left-4 right-4 top-1/2 h-1.5 -translate-y-1/2 rounded bg-slate-800" />
-        <div 
+        <div
           className="absolute left-4 top-1/2 h-1.5 -translate-y-1/2 rounded bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)] transition-all duration-300"
           style={{
             width: `${((years.indexOf(activeYear)) / (years.length - 1)) * 100}%`
@@ -45,20 +45,20 @@ export function TimelineSlider() {
           className="relative z-10 h-6 w-full cursor-pointer opacity-0"
         />
 
-        {/* Year Markers / Labels */}
+        {/* Year Markers */}
         <div className="relative -mt-6 flex justify-between pointer-events-none">
-          {years.map((y, index) => {
+          {years.map((y) => {
             const active = y === activeYear;
             return (
               <div key={y} className="flex flex-col items-center">
-                <div 
+                <div
                   className={`h-4 w-4 rounded-full border-2 transition-all duration-300 ${
-                    active 
-                      ? "border-cyan-400 bg-slate-950 scale-125 shadow-[0_0_8px_#06b6d4]" 
+                    active
+                      ? "border-cyan-400 bg-slate-950 scale-125 shadow-[0_0_8px_#06b6d4]"
                       : "border-slate-600 bg-slate-800"
                   }`}
                 />
-                <span 
+                <span
                   className={`mt-2 text-xs font-semibold transition-colors duration-300 ${
                     active ? "text-cyan-400 font-bold" : "text-slate-400"
                   }`}

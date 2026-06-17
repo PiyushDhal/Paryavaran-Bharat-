@@ -43,7 +43,7 @@ export default function HistoryPage() {
         </p>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <CardContent className="grid gap-4 p-5 md:grid-cols-[1fr_220px]">
           <div className="grid gap-2">
             <Label>District</Label>
@@ -54,7 +54,7 @@ export default function HistoryPage() {
             <select
               value={year ?? ""}
               onChange={(event) => setYear(event.target.value ? Number(event.target.value) : undefined)}
-              className="h-10 rounded-md border border-input bg-slate-950/70 px-3 text-sm text-white"
+              className="h-10 rounded-md border border-input bg-slate-950/70 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-400"
             >
               <option value="">All years</option>
               {years.map((item) => (
@@ -68,7 +68,7 @@ export default function HistoryPage() {
       </Card>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Rainfall History</CardTitle>
             <CardDescription>Monthly precipitation observations.</CardDescription>
@@ -77,7 +77,7 @@ export default function HistoryPage() {
             <TrendAreaChart data={chartData} dataKey="rainfall_mm" color="#38bdf8" unit=" mm" />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Temperature History</CardTitle>
             <CardDescription>District mean temperature.</CardDescription>
@@ -86,7 +86,7 @@ export default function HistoryPage() {
             <TrendAreaChart data={chartData} dataKey="temperature_c" color="#f87171" unit=" C" />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Vegetation Changes</CardTitle>
             <CardDescription>NDVI trend from satellite mock feed.</CardDescription>
@@ -95,7 +95,7 @@ export default function HistoryPage() {
             <TrendAreaChart data={chartData} dataKey="ndvi" color="#34d399" />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle>Water Availability</CardTitle>
             <CardDescription>Reservoir level proxy.</CardDescription>
@@ -106,7 +106,7 @@ export default function HistoryPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarDays className="h-5 w-5 text-cyan-200" />

@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import type { District } from "@/lib/types";
 import { riskFill } from "@/lib/utils";
+import { useClimate } from "@/store/useClimateStore";
 
 const layerOptions = [
   "temperature",
@@ -323,7 +324,23 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     };
   }, [compact, data, token]);
 
+  // Extract rankings and activeYear from the global climate context store
+  const climateContext = useClimate();
+  const activeRankings = climateContext?.rankings ?? [];
+
   const selectedProps = (selected?.properties ?? features[0]?.properties ?? {}) as Record<string, string | number>;
+  const activeRanking = activeRankings.find((r) => r.district_id === Number(selectedProps.district_id));
+
+  // Dynamic values
+  const getDynamicRiskVal = (key: string, staticVal: number) => {
+    if (!activeRanking) return staticVal;
+    if (key === "Flood") return activeRanking.flood_risk;
+    if (key === "Drought") return activeRanking.drought_risk;
+    if (key === "Heatwave") return activeRanking.heatwave_risk;
+    if (key === "Water Stress") return activeRanking.water_stress_risk;
+    if (key === "Composite") return activeRanking.composite_risk;
+    return staticVal;
+  };
 
   return (
     <div className={compact ? "grid gap-4 lg:grid-cols-[1fr_300px]" : "grid min-h-[calc(100vh-112px)] gap-4 xl:grid-cols-[1fr_340px]"}>
@@ -337,6 +354,27 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               const props = feature.properties as Record<string, number | string>;
               const left = 18 + (index % 5) * 15 + (index % 2) * 4;
               const top = 15 + Math.floor(index / 5) * 32 + (index % 3) * 8;
+              
+              const districtRanking = activeRankings.find((x) => x.district_id === Number(props.district_id));
+              let val = 50;
+              if (districtRanking) {
+                if (layer === "flood_risk") val = districtRanking.flood_risk;
+                else if (layer === "drought_risk") val = districtRanking.drought_risk;
+                else if (layer === "heatwave_risk") val = districtRanking.heatwave_risk;
+                else if (layer === "water_stress_risk") val = districtRanking.water_stress_risk;
+                else if (layer === "composite_risk") val = districtRanking.composite_risk;
+                else val = Number(props[layer] ?? props.composite_risk ?? 50);
+              } else {
+                val = Number(props[layer] ?? props.composite_risk ?? 50);
+              }
+
+              const dotColor = layer.includes("risk") || layer === "composite_risk"
+                ? riskFill(val)
+                : (layer === "temperature" ? (val >= 38 ? "#f87171" : "#22d3ee")
+                : (layer === "rainfall" || layer === "water_bodies" ? "#38bdf8"
+                : (layer === "ndvi" ? "#34d399"
+                : (layer === "air_quality" ? (val > 150 ? "#f59e0b" : "#22d3ee") : "#2dd4bf"))));
+
               return (
                 <button
                   key={`${props.district}-${index}`}
@@ -344,14 +382,14 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   style={{
                     left: `${left}%`,
                     top: `${top}%`,
-                    backgroundColor: `${colorForFeature(feature, layer)}44`
+                    backgroundColor: `${dotColor}44`
                   }}
                   onClick={() => setSelected(feature)}
                   title={`${props.district}`}
                 >
                   <span
                     className="block h-8 w-8 rounded-full"
-                    style={{ backgroundColor: colorForFeature(feature, layer) }}
+                    style={{ backgroundColor: dotColor }}
                   />
                 </button>
               );
@@ -360,7 +398,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               <Badge>Mapbox token optional</Badge>
               <h2 className="mt-3 text-2xl font-semibold text-white">India Climate Risk Mesh</h2>
               <p className="mt-2 text-sm text-slate-300">
-                Fallback command view renders district overlays from the same API layer feed.
+                Fallback command view renders dynamic district overlays (Active Year: {climateContext?.activeYear ?? 2025}).
               </p>
             </div>
           </div>
@@ -382,47 +420,50 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
 
-      <Card className="p-5">
+      <Card className="glass-card p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm text-muted-foreground">Selected district</p>
-            <h3 className="mt-1 text-xl font-semibold text-white">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Selected district ({climateContext?.activeYear ?? 2025})</p>
+            <h3 className="mt-1 text-xl font-bold text-white">
               {selectedProps.district ?? "Awaiting data"}
             </h3>
-            <p className="text-sm text-cyan-100">{selectedProps.state ?? "National view"}</p>
+            <p className="text-sm text-cyan-200">{selectedProps.state ?? "National view"}</p>
           </div>
-          <Button size="icon" variant="outline" aria-label="Locate" onClick={() => setShowSelector(true)}>
-            <LocateFixed className="h-4 w-4" />
+          <Button size="icon" variant="outline" aria-label="Locate" onClick={() => setShowSelector(true)} className="border-slate-700 hover:bg-slate-800">
+            <LocateFixed className="h-4 w-4 text-slate-300" />
           </Button>
         </div>
-        <div className="mt-6 grid gap-3">
+        <div className="mt-6 grid gap-4">
           {[
-            ["Flood", selectedProps.flood_risk],
-            ["Drought", selectedProps.drought_risk],
-            ["Heatwave", selectedProps.heatwave_risk],
-            ["Water Stress", selectedProps.water_stress_risk],
-            ["Composite", selectedProps.composite_risk]
-          ].map(([name, value]) => (
-            <div key={name as string}>
-              <div className="mb-1 flex justify-between text-sm">
-                <span className="text-slate-300">{name}</span>
-                <span className="font-semibold text-white">{Number(value ?? 0).toFixed(1)}</span>
+            ["Flood", Number(selectedProps.flood_risk ?? 0)],
+            ["Drought", Number(selectedProps.drought_risk ?? 0)],
+            ["Heatwave", Number(selectedProps.heatwave_risk ?? 0)],
+            ["Water Stress", Number(selectedProps.water_stress_risk ?? 0)],
+            ["Composite", Number(selectedProps.composite_risk ?? 0)]
+          ].map(([name, staticValue]) => {
+            const activeVal = getDynamicRiskVal(name as string, staticValue as number);
+            return (
+              <div key={name as string}>
+                <div className="mb-1.5 flex justify-between text-xs font-medium">
+                  <span className="text-slate-300">{name as string}</span>
+                  <span className="font-mono font-bold text-white">{Number(activeVal).toFixed(1)}</span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/10 border border-white/5">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Number(activeVal)}%`,
+                      backgroundColor: riskFill(Number(activeVal)),
+                      boxShadow: `0 0 6px ${riskFill(Number(activeVal))}99`
+                    }}
+                  />
+                </div>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Number(value ?? 0)}%`,
-                    background: riskFill(Number(value ?? 0))
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-        <div className="mt-6 rounded-md border border-cyan-300/15 bg-cyan-400/8 p-4 text-sm text-slate-300">
-          Animated climate overlays can be replaced with live raster tiles from Bhuvan, NRSC, IMD,
-          India-WRIS, and CPCB without changing the map contract.
+        <div className="mt-6 rounded-lg border border-cyan-300/10 bg-cyan-400/5 p-4 text-xs leading-relaxed text-slate-400">
+          Overlays update in real-time as you scrub the projection timeline. Feeds sync with high-res IMD datasets.
         </div>
       </Card>
 

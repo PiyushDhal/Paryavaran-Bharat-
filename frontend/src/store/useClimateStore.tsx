@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { generateRankings, MOCK_DISTRICTS } from "@/lib/mock/engine";
+import { generateRankings } from "@/lib/mock/engine";
 import type { Ranking } from "@/lib/types";
 
 type ClimateContextType = {
@@ -18,7 +18,7 @@ const ClimateContext = createContext<ClimateContextType | undefined>(undefined);
 
 export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [activeYear, setActiveYear] = useState<number>(2025);
-  const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>(101); // Default to Mumbai
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>(101);
   const [activeLayer, setActiveLayer] = useState<string>("composite");
   const [rankings, setRankings] = useState<Ranking[]>([]);
 

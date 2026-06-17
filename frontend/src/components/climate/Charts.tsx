@@ -6,6 +6,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -73,10 +74,14 @@ export function RiskLineChart({ data }: { data: Array<Record<string, number | st
             color: "#e0f2fe"
           }}
         />
-        <Line type="monotone" dataKey="flood" stroke="#38bdf8" strokeWidth={2} dot={false} />
-        <Line type="monotone" dataKey="drought" stroke="#fbbf24" strokeWidth={2} dot={false} />
-        <Line type="monotone" dataKey="heatwave" stroke="#f87171" strokeWidth={2} dot={false} />
-        <Line type="monotone" dataKey="water_stress" stroke="#34d399" strokeWidth={2} dot={false} />
+        <Legend
+          wrapperStyle={{ paddingTop: 12, fontSize: 11, color: "#94a3b8" }}
+          formatter={(value) => <span className="capitalize text-slate-300">{value.replace("_", " ")}</span>}
+        />
+        <Line type="monotone" name="flood" dataKey="flood" stroke="#38bdf8" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="drought" dataKey="drought" stroke="#fbbf24" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="heatwave" dataKey="heatwave" stroke="#f87171" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="water_stress" dataKey="water_stress" stroke="#34d399" strokeWidth={2} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );

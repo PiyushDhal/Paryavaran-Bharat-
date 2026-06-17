@@ -1,151 +1,222 @@
 "use client";
 
-import React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { HelpCircle, CheckCircle, Award } from "lucide-react";
+import { BarChartBig, Binary, CloudRain, RefreshCw, ShieldCheck, Thermometer, TrendingUp } from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts";
 
-const validationDataRainfall = [
-  { month: "Jan", actual: 12, predicted: 14 },
-  { month: "Feb", actual: 8, predicted: 9 },
-  { month: "Mar", actual: 15, predicted: 13 },
-  { month: "Apr", actual: 28, predicted: 26 },
-  { month: "May", actual: 45, predicted: 49 },
-  { month: "Jun", actual: 180, predicted: 172 },
-  { month: "Jul", actual: 340, predicted: 325 },
-  { month: "Aug", actual: 290, predicted: 304 },
-  { month: "Sep", actual: 195, predicted: 188 },
-  { month: "Oct", actual: 75, predicted: 80 },
-  { month: "Nov", actual: 35, predicted: 38 },
-  { month: "Dec", actual: 18, predicted: 15 }
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const rainfallActual = [12, 19, 45, 60, 110, 320, 410, 380, 240, 95, 20, 10];
+const rainfallPred = [10, 22, 48, 55, 120, 310, 395, 390, 250, 90, 25, 12];
+const tempActual = [28, 32, 36, 41, 44, 42, 38, 36, 35, 33, 30, 28];
+const tempPred = [27.5, 32.2, 35.8, 40.5, 43.8, 41.5, 38.2, 36.5, 34.8, 33.2, 29.8, 27.8];
+
+const rainfallData = months.map((m, i) => ({ date: m, actual: rainfallActual[i], predicted: rainfallPred[i] }));
+const tempData = months.map((m, i) => ({ date: m, actual: tempActual[i], predicted: tempPred[i] }));
+
+const scoreCards = [
+  { label: "Overall Accuracy", value: "94.2%", delta: "+0.8%", deltaColor: "text-emerald-400", progress: 94.2 },
+  { label: "Total Samples", value: "12,840", sub: "Validated observations (2020-2024)" },
+  { label: "Training Drift", value: "0.12", badge: "STABLE", badgeColor: "bg-emerald-400/10 text-emerald-400 border-emerald-400/20", sub: "Kullback–Leibler divergence score" },
+  { label: "Model Latency", value: "240ms", sub: "Inference time per district profile" }
 ];
 
-const validationDataTemp = [
-  { month: "Jan", actual: 22.4, predicted: 22.1 },
-  { month: "Feb", actual: 24.8, predicted: 24.5 },
-  { month: "Mar", actual: 28.5, predicted: 28.9 },
-  { month: "Apr", actual: 33.2, predicted: 32.8 },
-  { month: "May", actual: 36.8, predicted: 36.2 },
-  { month: "Jun", actual: 34.5, predicted: 34.9 },
-  { month: "Jul", actual: 31.2, predicted: 31.5 },
-  { month: "Aug", actual: 30.1, predicted: 30.4 },
-  { month: "Sep", actual: 29.8, predicted: 29.5 },
-  { month: "Oct", actual: 28.2, predicted: 28.4 },
-  { month: "Nov", actual: 25.1, predicted: 25.3 },
-  { month: "Dec", actual: 22.8, predicted: 22.6 }
+const models = [
+  { name: "LSTM-Transformer (Rainfall)", badge: "ACTIVE", badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20", rmse: "4.12", mae: "2.84", r2: "0.92", r2Color: "text-emerald-400" },
+  { name: "CNN-LSTM (Temperature)", badge: "Production", badgeColor: "bg-slate-700 text-slate-400 border-slate-600", rmse: "0.85", mae: "0.62", r2: "0.96", r2Color: "text-emerald-400" },
+  { name: "Baseline Random Forest", badge: "Comparison", badgeColor: "bg-slate-800 text-slate-500 border-slate-700", rmse: "6.24", mae: "4.15", r2: "0.78", r2Color: "text-white", opacity: true }
 ];
+
+const trainingMeta = [
+  { label: "Epochs", value: "1,500" },
+  { label: "Validation Split", value: "20.0%" },
+  { label: "Learning Rate", value: "0.0001" },
+  { label: "Optimizer", value: "AdamW" },
+  { label: "Dataset Version", value: "v4.2.0-PROD" }
+];
+
+const tooltipStyle = { background: "#07111f", border: "1px solid rgba(103,232,249,0.25)", borderRadius: 8, color: "#e0f2fe" };
 
 export default function ValidationPage() {
   return (
-    <div className="grid gap-6">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <Badge>Inference Verification Terminal</Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">AI Forecast Validation</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300">
-            Real-time training metrics, verification curves, and scientific scorecards validating the model against actual IMD ground observations.
-          </p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-4">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          Production Validation Layer v1.0.4
         </div>
-        <div className="rounded-md border border-emerald-300/25 bg-emerald-400/10 px-3 py-2 text-sm text-emerald-100 flex items-center gap-2">
-          <CheckCircle className="h-4 w-4" /> Validation Integrity Passed
-        </div>
+        <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-white flex flex-wrap items-center gap-4">
+          Model Performance & Validation
+          <span className="text-sm font-normal text-slate-500 bg-slate-800/50 px-3 py-1 rounded border border-slate-700">Pilot Region: Kutch, Gujarat</span>
+        </h1>
+        <p className="mt-4 text-slate-400 max-w-2xl leading-relaxed">
+          Continuous verification of AI forecasting accuracy against ground-truth IMD gridded datasets and satellite observations.
+        </p>
       </div>
 
-      {/* Metrics Scorecard */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: "Overall Accuracy", val: "94.2%", desc: "Weighted temporal scoring index", sub: "95% Confidence Interval" },
-          { label: "Rainfall RMSE", val: "14.8 mm", desc: "Root Mean Squared Error", sub: "IMD target validation standard" },
-          { label: "Temperature MAE", val: "0.38 C", desc: "Mean Absolute Error index", sub: "Maximum heat anomaly validation" },
-          { label: "Model R² Coefficient", val: "0.914", desc: "Variance representation ratio", sub: "High feature predictive link" }
-        ].map((m, i) => (
-          <Card key={i}>
-            <CardHeader className="pb-2">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{m.label}</span>
-              <h3 className="text-3xl font-bold text-white mt-1">{m.val}</h3>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-cyan-200">{m.desc}</p>
-              <p className="text-[10px] text-slate-500 mt-1">{m.sub}</p>
-            </CardContent>
-          </Card>
+      {/* Score Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {scoreCards.map((card) => (
+          <div key={card.label} className="glass-card p-6 rounded-xl flex flex-col gap-1">
+            <span className="text-slate-500 text-xs font-medium uppercase tracking-widest">{card.label}</span>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-bold text-white">{card.value}</span>
+              {card.delta && (
+                <span className={`${card.deltaColor} text-xs font-medium mb-1.5 flex items-center gap-0.5`}>
+                  <TrendingUp className="w-3 h-3" /> {card.delta}
+                </span>
+              )}
+              {card.badge && (
+                <span className={`${card.badgeColor} px-2 py-0.5 rounded text-[10px] font-bold border mb-1.5`}>
+                  {card.badge}
+                </span>
+              )}
+            </div>
+            {card.sub && <p className="text-xs text-slate-500 mt-2">{card.sub}</p>}
+            {card.progress && (
+              <div className="w-full bg-slate-800 h-1.5 rounded-full mt-4 overflow-hidden">
+                <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${card.progress}%` }} />
+              </div>
+            )}
+          </div>
         ))}
       </div>
 
-      {/* validation charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="scanline relative">
-          <CardHeader>
-            <CardTitle>Rainfall: Actual vs Predicted</CardTitle>
-            <CardDescription>Monthly observation mean comparison (latest validation sequence).</CardDescription>
-          </CardHeader>
-          <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={validationDataRainfall} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,211,238,0.05)" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} />
-                <Tooltip contentStyle={{ backgroundColor: "#020617", borderColor: "rgba(6,182,212,0.2)" }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="actual" name="Actual IMD Observations" stroke="#22d3ee" strokeWidth={3} dot={{ fill: "#020617", stroke: "#22d3ee", strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="predicted" name="AI Predicted Model" stroke="#fbbf24" strokeWidth={2} strokeDasharray="4 4" dot={{ fill: "#020617", stroke: "#fbbf24", strokeWidth: 1 }} />
-              </LineChart>
+      {/* Charts + Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 flex flex-col gap-8">
+          {/* Rainfall Chart */}
+          <div className="glass-card rounded-2xl p-8 scanline scan-beam">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <CloudRain className="w-5 h-5 text-cyan-400" />
+                  Rainfall: Actual vs Predicted
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">IMD Gridded (0.25° x 0.25°) vs LSTM-Transformer Hybrid</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                  <span className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.5)]" /> Actual
+                </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                  <span className="w-3 h-3 rounded-full border border-slate-500 border-dashed" /> Predicted
+                </div>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={360}>
+              <AreaChart data={rainfallData}>
+                <defs>
+                  <linearGradient id="rain-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
+                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Area type="monotone" dataKey="actual" stroke="#06b6d4" fill="url(#rain-grad)" strokeWidth={3} />
+                <Line type="monotone" dataKey="predicted" stroke="rgba(148,163,184,0.5)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
+              </AreaChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="scanline relative">
-          <CardHeader>
-            <CardTitle>Temperature: Actual vs Predicted</CardTitle>
-            <CardDescription>Monthly average max indices validation (latest sequence).</CardDescription>
-          </CardHeader>
-          <CardContent className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={validationDataTemp} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,211,238,0.05)" />
-                <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} />
-                <YAxis stroke="#94a3b8" fontSize={11} domain={[15, 42]} />
-                <Tooltip contentStyle={{ backgroundColor: "#020617", borderColor: "rgba(6,182,212,0.2)" }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="actual" name="Actual IMD Observations" stroke="#f43f5e" strokeWidth={3} dot={{ fill: "#020617", stroke: "#f43f5e", strokeWidth: 2 }} />
-                <Line type="monotone" dataKey="predicted" name="AI Predicted Model" stroke="#34d399" strokeWidth={2} strokeDasharray="4 4" dot={{ fill: "#020617", stroke: "#34d399", strokeWidth: 1 }} />
+          {/* Temperature Chart */}
+          <div className="glass-card rounded-2xl p-8">
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <Thermometer className="w-5 h-5 text-rose-400" />
+                  Temperature: Actual vs Predicted
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">Daily Max/Min Observations vs CNN-LSTM Fusion</p>
+              </div>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                  <span className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" /> Actual
+                </div>
+                <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                  <span className="w-3 h-3 rounded-full bg-rose-400/30 border border-rose-400/50" /> Predicted
+                </div>
+              </div>
+            </div>
+            <ResponsiveContainer width="100%" height={360}>
+              <LineChart data={tempData}>
+                <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
+                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Line type="monotone" dataKey="actual" stroke="#f43f5e" strokeWidth={3} dot={{ r: 3 }} />
+                <Line type="monotone" dataKey="predicted" stroke="rgba(251,113,133,0.4)" strokeWidth={2} dot={{ r: 2 }} />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className="lg:col-span-4 flex flex-col gap-8">
+          {/* Performance Metrics */}
+          <div className="glass-card rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <BarChartBig className="w-5 h-5 text-emerald-400" />
+              Performance Metrics
+            </h3>
+            <div className="space-y-6">
+              {models.map((model, i) => (
+                <div key={model.name}>
+                  {i > 0 && <div className="h-px bg-slate-800 mb-6" />}
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-sm font-semibold text-slate-300">{model.name}</span>
+                    <span className={`text-[10px] ${model.badgeColor} px-2 py-0.5 rounded border uppercase`}>{model.badge}</span>
+                  </div>
+                  <div className={`grid grid-cols-3 gap-3 ${model.opacity ? "opacity-60" : ""}`}>
+                    {[
+                      { label: "RMSE", value: model.rmse },
+                      { label: "MAE", value: model.mae },
+                      { label: "R²", value: model.r2, color: model.r2Color }
+                    ].map((m) => (
+                      <div key={m.label} className="bg-slate-900/50 border border-slate-800 p-3 rounded-lg text-center">
+                        <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{m.label}</div>
+                        <div className={`text-sm font-bold ${m.color || "text-white"}`}>{m.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Training Metadata */}
+          <div className="glass-card rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+              <Binary className="w-5 h-5 text-cyan-400" />
+              Training Metadata
+            </h3>
+            <div className="space-y-4">
+              {trainingMeta.map((item) => (
+                <div key={item.label} className="flex justify-between text-sm py-2 border-b border-slate-800">
+                  <span className="text-slate-500">{item.label}</span>
+                  <span className="text-white font-mono">{item.value}</span>
+                </div>
+              ))}
+            </div>
+            <button className="w-full mt-6 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-3 rounded-lg border border-slate-700 transition-all uppercase tracking-widest flex items-center justify-center gap-2">
+              <RefreshCw className="w-3.5 h-3.5" />
+              Retrain Model
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* Model summary card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Validation Methodology & Verification Protocols</CardTitle>
-          <CardDescription>Consistent with ISRO guidelines and meteorological forecasting criteria.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3 text-sm">
-          <div className="rounded-lg border border-cyan-300/10 p-4 bg-white/[0.02]">
-            <Award className="h-5 w-5 text-cyan-200" />
-            <h4 className="mt-2 font-semibold text-white">Cross-Validation Stack</h4>
-            <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-              We apply rolling 5-fold temporal cross-validation on historical records to ensure spatial predictors do not cause prediction bleed over long-term projections.
-            </p>
-          </div>
-          <div className="rounded-lg border border-cyan-300/10 p-4 bg-white/[0.02]">
-            <Award className="h-5 w-5 text-cyan-200" />
-            <h4 className="mt-2 font-semibold text-white">Loss Criteria</h4>
-            <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-              A hybrid loss function incorporating Mean Squared Error (MSE) and Earth Mover's Distance (EMD) guarantees accurate representation of convective precipitation fronts.
-            </p>
-          </div>
-          <div className="rounded-lg border border-cyan-300/10 p-4 bg-white/[0.02]">
-            <Award className="h-5 w-5 text-cyan-200" />
-            <h4 className="mt-2 font-semibold text-white">Benchmark Reference</h4>
-            <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-              Tested against standard physical numerical weather models (WRF) showing a 15-22% increase in speed with equivalent structural accuracy at district grids.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -9,15 +9,16 @@ import type {
   RiskScore,
   State
 } from "@/lib/types";
+
 import {
   MOCK_STATES,
   MOCK_DISTRICTS,
+  MOCK_ALERTS,
   generateHistory,
   generateRankings,
-  runSimulation,
-  getCopilotResponse,
   generateAnalytics,
-  MOCK_ALERTS
+  runSimulation,
+  getCopilotResponse
 } from "@/lib/mock/engine";
 
 const API_BASE_URL =
@@ -37,12 +38,11 @@ export function clearToken() {
   window.localStorage.removeItem("bct_token");
 }
 
-async function apiFetch<T>(path: string, options: RequestInit = {}, fallbackData?: any): Promise<T> {
+async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
-
   try {
     const response = await fetch(`${API_PREFIX}${path}`, {
       ...options,
@@ -50,130 +50,199 @@ async function apiFetch<T>(path: string, options: RequestInit = {}, fallbackData
       cache: "no-store"
     });
     if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status}`);
+      throw new Error(`Request failed: ${response.status}`);
     }
-    return await response.json() as T;
-  } catch (error) {
-    console.warn(`API request to ${path} failed, falling back to mock:`, error);
-    if (fallbackData !== undefined) {
-      return fallbackData as T;
-    }
-    throw error;
+    return response.json() as Promise<T>;
+  } catch {
+    throw new Error("API unreachable");
   }
+}
+
+async function withMockFallback<T>(fetcher: () => Promise<T>, fallback: () => T): Promise<T> {
+  try {
+    return await fetcher();
+  } catch {
+    return fallback();
+  }
+}
+
+function mockRisk(districtId: number): RiskScore {
+  const rankings = generateRankings(2025);
+  const r = rankings.find((x) => x.district_id === districtId) ?? rankings[0];
+  return { ...r, valid_on: new Date().toISOString(), drivers: {} };
+}
+
+function mockPredict(kind: string, districtId: number): Prediction {
+  const prob = kind === "flood" ? 0.72 : kind === "drought" ? 0.85 : 0.64;
+  return {
+    prediction_type: kind,
+    probability: prob,
+    risk_zone: prob > 0.7 ? "High" : prob > 0.4 ? "Moderate" : "Low",
+    model_name: kind === "flood" ? "RandomForestFlood" : kind === "drought" ? "XGBoostDrought" : "SklearnHeatAlert",
+    model_version: "v1.2.0",
+    valid_for: "Next 7 days",
+    explanation: `Based on current climate conditions, the ${kind} risk for district ${districtId} is ${prob > 0.7 ? "elevated" : "moderate"}. The model analyzed rainfall patterns, temperature anomalies, and historical trends to generate this forecast.`,
+    inputs: { district_id: districtId, rainfall_mm: 142, temperature_c: 32.4, soil_moisture: 45, reservoir_pct: 68 }
+  };
+}
+
+function mockLayers(): GeoJSON.FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: MOCK_DISTRICTS.map((d) => {
+      const r = generateRankings(2025).find((x) => x.district_id === d.id);
+      return {
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [d.centroid_lon, d.centroid_lat]
+        },
+        properties: {
+          district_id: d.id,
+          district: d.name,
+          state: d.state_name,
+          flood_risk: r?.flood_risk ?? 50,
+          drought_risk: r?.drought_risk ?? 50,
+          heatwave_risk: r?.heatwave_risk ?? 50,
+          water_stress_risk: r?.water_stress_risk ?? 50,
+          composite_risk: r?.composite_risk ?? 50
+        }
+      };
+    })
+  };
 }
 
 export const api = {
   login: (email: string, password: string) =>
-    apiFetch<{ access_token: string; user: { full_name: string; role: string } }>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password })
-    }, {
-      access_token: "mock_jwt_token_admin",
-      user: { full_name: "ISRO Mission Commander", role: "Admin" }
-    }),
-  register: (payload: { email: string; full_name: string; password: string; role: string }) =>
-    apiFetch<{ access_token: string; user: { full_name: string; role: string } }>("/auth/register", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }, {
-      access_token: "mock_jwt_token_custom",
-      user: { full_name: payload.full_name, role: payload.role }
-    }),
-  states: () => Promise.resolve(MOCK_STATES),
-  districts: (stateId?: number) => {
-    if (stateId) {
-      return Promise.resolve(MOCK_DISTRICTS.filter((d) => d.state_id === stateId));
-    }
-    return Promise.resolve(MOCK_DISTRICTS);
-  },
-  history: (districtId: number, year?: number) => {
-    return Promise.resolve(generateHistory(districtId, year || 2025));
-  },
-  layers: () => Promise.resolve({
-    type: "FeatureCollection",
-    features: MOCK_DISTRICTS.map((d) => ({
-      type: "Feature",
-      id: d.id,
-      geometry: {
-        type: "Point",
-        coordinates: [d.centroid_lon, d.centroid_lat]
-      },
-      properties: {
-        name: d.name,
-        state_name: d.state_name,
-        code: d.code
+    withMockFallback(
+      () => apiFetch<{ access_token: string; user: { full_name: string; role: string } }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password })
+      }),
+      () => {
+        if (email && password) {
+          const token = "mock_jwt_token_" + Date.now();
+          return { access_token: token, user: { full_name: email.split("@")[0], role: "analyst" } };
+        }
+        throw new Error("Invalid credentials");
       }
-    }))
-  } as any),
-  rankings: (limit = 10) => {
-    return Promise.resolve(generateRankings(2025).slice(0, limit));
-  },
-  analytics: () => {
-    return Promise.resolve(generateAnalytics(2025));
-  },
-  alerts: () => Promise.resolve(MOCK_ALERTS),
-  risk: (districtId: number) => {
-    const districtRankings = generateRankings(2025);
-    const found = districtRankings.find((r) => r.district_id === districtId);
-    if (found) {
-      return Promise.resolve({
-        ...found,
-        valid_on: new Date().toISOString(),
-        drivers: { "Temperature Rise": "+1.8C", "Rainfall Deviation": "-15%" }
-      } as RiskScore);
-    }
-    return Promise.reject(new Error("District risk profile not found"));
-  },
-  riskTrends: (districtId: number) => {
-    const history = generateHistory(districtId, 2025);
-    const trendList = history.map((h, i) => ({
-      month: `M${i + 1}`,
-      "Composite Risk": Math.round((h.temperature_c * 1.5) + (h.rainfall_mm * 0.1)),
-      "Flood Risk": Math.round(h.rainfall_mm * 0.25),
-      "Drought Risk": Math.max(0, 100 - h.soil_moisture_pct)
-    }));
-    return Promise.resolve(trendList);
-  },
-  predict: (kind: "flood" | "drought" | "heatwave", districtId: number) => {
-    const d = MOCK_DISTRICTS.find((dist) => dist.id === districtId) || MOCK_DISTRICTS[0];
-    return Promise.resolve({
-      prediction_type: kind.toUpperCase(),
-      probability: Math.round(65 + Math.random() * 25),
-      risk_zone: "Zone-IV (High Exposure)",
-      model_name: kind === "flood" ? "RandomForestFlood" : kind === "drought" ? "XGBoostDrought" : "SklearnHeatAlert",
-      model_version: "v1.2.0-stable",
-      valid_for: "Next 48 Hours",
-      explanation: `Model forecasts heightened regional probability of ${kind} based on deep sequential analysis of INSAT LST anomalies.`,
-      inputs: { "Surface Temperature (C)": 38.4, "Rainfall Deficit (%)": -35 }
-    });
-  },
+    ),
+
+  register: (payload: { email: string; full_name: string; password: string; role: string }) =>
+    withMockFallback(
+      () => apiFetch<{ access_token: string; user: { full_name: string; role: string } }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      }),
+      () => ({ access_token: "mock_jwt_token_" + Date.now(), user: { full_name: payload.full_name, role: payload.role } })
+    ),
+
+  states: () => withMockFallback(() => apiFetch<State[]>("/climate/states"), () => MOCK_STATES),
+
+  districts: (stateId?: number) =>
+    withMockFallback(
+      () => apiFetch<District[]>(`/climate/districts${stateId ? `?state_id=${stateId}` : ""}`),
+      () => stateId ? MOCK_DISTRICTS.filter((d) => d.state_id === stateId) : MOCK_DISTRICTS
+    ),
+
+  history: (districtId: number, year?: number) =>
+    withMockFallback(
+      () => apiFetch<ClimateObservation[]>(`/climate/districts/${districtId}/history${year ? `?year=${year}` : ""}`),
+      () => generateHistory(districtId, year)
+    ),
+
+  layers: () => withMockFallback(() => apiFetch<GeoJSON.FeatureCollection>("/climate/map/layers"), mockLayers),
+
+  rankings: (limit = 10) =>
+    withMockFallback(
+      () => apiFetch<Ranking[]>(`/climate/rankings?limit=${limit}`),
+      () => generateRankings(2025).slice(0, limit)
+    ),
+
+  analytics: () => withMockFallback(() => apiFetch<Analytics>("/climate/analytics"), () => generateAnalytics()),
+
+  alerts: () => withMockFallback(() => apiFetch<ClimateAlert[]>("/climate/alerts"), () => MOCK_ALERTS),
+
+  risk: (districtId: number) =>
+    withMockFallback(() => apiFetch<RiskScore>(`/risk/district/${districtId}`), () => mockRisk(districtId)),
+
+  riskTrends: (districtId: number) =>
+    withMockFallback(
+      () => apiFetch<Array<Record<string, number | string>>>(`/risk/district/${districtId}/trends`),
+      () => {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const isWet = [201, 202, 203, 401, 701, 702].includes(districtId);
+        return months.map((date) => ({
+          date,
+          flood: Math.round(isWet ? 40 + Math.random() * 50 : 8 + Math.random() * 25),
+          drought: Math.round(isWet ? 10 + Math.random() * 20 : 50 + Math.random() * 40),
+          heatwave: Math.round(20 + Math.random() * 40),
+          water_stress: Math.round(isWet ? 15 + Math.random() * 25 : 40 + Math.random() * 45)
+        }));
+      }
+    ),
+
+  predict: (kind: "flood" | "drought" | "heatwave", districtId: number) =>
+    withMockFallback(
+      () => apiFetch<Prediction>(`/predictions/${kind}`, {
+        method: "POST",
+        body: JSON.stringify({ district_id: districtId })
+      }),
+      () => mockPredict(kind, districtId)
+    ),
+
   simulate: (payload: {
     district_id?: number;
     rainfall_delta_pct: number;
     temperature_delta_c: number;
     reservoir_delta_pct: number;
     planning_horizon_years: number;
-  }) => {
-    return Promise.resolve(runSimulation(payload));
-  },
-  copilot: (prompt: string) => {
-    return Promise.resolve(getCopilotResponse(prompt));
-  },
+  }) =>
+    withMockFallback(
+      () => apiFetch<{ scenario: Record<string, number>; results: Record<string, unknown> }>("/simulations/run", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      }),
+      () => runSimulation(payload)
+    ),
+
+  copilot: (prompt: string) =>
+    withMockFallback(
+      () => apiFetch<CopilotResponse>("/copilot/chat", {
+        method: "POST",
+        body: JSON.stringify({ prompt })
+      }),
+      () => getCopilotResponse(prompt)
+    ),
+
   adminOverview: () =>
-    Promise.resolve({
-      users: 18,
-      states: 36,
-      districts: 748,
-      risk_scores: 748,
-      predictions: 12405,
-      simulations: 3410,
-      integrations: [
-        { name: "IMD Gridded Feeds", status: "Active" },
-        { name: "INSAT-3D Meteorological", status: "Active" },
-        { name: "India-WRIS Reservoir Status", status: "Active" },
-        { name: "CPCB Air Quality Feed", status: "Active" }
-      ]
-    })
+    withMockFallback(
+      () => apiFetch<{
+        users: number;
+        states: number;
+        districts: number;
+        risk_scores: number;
+        predictions: number;
+        simulations: number;
+        integrations: Array<{ name: string; status: string }>;
+      }>("/admin/overview"),
+      () => ({
+        users: 128,
+        states: MOCK_STATES.length,
+        districts: MOCK_DISTRICTS.length,
+        risk_scores: MOCK_DISTRICTS.length * 365,
+        predictions: 2450,
+        simulations: 890,
+        integrations: [
+          { name: "IMD Gridded Rainfall", status: "active" },
+          { name: "IMD Max Temperature", status: "active" },
+          { name: "INSAT Land Surface Temp", status: "active" },
+          { name: "India-WRIS Reservoir", status: "pending" },
+          { name: "CPCB Air Quality", status: "pending" },
+          { name: "Bhuvan NRSC NDVI", status: "planned" }
+        ]
+      })
+    )
 };
 
 export { API_BASE_URL };
