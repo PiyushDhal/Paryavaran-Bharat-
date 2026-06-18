@@ -120,43 +120,56 @@ export default function AnalyticsPage() {
 
   // Aggregate monthly observations for the filtered scope
   const monthlyData = useMemo(() => {
-    if (filteredDistricts.length === 0) return [];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     
-    if (selectedDistId) {
-      const matched = filteredDistricts.find(d => d.id === selectedDistId);
-      if (matched) return generateHistory(selectedDistId, year);
-    }
-    
-    // Otherwise aggregate across all matched districts
-    const aggregated: ClimateObservation[] = [];
-    const histories = filteredDistricts.map(d => generateHistory(d.id, year));
-    const count = histories.length;
-    
-    for (let m = 0; m < 12; m++) {
-      let rain = 0, temp = 0, aqi = 0, reservoir = 0, ndvi = 0, soil = 0;
-      histories.forEach(h => {
-        const obs = h[m];
-        rain += obs.rainfall_mm;
-        temp += obs.temperature_c;
-        aqi += obs.aqi;
-        reservoir += obs.reservoir_level_pct ?? 50;
-        ndvi += obs.ndvi ?? 0.5;
-        soil += obs.soil_moisture_pct;
-      });
-      aggregated.push({
-        observed_on: histories[0][m].observed_on,
-        rainfall_mm: Math.round(rain / count),
-        rainfall_deficit_pct: 0,
-        temperature_c: Math.round((temp / count) * 10) / 10,
-        humidity_pct: 0,
-        river_level_m: 0,
-        soil_moisture_pct: Math.round(soil / count),
-        aqi: Math.round(aqi / count),
-        ndvi: Math.round((ndvi / count) * 100) / 100,
-        reservoir_level_pct: Math.round(reservoir / count)
-      });
-    }
-    return aggregated;
+    const rawData = (() => {
+      if (filteredDistricts.length === 0) return [];
+      
+      if (selectedDistId) {
+        const matched = filteredDistricts.find(d => d.id === selectedDistId);
+        if (matched) return generateHistory(selectedDistId, year);
+      }
+      
+      // Otherwise aggregate across all matched districts
+      const aggregated: ClimateObservation[] = [];
+      const histories = filteredDistricts.map(d => generateHistory(d.id, year));
+      const count = histories.length;
+      
+      for (let m = 0; m < 12; m++) {
+        let rain = 0, temp = 0, aqi = 0, reservoir = 0, ndvi = 0, soil = 0;
+        histories.forEach(h => {
+          const obs = h[m];
+          rain += obs.rainfall_mm;
+          temp += obs.temperature_c;
+          aqi += obs.aqi;
+          reservoir += obs.reservoir_level_pct ?? 50;
+          ndvi += obs.ndvi ?? 0.5;
+          soil += obs.soil_moisture_pct;
+        });
+        aggregated.push({
+          observed_on: histories[0][m].observed_on,
+          rainfall_mm: Math.round(rain / count),
+          rainfall_deficit_pct: 0,
+          temperature_c: Math.round((temp / count) * 10) / 10,
+          humidity_pct: 0,
+          river_level_m: 0,
+          soil_moisture_pct: Math.round(soil / count),
+          aqi: Math.round(aqi / count),
+          ndvi: Math.round((ndvi / count) * 100) / 100,
+          reservoir_level_pct: Math.round(reservoir / count)
+        });
+      }
+      return aggregated;
+    })();
+
+    return rawData.map(obs => {
+      const parts = obs.observed_on.split("-");
+      const monthIdx = parts[1] ? parseInt(parts[1], 10) - 1 : 0;
+      return {
+        ...obs,
+        date: monthNames[monthIdx] || parts[1] || ""
+      };
+    });
   }, [filteredDistricts, selectedDistId, year]);
 
   // Compute indices dynamically
@@ -573,7 +586,7 @@ export default function AnalyticsPage() {
                 </Button>
               </CardHeader>
               <CardContent className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={230}>
                   <AreaChart data={monthlyData}>
                     <defs>
                       <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
@@ -634,7 +647,7 @@ export default function AnalyticsPage() {
               <CardDescription>Average monthly gridded readings.</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={230}>
                 <AreaChart data={monthlyData}>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} />
                   <YAxis stroke="#94a3b8" fontSize={9} />
@@ -651,7 +664,7 @@ export default function AnalyticsPage() {
               <CardDescription>Monsoon distributions and run-offs.</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={230}>
                 <AreaChart data={monthlyData}>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} />
                   <YAxis stroke="#94a3b8" fontSize={9} />
@@ -768,7 +781,7 @@ export default function AnalyticsPage() {
             </CardHeader>
             <CardContent className="grid md:grid-cols-2 gap-6 items-center p-0">
               <div className="w-full h-56 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={220}>
                   <RadarChart cx="50%" cy="50%" outerRadius="75%" data={[
                     { subject: "Forest Cover", value: metrics.forestHealth, fullMark: 100 },
                     { subject: "Air Quality", value: metrics.airQualityScore, fullMark: 100 },
@@ -813,7 +826,7 @@ export default function AnalyticsPage() {
               <CardDescription>Hydrological reserves trend over 12 months.</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={230}>
                 <AreaChart data={monthlyData}>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} />
                   <YAxis stroke="#94a3b8" fontSize={9} />
@@ -858,7 +871,7 @@ export default function AnalyticsPage() {
               <CardDescription>Air Quality Index variance over 12 months.</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={230}>
                 <AreaChart data={monthlyData}>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} />
                   <YAxis stroke="#94a3b8" fontSize={9} />
@@ -903,7 +916,7 @@ export default function AnalyticsPage() {
               <CardDescription>NDVI condition values over 12 months.</CardDescription>
             </CardHeader>
             <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={230}>
                 <AreaChart data={monthlyData}>
                   <XAxis dataKey="date" stroke="#94a3b8" fontSize={9} />
                   <YAxis stroke="#94a3b8" fontSize={9} />
