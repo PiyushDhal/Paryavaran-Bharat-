@@ -94,6 +94,11 @@ class ScenarioResult(BaseModel):
 
 class CopilotRequest(BaseModel):
     prompt: str = Field(min_length=2, max_length=1000)
+    selected_district_id: int | None = None
+    active_layer: str | None = None
+    active_year: int | None = None
+    timeline_step: str | None = None
+    map_mode: str | None = None
 
 
 class CopilotResponse(BaseModel):
@@ -102,6 +107,10 @@ class CopilotResponse(BaseModel):
     recommended_actions: list[str]
     chart: dict[str, Any]
     districts: list[dict[str, Any]]
+    action: dict[str, Any] | None = None
+    suggestions: list[str] | None = None
+    explainable_risk: dict[str, Any] | None = None
+    insights: list[str] | None = None
 
 
 class AlertRead(BaseModel):

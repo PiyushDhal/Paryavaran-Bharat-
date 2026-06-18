@@ -94,4 +94,16 @@ export type CopilotResponse = {
   recommended_actions: string[];
   chart: { type: string; data: Array<{ district: string; risk: number }> };
   districts: Ranking[];
+  action?: {
+    type: string;
+    [key: string]: any;
+  };
+  suggestions?: string[];
+  explainable_risk?: {
+    confidence: number;
+    drivers: string[];
+    actions: string[];
+    sources: string[];
+  };
+  insights?: string[];
 };

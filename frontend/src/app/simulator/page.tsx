@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, RotateCcw } from "lucide-react";
 
 import { DistrictSelector } from "@/components/climate/DistrictSelector";
@@ -30,6 +30,24 @@ export default function SimulatorPage() {
     planning_horizon_years: 5
   });
   const [result, setResult] = useState<Result | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const dId = params.get("district_id");
+      const rain = params.get("rainfall");
+      const temp = params.get("temp");
+      const res = params.get("reservoir");
+      
+      if (dId) setDistrictId(Number(dId));
+      setScenario((prev) => ({
+        ...prev,
+        rainfall_delta_pct: rain ? Number(rain) : prev.rainfall_delta_pct,
+        temperature_delta_c: temp ? Number(temp) : prev.temperature_delta_c,
+        reservoir_delta_pct: res ? Number(res) : prev.reservoir_delta_pct
+      }));
+    }
+  }, []);
 
   async function run() {
     const response = await api.simulate({ district_id: districtId, ...scenario });

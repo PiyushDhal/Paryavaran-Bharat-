@@ -257,3 +257,46 @@ def district_pdf_report(district_id: int, db: Session = Depends(get_db)) -> Stre
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=district-{district_id}-risk-report.pdf"},
     )
+
+
+@router.get("/reports/state/{state_id}.pdf")
+def state_pdf_report(state_id: int, db: Session = Depends(get_db)) -> StreamingResponse:
+    state = db.get(State, state_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="State not found")
+    
+    districts = db.query(District).filter(District.state_id == state_id).all()
+    district_ids = [d.id for d in districts]
+    
+    avg_risk = 50.0
+    if district_ids:
+        avg_risk = db.query(func.avg(RiskScore.composite_risk)).filter(RiskScore.district_id.in_(district_ids)).scalar() or 50.0
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    pdf.setTitle(f"{state.name} State Climate Risk Report")
+    pdf.setFont("Helvetica-Bold", 18)
+    pdf.drawString(72, 780, "Bharat Climate Twin")
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(72, 750, f"State: {state.name} (Code: {state.code})")
+    pdf.drawString(72, 730, f"Generated: {date.today().isoformat()}")
+    pdf.drawString(72, 700, f"Average State Composite Risk: {round(float(avg_risk), 1)}/100")
+    
+    pdf.drawString(72, 660, f"Monitored Districts in State ({len(districts)}):")
+    y = 640
+    for d in districts[:10]:
+        pdf.drawString(92, y, f"- {d.name} (Pop: {d.population})")
+        y -= 20
+        
+    pdf.drawString(72, y - 20, "Recommended Regional Actions:")
+    pdf.drawString(92, y - 40, "- Coordinate cross-district flood-diversion infrastructure channels.")
+    pdf.drawString(92, y - 58, "- Distribute drought-contingency subsidies for low-moisture sub-regions.")
+    
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=state-{state_id}-risk-report.pdf"},
+    )

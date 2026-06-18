@@ -19,8 +19,8 @@ def chat(
     db: Session = Depends(get_db),
     user: User | None = Depends(get_optional_user),
 ) -> CopilotResponse:
-    ranked = rankings(limit=10, db=db)
-    response = copilot_service.answer(payload.prompt, ranked)
+    ranked = rankings(limit=15, db=db)
+    response = copilot_service.answer(payload, ranked, db)
     db.add(ChatHistory(user_id=user.id if user else None, prompt=payload.prompt, response=response))
     db.commit()
     return CopilotResponse(**response)

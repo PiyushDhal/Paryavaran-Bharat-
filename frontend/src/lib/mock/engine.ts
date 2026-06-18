@@ -151,7 +151,16 @@ export function runSimulation(payload: {
 }
 
 // ─── Copilot response engine ─────────────────────────────────────────
-export function getCopilotResponse(prompt: string): CopilotResponse {
+export function getCopilotResponse(
+  prompt: string,
+  context?: {
+    selected_district_id?: number;
+    active_layer?: string;
+    active_year?: number;
+    timeline_step?: string;
+    map_mode?: string;
+  }
+): CopilotResponse {
   const q = prompt.toLowerCase();
   let explanation = "";
   let risk_analysis = "";
@@ -191,6 +200,55 @@ export function getCopilotResponse(prompt: string): CopilotResponse {
     ];
   }
 
+  let action: any = null;
+  const suggestions: string[] = ["Which states are safest?", "Compare Odisha and Maharashtra", "Explain current climate trends"];
+  let explainable_risk: any = null;
+  let insights: string[] = ["Composite risk indicators show stable levels across northern India."];
+
+  if (q.includes("flood") || q.includes("layer")) {
+    action = { type: "set_layer", layer: "flood" };
+  } else if (q.includes("zoom") || q.includes("mumbai")) {
+    action = { type: "zoom_to_district", district_id: 101, district_name: "Mumbai", lat: 19.076, lon: 72.8777 };
+  } else if (q.includes("compare")) {
+    action = { type: "open_compare", state1: "Odisha", state2: "Maharashtra" };
+  } else if (q.includes("simulate") || q.includes("run")) {
+    action = {
+      type: "open_simulator",
+      params: {
+        district_id: 101,
+        rainfall_delta_pct: -20,
+        temperature_delta_c: 2,
+        reservoir_delta_pct: -30,
+        planning_horizon_years: 5
+      }
+    };
+  } else if (q.includes("report") || q.includes("pdf")) {
+    action = { type: "download_report", report_type: "district", id: 302, name: "Jodhpur" };
+  }
+
+  if (q.includes("drought") || q.includes("flood") || q.includes("heat")) {
+    explainable_risk = {
+      confidence: 90,
+      drivers: [
+        "Precipitation Anomaly Index",
+        "Soil Moisture Depletion Rate",
+        "INSAT Surface Thermal Profile"
+      ],
+      actions: [
+        "Coordinate warning advisories with SDMA.",
+        "Assess municipal water contingency reserves."
+      ],
+      sources: [
+        "IMD Gridded Observations",
+        "NRSC Bhuvan Surface Datasets"
+      ]
+    };
+    insights = [
+      "Vulnerability metrics show an upward trend.",
+      "Soil moisture levels have declined below the 5-year average."
+    ];
+  }
+
   return {
     explanation,
     risk_analysis,
@@ -206,7 +264,11 @@ export function getCopilotResponse(prompt: string): CopilotResponse {
         { district: "Sunderbans", risk: q.includes("flood") ? 88 : 48 }
       ]
     },
-    districts: generateRankings(2025).slice(0, 6)
+    districts: generateRankings(2025).slice(0, 6),
+    action,
+    suggestions,
+    explainable_risk,
+    insights
   };
 }
 

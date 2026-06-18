@@ -206,13 +206,22 @@ export const api = {
       () => runSimulation(payload)
     ),
 
-  copilot: (prompt: string) =>
+  copilot: (
+    prompt: string,
+    context?: {
+      selected_district_id?: number;
+      active_layer?: string;
+      active_year?: number;
+      timeline_step?: string;
+      map_mode?: string;
+    }
+  ) =>
     withMockFallback(
       () => apiFetch<CopilotResponse>("/copilot/chat", {
         method: "POST",
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, ...context })
       }),
-      () => getCopilotResponse(prompt)
+      () => getCopilotResponse(prompt, context)
     ),
 
   adminOverview: () =>

@@ -13,6 +13,16 @@ export default function ComparePage() {
   const [districtIdA, setDistrictIdA] = useState<number>(101); // Mumbai
   const [districtIdB, setDistrictIdB] = useState<number>(501); // Kutch
   const [year, setYear] = useState<number>(2025);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const dA = params.get("districtA");
+      const dB = params.get("districtB");
+      if (dA) setDistrictIdA(Number(dA));
+      if (dB) setDistrictIdB(Number(dB));
+    }
+  }, []);
   
   const rankings = useMemo(() => generateRankings(year), [year]);
 
