@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -12,7 +12,6 @@ import {
   Database,
   Droplets,
   Gauge,
-  Map,
   Satellite,
   ShieldAlert,
   ShieldCheck,
@@ -64,7 +63,7 @@ const stats = [
   { value: "24/7", label: "Real-time Feeds" }
 ];
 
-// ── Floating Particles Canvas ──────────────────────────────────
+// ── Floating Particles Canvas (Optimized) ───────────────────────
 function FloatingParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -92,6 +91,7 @@ function FloatingParticles() {
     const particles: Particle[] = [];
 
     const resize = () => {
+      if (!canvas) return;
       w = canvas.width = canvas.offsetWidth;
       h = canvas.height = canvas.offsetHeight;
     };
@@ -99,15 +99,15 @@ function FloatingParticles() {
     const init = () => {
       resize();
       particles.length = 0;
-      const count = Math.min(Math.floor((w * h) / 12000), 120);
+      const count = Math.min(Math.floor((w * h) / 14000), 100);
       for (let i = 0; i < count; i++) {
         particles.push({
           x: Math.random() * w,
           y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.35,
-          vy: (Math.random() - 0.5) * 0.25,
-          r: Math.random() * 1.8 + 0.5,
-          alpha: Math.random() * 0.5 + 0.1,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.2,
+          r: Math.random() * 1.5 + 0.5,
+          alpha: Math.random() * 0.4 + 0.1,
           pulseSpeed: Math.random() * 0.002 + 0.001,
           pulsePhase: Math.random() * Math.PI * 2
         });
@@ -132,19 +132,20 @@ function FloatingParticles() {
         ctx.fill();
       });
 
-      // Draw connection lines between nearby particles
+      // Optimized connection lines (reduced max distance to 75px)
+      const maxDist = 75;
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
-            const lineAlpha = (1 - dist / 100) * 0.08;
+          if (dist < maxDist) {
+            const lineAlpha = (1 - dist / maxDist) * 0.06;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
             ctx.strokeStyle = `rgba(34, 211, 238, ${lineAlpha})`;
-            ctx.lineWidth = 0.5;
+            ctx.lineWidth = 0.4;
             ctx.stroke();
           }
         }
@@ -176,7 +177,6 @@ function FloatingParticles() {
 function RadarSweep() {
   return (
     <div className="absolute inset-0 pointer-events-none z-[4] overflow-hidden">
-      {/* Horizontal scan line */}
       <div
         className="absolute left-0 right-0 h-[1px]"
         style={{
@@ -184,7 +184,6 @@ function RadarSweep() {
           animation: "scanLineV 8s linear infinite"
         }}
       />
-      {/* Radial pulse from center-right (India location) */}
       <div
         className="absolute"
         style={{
@@ -243,7 +242,6 @@ function DataNodes() {
           className="absolute flex items-center gap-1.5"
           style={{ top: node.top, left: node.left }}
         >
-          {/* Pulsing ring */}
           <span className="relative flex h-3 w-3">
             <span
               className="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
@@ -253,7 +251,6 @@ function DataNodes() {
           </span>
           <span
             className="text-[9px] font-mono text-cyan-300/70 tracking-wider whitespace-nowrap bg-slate-950/50 px-1 py-0.5 rounded backdrop-blur-sm"
-            style={{ animationDelay: node.delay }}
           >
             {node.label}
           </span>
@@ -263,36 +260,47 @@ function DataNodes() {
   );
 }
 
-// ── Interactive 3D Tilt Card Component ──────────────────────────
+// ── Interactive 3D Tilt Card (Optimized using style Refs) ───────
 function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: string; detail: string; index: number }) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-  const [shine, setShine] = useState({ x: 50, y: 50 });
+  const shineRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
+    const card = cardRef.current;
+    const shine = shineRef.current;
+    if (!card) return;
+
+    const rect = card.getBoundingClientRect();
     const width = rect.width;
     const height = rect.height;
 
     const mouseX = e.clientX - rect.left - width / 2;
     const mouseY = e.clientY - rect.top - height / 2;
 
-    const rX = -(mouseY / (height / 2)) * 12;
-    const rY = (mouseX / (width / 2)) * 12;
+    const rX = -(mouseY / (height / 2)) * 10;
+    const rY = (mouseX / (width / 2)) * 10;
 
-    setTilt({ x: rX, y: rY });
+    card.style.transform = `perspective(1000px) rotateX(${rX.toFixed(1)}deg) rotateY(${rY.toFixed(1)}deg) scale3d(1.03, 1.03, 1)`;
+    card.style.transition = "transform 0.05s ease-out, border-color 0.3s ease";
 
-    const sX = ((e.clientX - rect.left) / width) * 100;
-    const sY = ((e.clientY - rect.top) / height) * 100;
-    setShine({ x: sX, y: sY });
-    setIsHovered(true);
+    if (shine) {
+      const sX = ((e.clientX - rect.left) / width) * 100;
+      const sY = ((e.clientY - rect.top) / height) * 100;
+      shine.style.background = `radial-gradient(circle at ${sX.toFixed(0)}% ${sY.toFixed(0)}%, rgba(34, 211, 238, 0.15) 0%, transparent 60%)`;
+      shine.style.opacity = "1";
+    }
   };
 
   const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-    setIsHovered(false);
+    const card = cardRef.current;
+    const shine = shineRef.current;
+    if (card) {
+      card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+      card.style.transition = "transform 0.4s ease-out, border-color 0.3s ease";
+    }
+    if (shine) {
+      shine.style.opacity = "0";
+    }
   };
 
   return (
@@ -300,18 +308,14 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`glass-card p-6 rounded-xl hover:border-cyan-400/40 transition-colors group animate-fade-in-up stagger-${index + 1} perspective-1000 relative overflow-hidden`}
+      className={`glass-card p-6 rounded-xl hover:border-cyan-400/40 group animate-fade-in-up stagger-${index + 1} perspective-1000 relative overflow-hidden`}
       style={{
-        transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale3d(${isHovered ? 1.03 : 1}, ${isHovered ? 1.03 : 1}, 1)`,
-        transition: isHovered ? "transform 0.05s ease-out, border-color 0.3s ease" : "transform 0.5s ease-out, border-color 0.3s ease",
         transformStyle: "preserve-3d"
       }}
     >
       <div
-        className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-350 z-0"
-        style={{
-          background: `radial-gradient(circle at ${shine.x}% ${shine.y}%, rgba(34, 211, 238, 0.15) 0%, transparent 60%)`
-        }}
+        ref={shineRef}
+        className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 z-0"
       />
 
       <div className="relative z-10" style={{ transform: "translateZ(30px)" }}>
@@ -325,11 +329,13 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
   );
 }
 
+// ── Main Optimized Landing Page Component ───────────────────────
 export default function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-  const [bgOffset, setBgOffset] = useState({ x: 0, y: 0 });
+  const bgRef = useRef<HTMLDivElement>(null);
+  const telemetryRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const badgeRef = useRef<HTMLDivElement>(null);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!heroRef.current) return;
@@ -339,37 +345,61 @@ export default function LandingPage() {
     const x = (clientX - left) / width - 0.5;
     const y = (clientY - top) / height - 0.5;
 
-    setMousePos({ x, y });
-    setBgOffset({ x: x * 30, y: y * 20 });
-    setIsHovered(true);
+    // Direct DOM styling updates to bypass React re-render cycle
+    if (bgRef.current) {
+      bgRef.current.style.animation = "none";
+      bgRef.current.style.transform = `translate3d(${(x * 24).toFixed(1)}px, ${(y * 16).toFixed(1)}px, 0) scale(1.08)`;
+      bgRef.current.style.transition = "transform 0.1s ease-out";
+    }
+    if (telemetryRef.current) {
+      telemetryRef.current.style.transform = `translate3d(${(x * 12).toFixed(1)}px, ${(y * 12).toFixed(1)}px, 0)`;
+      telemetryRef.current.style.transition = "transform 0.08s ease-out";
+    }
+    if (contentRef.current) {
+      contentRef.current.style.transform = `translate3d(${(x * -10).toFixed(1)}px, ${(y * -10).toFixed(1)}px, 0)`;
+      contentRef.current.style.transition = "transform 0.08s ease-out";
+    }
+    if (badgeRef.current) {
+      badgeRef.current.style.transform = `translate3d(${(x * -15).toFixed(1)}px, ${(y * -15).toFixed(1)}px, 0)`;
+      badgeRef.current.style.transition = "transform 0.08s ease-out";
+    }
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    setMousePos({ x: 0, y: 0 });
-    setBgOffset({ x: 0, y: 0 });
-    setIsHovered(false);
+    if (bgRef.current) {
+      bgRef.current.style.transform = "";
+      bgRef.current.style.transition = "transform 1.8s ease-out";
+      setTimeout(() => {
+        if (bgRef.current) {
+          bgRef.current.style.animation = "slowDrift 20s ease-in-out infinite";
+        }
+      }, 1800);
+    }
+    if (telemetryRef.current) {
+      telemetryRef.current.style.transform = "";
+      telemetryRef.current.style.transition = "transform 0.8s ease-out";
+    }
+    if (contentRef.current) {
+      contentRef.current.style.transform = "";
+      contentRef.current.style.transition = "transform 0.8s ease-out";
+    }
+    if (badgeRef.current) {
+      badgeRef.current.style.transform = "";
+      badgeRef.current.style.transition = "transform 0.8s ease-out";
+    }
   }, []);
-
-  // Slow automatic drift for background when not hovering
-  const [autoDrift, setAutoDrift] = useState({ x: 0, y: 0 });
-  useEffect(() => {
-    let t = 0;
-    const interval = setInterval(() => {
-      if (!isHovered) {
-        t += 0.015;
-        setAutoDrift({
-          x: Math.sin(t) * 8,
-          y: Math.cos(t * 0.7) * 5
-        });
-      }
-    }, 50);
-    return () => clearInterval(interval);
-  }, [isHovered]);
-
-  const effectiveOffset = isHovered ? bgOffset : autoDrift;
 
   return (
     <main className="min-h-screen relative overflow-hidden bg-[#020617]">
+      {/* Dynamic Keyframe Injection */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes slowDrift {
+          0% { transform: translate3d(0px, 0px, 0) scale(1.08); }
+          50% { transform: translate3d(8px, 5px, 0) scale(1.08); }
+          100% { transform: translate3d(0px, 0px, 0) scale(1.08); }
+        }
+      ` }} />
+
       {/* ── Hero Section ──────────────────────────────────────── */}
       <section
         ref={heroRef}
@@ -377,13 +407,10 @@ export default function LandingPage() {
         onMouseLeave={handleMouseLeave}
         className="relative min-h-[92vh] flex items-center overflow-hidden"
       >
-        {/* Cinematic Earth Background — full bleed with parallax */}
+        {/* Cinematic Earth Background — full bleed with slow CSS drift */}
         <div
-          className="absolute inset-[-40px] select-none pointer-events-none z-[1]"
-          style={{
-            transform: `translate3d(${effectiveOffset.x}px, ${effectiveOffset.y}px, 0) scale(1.08)`,
-            transition: isHovered ? "transform 0.12s ease-out" : "transform 2s ease-out"
-          }}
+          ref={bgRef}
+          className="absolute inset-[-40px] select-none pointer-events-none z-[1] animate-[slowDrift_25s_ease-in-out_infinite]"
         >
           <Image
             src="/earth-india-hero.png"
@@ -417,11 +444,8 @@ export default function LandingPage() {
 
         {/* Telemetry Digital Stream Overlay */}
         <div
+          ref={telemetryRef}
           className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-cyan-400/10 bg-slate-950/75 backdrop-blur-md font-mono text-[11px] text-cyan-300/80 hidden xl:block z-10 leading-relaxed shadow-glow"
-          style={{
-            transform: `translate3d(${mousePos.x * 12}px, ${mousePos.y * 12}px, 0)`,
-            transition: isHovered ? "transform 0.08s ease-out" : "transform 0.9s ease-out"
-          }}
         >
           <div className="flex items-center justify-between border-b border-cyan-400/20 pb-1.5 mb-2 font-bold text-cyan-300">
             <span>TELEMETRY STREAM</span>
@@ -443,18 +467,12 @@ export default function LandingPage() {
         <div className="relative z-10 container mx-auto px-6 lg:px-16 pt-24 pb-36 lg:pb-48 w-full">
           <div className="max-w-2xl">
             <div
-              className="space-y-6 lg:space-y-8 animate-fade-in-up"
-              style={{
-                transform: `translate3d(${mousePos.x * -12}px, ${mousePos.y * -12}px, 0)`,
-                transition: isHovered ? "transform 0.08s ease-out" : "transform 0.9s ease-out"
-              }}
+              ref={contentRef}
+              className="space-y-6 lg:space-y-8 animate-fade-in"
             >
               <div
+                ref={badgeRef}
                 className="inline-flex items-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-sm font-medium text-cyan-300 backdrop-blur-sm shadow-glow"
-                style={{
-                  transform: `translate3d(${mousePos.x * -18}px, ${mousePos.y * -18}px, 0)`,
-                  transition: isHovered ? "transform 0.08s ease-out" : "transform 0.9s ease-out"
-                }}
               >
                 <ShieldAlert className="w-4 h-4 text-cyan-400 animate-pulse" />
                 Government-tech climate command layer
@@ -468,13 +486,7 @@ export default function LandingPage() {
                 An AI-powered digital twin of India&apos;s climate system for prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks.
               </p>
 
-              <div
-                className="pt-4 flex flex-wrap gap-4"
-                style={{
-                  transform: `translate3d(${mousePos.x * -8}px, ${mousePos.y * -8}px, 0)`,
-                  transition: isHovered ? "transform 0.08s ease-out" : "transform 0.9s ease-out"
-                }}
-              >
+              <div className="pt-4 flex flex-wrap gap-4">
                 <Link
                   href="/dashboard"
                   className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-600 hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
