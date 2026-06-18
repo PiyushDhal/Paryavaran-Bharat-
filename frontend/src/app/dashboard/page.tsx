@@ -260,7 +260,7 @@ export default function DashboardPage() {
               </Link>
             </div>
             
-            <div className="flex-1 w-full h-full relative cursor-pointer" onClick={() => window.location.href = "/map"}>
+            <div className="flex-1 w-full h-full relative">
               <DigitalTwinMap compact />
             </div>
             

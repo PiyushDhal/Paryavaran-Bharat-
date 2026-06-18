@@ -885,7 +885,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   }, [mapMode]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-112px)] overflow-hidden rounded-xl border border-cyan-500/20 bg-slate-950">
+    <div className={`relative w-full overflow-hidden rounded-xl border border-cyan-500/20 bg-slate-950 ${compact ? "h-full" : "h-[calc(100vh-112px)]"}`}>
       {/* Map Content Container */}
       <div className="relative w-full h-full">
         {token ? (
