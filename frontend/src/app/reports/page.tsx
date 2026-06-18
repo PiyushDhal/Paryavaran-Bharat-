@@ -106,10 +106,39 @@ const generateHistoryData = (districtName: string) => {
   });
 };
 
+// ─── Interactive Map Forecast Lookups ────────────────────────────────
+const STATE_FORECASTS: Record<string, { alert: string; temp: number; risk: number; forecast: string }> = {
+  "Rajasthan": { alert: "CRITICAL HEAT", temp: 42, risk: 85, forecast: "Severe heatwave alert. High evaporative demand. Avoid midday exposure." },
+  "Gujarat": { alert: "HIGH RISK", temp: 38, risk: 70, forecast: "Extreme heat warning. Coastal humidity exacerbating thermal discomfort." },
+  "Maharashtra": { alert: "MODERATE RISK", temp: 34, risk: 55, forecast: "Stable seasonal conditions. Elevated humidity in coastal belt." },
+  "Karnataka": { alert: "SAFE ZONE", temp: 31, risk: 30, forecast: "Normal weather. Light convective rain showers expected in the evening." },
+  "Tamil Nadu": { alert: "SAFE ZONE", temp: 32, risk: 28, forecast: "Clear skies. Strong onshore coastal winds. Reservoir storage at safe capacity." },
+  "Uttar Pradesh": { alert: "HIGH HEAT", temp: 40, risk: 72, forecast: "Severe thermal anomaly. Dry conditions increasing dust storms risk." },
+  "West Bengal": { alert: "MODERATE FLOOD", temp: 33, risk: 62, forecast: "Heavy monsoon showers. Rising river levels in low-lying sub-basins." },
+  "Assam": { alert: "CRITICAL FLOOD", temp: 29, risk: 88, forecast: "Torrential downpours. Red flood warning. Extreme runoff expected." }
+};
+
+const DISTRICT_ZONE_FORECASTS: Record<string, { risk: number; temp: number; rainfall: number; soil: string; warning: string }> = {
+  "North Taluka": { risk: 78, temp: 39, rainfall: 12, soil: "Slightly Depleted (30% saturation)", warning: "⚠️ Crop stress warning" },
+  "East Taluka": { risk: 88, temp: 37, rainfall: 220, soil: "Saturated (92% saturation)", warning: "🚨 Flood inundation alert" },
+  "South Taluka": { risk: 42, temp: 32, rainfall: 45, soil: "Adequate (58% saturation)", warning: "✓ Conditions nominal" },
+  "West Taluka": { risk: 30, temp: 33, rainfall: 20, soil: "Adequate (52% saturation)", warning: "✓ Conditions nominal" }
+};
+
+const HEATMAP_HOTSPOT_FORECASTS: Record<string, { title: string; risk: string; desc: string }> = {
+  "basin": { title: "River Basin Discharge Point", risk: "CRITICAL FLOOD SPEED", desc: "Monsoon runoff peaks are causing rapid elevation rise. Watch levels closely." },
+  "urban": { title: "Metropolitan Heat Island", risk: "EXTREME TEMPERATURE", desc: "Concentrated concrete sprawl trapping convective heat. Thermal load is high." },
+  "farm": { title: "Arid Crop Belt Focus", risk: "HIGH MOISTURE DEFICIT", desc: "Topsoil moisture depleted below sustainable crop root-depth thresholds." }
+};
+
 export default function ReportsPage() {
   const { setSelectedDistrictId, setActiveLayer } = useClimate();
 
   // ─── States ────────────────────────────────────────────────────────
+  const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
+  const [hoveredDistrictZone, setHoveredDistrictZone] = useState<string | null>(null);
+  const [hoveredHeatspot, setHoveredHeatspot] = useState<string | null>(null);
+
   const [selectedStateId, setSelectedStateId] = useState<string>("all");
   const [compareStateId, setCompareStateId] = useState<string>("all");
   
@@ -1031,74 +1060,303 @@ export default function ReportsPage() {
                       <div className="grid gap-4 md:grid-cols-3 no-print mb-6">
                         
                         {/* Map 1: District boundary */}
-                        <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                          <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-2">
-                            District Boundaries Grid
-                          </p>
-                          <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg">
-                            <line x1="20" y1="0" x2="20" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="60" y1="0" x2="60" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="100" y1="0" x2="100" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="140" y1="0" x2="140" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="180" y1="0" x2="180" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="0" y1="30" x2="200" y2="30" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="0" y1="75" x2="200" y2="75" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            <line x1="0" y1="120" x2="200" y2="120" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
-                            
-                            <polygon points="45,35 125,25 165,55 145,115 75,125 35,85" fill="rgba(6,182,212,0.04)" stroke="rgba(6,182,212,0.35)" strokeWidth="1.2" />
-                            <line x1="75" y1="125" x2="125" y2="25" stroke="rgba(6,182,212,0.15)" />
-                            <line x1="45" y1="35" x2="145" y2="115" stroke="rgba(6,182,212,0.15)" />
-                            
-                            <circle cx="100" cy="70" r="3" fill="#22d3ee" />
-                            <circle cx="100" cy="70" r="12" fill="none" stroke="#22d3ee" strokeWidth="0.8" strokeDasharray="3" className="animate-pulse" />
-                            
-                            <text x="105" y="73" fill="#22d3ee" fontSize="8" fontWeight="bold" fontFamily="sans-serif">{generatedReport.districtName}</text>
-                            <text x="10" y="140" fill="#64748b" fontSize="7" fontFamily="monospace">MODEL ACC: SSP5-8.5</text>
-                          </svg>
+                        <div className="relative group flex flex-col justify-between bg-slate-950/40 p-3 rounded-lg border border-slate-800 select-none">
+                          <div>
+                            <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
+                              <span>District Boundaries Grid</span>
+                              <span className="text-[9px] text-cyan-400 font-mono">Interactive Talukas</span>
+                            </p>
+                            <p className="text-[9px] text-slate-500 mb-2 leading-tight">Hover zones for telemetry forecast details.</p>
+                          </div>
+                          <div className="relative overflow-visible">
+                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg">
+                              <line x1="20" y1="0" x2="20" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="60" y1="0" x2="60" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="100" y1="0" x2="100" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="140" y1="0" x2="140" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="180" y1="0" x2="180" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="0" y1="30" x2="200" y2="30" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="0" y1="75" x2="200" y2="75" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              <line x1="0" y1="120" x2="200" y2="120" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
+                              
+                              {/* Taluka Polygons */}
+                              <polygon 
+                                points="45,35 100,28 100,70 45,70" 
+                                fill={hoveredDistrictZone === "North Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
+                                stroke={hoveredDistrictZone === "North Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                strokeWidth={hoveredDistrictZone === "North Taluka" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredDistrictZone("North Taluka")} 
+                                onMouseLeave={() => setHoveredDistrictZone(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              <polygon 
+                                points="100,28 125,25 165,55 100,70" 
+                                fill={hoveredDistrictZone === "East Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
+                                stroke={hoveredDistrictZone === "East Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                strokeWidth={hoveredDistrictZone === "East Taluka" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredDistrictZone("East Taluka")} 
+                                onMouseLeave={() => setHoveredDistrictZone(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              <polygon 
+                                points="100,70 145,115 75,125 100,70" 
+                                fill={hoveredDistrictZone === "South Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
+                                stroke={hoveredDistrictZone === "South Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                strokeWidth={hoveredDistrictZone === "South Taluka" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredDistrictZone("South Taluka")} 
+                                onMouseLeave={() => setHoveredDistrictZone(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              <polygon 
+                                points="45,35 100,70 75,125 35,85" 
+                                fill={hoveredDistrictZone === "West Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
+                                stroke={hoveredDistrictZone === "West Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                strokeWidth={hoveredDistrictZone === "West Taluka" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredDistrictZone("West Taluka")} 
+                                onMouseLeave={() => setHoveredDistrictZone(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              
+                              <circle cx="100" cy="70" r="3.5" fill="#22d3ee" className="pointer-events-none" />
+                              <text x="105" y="73" fill="#22d3ee" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">{generatedReport.districtName}</text>
+                              <text x="10" y="142" fill="#64748b" fontSize="7" fontFamily="monospace" className="pointer-events-none">MODEL ACC: SSP5-8.5</text>
+                            </svg>
+
+                            {/* Floating Telemetry Box for District Zone */}
+                            {hoveredDistrictZone && DISTRICT_ZONE_FORECASTS[hoveredDistrictZone] && (
+                              <div className="absolute z-30 p-2.5 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
+                                <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
+                                  <span>{hoveredDistrictZone}</span>
+                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">Risk: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].risk}%</span>
+                                </p>
+                                <p className="mt-1 font-semibold text-white font-mono">Temp: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].temp}°C | Precip: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].rainfall}mm</p>
+                                <p className="text-slate-400 mt-0.5 leading-tight text-[8px]">Soil: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].soil}</p>
+                                <p className="text-rose-300 mt-0.5 font-bold">{DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].warning}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        {/* Map 2: State positioning */}
-                        <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                          <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-2">
-                            State Positioning Index
-                          </p>
-                          <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg">
-                            <path d="M25,25 L75,15 L145,25 L165,85 L115,125 L45,105 Z" fill="rgba(148,163,184,0.04)" stroke="rgba(148,163,184,0.2)" strokeWidth="1.2" />
-                            
-                            <circle cx="95" cy="70" r="4" fill="#06b6d4" />
-                            <circle cx="95" cy="70" r="9" fill="none" stroke="#06b6d4" strokeWidth="0.8" className="animate-ping" style={{ animationDuration: '3s' }} />
-                            
-                            <line x1="95" y1="70" x2="135" y2="110" stroke="#06b6d4" strokeWidth="0.5" strokeDasharray="2" />
-                            <rect x="130" y="110" width="58" height="20" rx="2" fill="#091220" stroke="rgba(6,182,212,0.25)" />
-                            <text x="135" y="122" fill="#22d3ee" fontSize="7" fontWeight="bold" fontFamily="sans-serif">Focus Zone</text>
-                            
-                            <text x="10" y="20" fill="#94a3b8" fontSize="8" fontWeight="bold" fontFamily="sans-serif">{generatedReport.stateName}</text>
-                          </svg>
+                        {/* Map 2: State positioning (Interactive India Map) */}
+                        <div className="relative group flex flex-col justify-between bg-slate-950/40 p-3 rounded-lg border border-slate-800 select-none">
+                          <div>
+                            <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
+                              <span>National Climate Threat Map</span>
+                              <span className="text-[9px] text-cyan-400 font-mono">Click to Select State</span>
+                            </p>
+                            <p className="text-[9px] text-slate-500 mb-2 leading-tight">Hover states for weather alerts & forecasts.</p>
+                          </div>
+                          <div className="relative overflow-visible">
+                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg">
+                              {/* India major state outline polygons */}
+                              {/* Rajasthan */}
+                              <polygon 
+                                points="40,40 70,30 85,55 65,80 40,65" 
+                                fill={hoveredStateName === "Rajasthan" ? "rgba(244,63,94,0.35)" : "#f43f5e"} 
+                                fillOpacity={hoveredStateName === "Rajasthan" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Rajasthan" ? "#f43f5e" : "rgba(244,63,94,0.5)"} 
+                                strokeWidth={hoveredStateName === "Rajasthan" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Rajasthan")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("3"); showToast("State focus: Rajasthan"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Gujarat */}
+                              <polygon 
+                                points="25,75 50,80 60,95 35,100 20,90" 
+                                fill={hoveredStateName === "Gujarat" ? "rgba(245,158,11,0.35)" : "#f59e0b"} 
+                                fillOpacity={hoveredStateName === "Gujarat" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Gujarat" ? "#f59e0b" : "rgba(245,158,11,0.5)"} 
+                                strokeWidth={hoveredStateName === "Gujarat" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Gujarat")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("5"); showToast("State focus: Gujarat"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Maharashtra */}
+                              <polygon 
+                                points="55,90 95,85 100,115 65,130 50,115" 
+                                fill={hoveredStateName === "Maharashtra" ? "rgba(251,146,60,0.35)" : "#fb923c"} 
+                                fillOpacity={hoveredStateName === "Maharashtra" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Maharashtra" ? "#fb923c" : "rgba(251,146,60,0.5)"} 
+                                strokeWidth={hoveredStateName === "Maharashtra" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Maharashtra")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("1"); showToast("State focus: Maharashtra"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Karnataka */}
+                              <polygon 
+                                points="58,130 78,125 85,160 65,170" 
+                                fill={hoveredStateName === "Karnataka" ? "rgba(16,185,129,0.35)" : "#10b981"} 
+                                fillOpacity={hoveredStateName === "Karnataka" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Karnataka" ? "#10b981" : "rgba(16,185,129,0.5)"} 
+                                strokeWidth={hoveredStateName === "Karnataka" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Karnataka")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("6"); showToast("State focus: Karnataka"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Tamil Nadu */}
+                              <polygon 
+                                points="78,160 92,155 98,180 82,180" 
+                                fill={hoveredStateName === "Tamil Nadu" ? "rgba(16,185,129,0.35)" : "#10b981"} 
+                                fillOpacity={hoveredStateName === "Tamil Nadu" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Tamil Nadu" ? "#10b981" : "rgba(16,185,129,0.5)"} 
+                                strokeWidth={hoveredStateName === "Tamil Nadu" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Tamil Nadu")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("4"); showToast("State focus: Tamil Nadu"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Uttar Pradesh */}
+                              <polygon 
+                                points="85,45 125,40 135,65 100,75" 
+                                fill={hoveredStateName === "Uttar Pradesh" ? "rgba(251,146,60,0.35)" : "#fb923c"} 
+                                fillOpacity={hoveredStateName === "Uttar Pradesh" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Uttar Pradesh" ? "#fb923c" : "rgba(251,146,60,0.5)"} 
+                                strokeWidth={hoveredStateName === "Uttar Pradesh" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Uttar Pradesh")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("8"); showToast("State focus: Uttar Pradesh"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* West Bengal */}
+                              <polygon 
+                                points="140,70 160,70 155,100 140,100" 
+                                fill={hoveredStateName === "West Bengal" ? "rgba(251,146,60,0.35)" : "#fb923c"} 
+                                fillOpacity={hoveredStateName === "West Bengal" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "West Bengal" ? "#fb923c" : "rgba(251,146,60,0.5)"} 
+                                strokeWidth={hoveredStateName === "West Bengal" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("West Bengal")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("7"); showToast("State focus: West Bengal"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Assam */}
+                              <polygon 
+                                points="170,55 195,50 190,70 165,70" 
+                                fill={hoveredStateName === "Assam" ? "rgba(244,63,94,0.35)" : "#f43f5e"} 
+                                fillOpacity={hoveredStateName === "Assam" ? 0.45 : 0.2}
+                                stroke={hoveredStateName === "Assam" ? "#f43f5e" : "rgba(244,63,94,0.5)"} 
+                                strokeWidth={hoveredStateName === "Assam" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredStateName("Assam")} 
+                                onMouseLeave={() => setHoveredStateName(null)}
+                                onClick={() => { setSelectedStateId("2"); showToast("State focus: Assam"); }}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              
+                              {/* Dynamic glowing target indicator for currently selected district's state */}
+                              {district && (
+                                <>
+                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="3" fill="#22d3ee" className="pointer-events-none" />
+                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="8" fill="none" stroke="#22d3ee" strokeWidth="1" className="animate-ping pointer-events-none" />
+                                </>
+                              )}
+
+                              {/* Risk Legend Graphic inside SVG */}
+                              <g transform="translate(10, 110)" className="pointer-events-none">
+                                <rect x="0" y="0" width="8" height="6" fill="#10b981" />
+                                <rect x="10" y="0" width="8" height="6" fill="#fb923c" />
+                                <rect x="20" y="0" width="8" height="6" fill="#f59e0b" />
+                                <rect x="30" y="0" width="8" height="6" fill="#f43f5e" />
+                                <text x="0" y="14" fill="#64748b" fontSize="6" fontFamily="sans-serif">Normal</text>
+                                <text x="30" y="14" fill="#f43f5e" fontSize="6" fontFamily="sans-serif" fontWeight="bold">Critical</text>
+                              </g>
+                            </svg>
+
+                            {/* Floating Telemetry Box for State */}
+                            {hoveredStateName && STATE_FORECASTS[hoveredStateName] && (
+                              <div className="absolute z-30 p-2.5 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
+                                <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
+                                  <span>{hoveredStateName}</span>
+                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">{STATE_FORECASTS[hoveredStateName].alert}</span>
+                                </p>
+                                <p className="mt-1 font-semibold text-white font-mono">Temp: {STATE_FORECASTS[hoveredStateName].temp}°C | Risk: {STATE_FORECASTS[hoveredStateName].risk}%</p>
+                                <p className="text-slate-400 mt-0.5 leading-tight">{STATE_FORECASTS[hoveredStateName].forecast}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {/* Map 3: Risk Heatmap */}
-                        <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800 flex flex-col justify-between">
-                          <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-2">
-                            Multi-Hazard Risk Heatmap
-                          </p>
-                          <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg relative overflow-hidden">
-                            <defs>
-                              <radialGradient id="heat-glow-rep" cx="50%" cy="50%" r="50%">
-                                <stop offset="0%" stopColor={ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.4" />
-                                <stop offset="70%" stopColor={ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.08" />
-                                <stop offset="100%" stopColor="#091220" stopOpacity="0" />
-                              </radialGradient>
-                            </defs>
-                            
-                            <circle cx="110" cy="65" r="45" fill="url(#heat-glow-rep)" />
-                            <circle cx="75" cy="80" r="28" fill="url(#heat-glow-rep)" opacity="0.7" />
-                            
-                            <path d="M 55,65 Q 105,45 135,75" fill="none" stroke="rgba(239,68,68,0.2)" strokeWidth="0.8" strokeDasharray="3" />
-                            <path d="M 45,75 Q 105,55 125,85" fill="none" stroke="rgba(239,68,68,0.12)" strokeWidth="0.8" strokeDasharray="3" />
-                            
-                            <text x="10" y="20" fill="#f87171" fontSize="8" fontWeight="bold" fontFamily="sans-serif">HEAT GRADIENT</text>
-                            <text x="135" y="140" fill="#94a3b8" fontSize="8" fontFamily="monospace">{ranking.composite_risk}% composite</text>
-                          </svg>
+                        <div className="relative group flex flex-col justify-between bg-slate-950/40 p-3 rounded-lg border border-slate-800 select-none">
+                          <div>
+                            <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
+                              <span>Multi-Hazard Risk Heatmap</span>
+                              <span className="text-[9px] text-rose-400 font-mono">Radar Hotspots</span>
+                            </p>
+                            <p className="text-[9px] text-slate-500 mb-2 leading-tight">Hover hotspots for specific telemetry summaries.</p>
+                          </div>
+                          <div className="relative overflow-visible">
+                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg relative overflow-hidden">
+                              <defs>
+                                <radialGradient id="heat-glow-rep" cx="50%" cy="50%" r="50%">
+                                  <stop offset="0%" stopColor={ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.4" />
+                                  <stop offset="70%" stopColor={ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.08" />
+                                  <stop offset="100%" stopColor="#091220" stopOpacity="0" />
+                                </radialGradient>
+                              </defs>
+                              
+                              <circle cx="110" cy="65" r="45" fill="url(#heat-glow-rep)" className="pointer-events-none" />
+                              <circle cx="75" cy="80" r="28" fill="url(#heat-glow-rep)" opacity="0.7" className="pointer-events-none" />
+                              
+                              <path d="M 55,65 Q 105,45 135,75" fill="none" stroke="rgba(239,68,68,0.2)" strokeWidth="0.8" strokeDasharray="3" className="pointer-events-none" />
+                              <path d="M 45,75 Q 105,55 125,85" fill="none" stroke="rgba(239,68,68,0.12)" strokeWidth="0.8" strokeDasharray="3" className="pointer-events-none" />
+                              
+                              {/* Interactive Hotspots circles */}
+                              {/* River Basin Spot */}
+                              <circle 
+                                cx="110" 
+                                cy="65" 
+                                r="12" 
+                                fill={hoveredHeatspot === "basin" ? "rgba(239,68,68,0.2)" : "rgba(239,68,68,0.05)"} 
+                                stroke="#ef4444" 
+                                strokeWidth={hoveredHeatspot === "basin" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredHeatspot("basin")} 
+                                onMouseLeave={() => setHoveredHeatspot(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Urban Spot */}
+                              <circle 
+                                cx="75" 
+                                cy="80" 
+                                r="10" 
+                                fill={hoveredHeatspot === "urban" ? "rgba(245,158,11,0.2)" : "rgba(245,158,11,0.05)"} 
+                                stroke="#f59e0b" 
+                                strokeWidth={hoveredHeatspot === "urban" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredHeatspot("urban")} 
+                                onMouseLeave={() => setHoveredHeatspot(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              {/* Farm Spot */}
+                              <circle 
+                                cx="140" 
+                                cy="110" 
+                                r="9" 
+                                fill={hoveredHeatspot === "farm" ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.05)"} 
+                                stroke="#10b981" 
+                                strokeWidth={hoveredHeatspot === "farm" ? "1.5" : "1"} 
+                                onMouseEnter={() => setHoveredHeatspot("farm")} 
+                                onMouseLeave={() => setHoveredHeatspot(null)}
+                                className="cursor-pointer transition-all duration-200" 
+                              />
+                              
+                              <text x="10" y="20" fill="#f87171" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">HEAT CONTROLS</text>
+                              <text x="125" y="142" fill="#94a3b8" fontSize="8" fontFamily="monospace" className="pointer-events-none">{ranking.composite_risk}% composite</text>
+                            </svg>
+
+                            {/* Floating Telemetry Box for Heatspot */}
+                            {hoveredHeatspot && HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot] && (
+                              <div className="absolute z-30 p-2.5 rounded-lg border border-rose-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
+                                <p className="font-bold text-rose-400 border-b border-white/5 pb-0.5">
+                                  {HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot].title}
+                                </p>
+                                <p className="mt-1 font-semibold text-white font-mono">Status: {HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot].risk}</p>
+                                <p className="text-slate-400 mt-0.5 leading-tight text-[8.5px]">{HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot].desc}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                       </div>
