@@ -113,11 +113,6 @@ export default function DashboardPage() {
     return rankings.filter(r => r.composite_risk > 60).length;
   }, [rankings]);
 
-  const topAlert = useMemo(() => {
-    if (!alerts.length) return null;
-    // Prioritize CRITICAL severity
-    return alerts.find(a => a.severity === "CRITICAL") || alerts[0];
-  }, [alerts]);
 
   const dynamicBrief = useMemo(() => {
     if (!rankings.length) {
@@ -142,44 +137,6 @@ export default function DashboardPage() {
   return (
     <div className="grid gap-6 pb-6">
       
-      {/* ─── 1. SMART ALERT BANNER ───────────────────────────────────────────── */}
-      {topAlert && (
-        <Link href="/alerts" className="block transition-transform hover:scale-[1.005]">
-          <div className="group relative overflow-hidden rounded-xl border border-rose-500/30 bg-rose-950/20 px-5 py-4 backdrop-blur-md">
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-500/5 to-transparent pointer-events-none" />
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-500/15 border border-rose-500/30 animate-pulse">
-                  <AlertTriangle className="h-5 w-5 text-rose-400" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge tone="critical" className="bg-rose-500/80 hover:bg-rose-500 font-bold uppercase text-[9px] tracking-wider px-2 py-0.5">
-                      {topAlert.severity} ALERT
-                    </Badge>
-                    <span className="text-[11px] font-mono text-rose-400 font-semibold uppercase">
-                      {topAlert.alert_type} INCIDENT
-                    </span>
-                    <span className="text-slate-500 text-xs">•</span>
-                    <span className="text-slate-300 text-xs font-semibold">
-                      {topAlert.district}, {topAlert.state}
-                    </span>
-                  </div>
-                  <h3 className="mt-1 text-sm font-bold text-white group-hover:text-rose-200 transition-colors">
-                    {topAlert.title}
-                  </h3>
-                  <p className="mt-0.5 text-xs text-slate-400 leading-relaxed max-w-4xl">
-                    {topAlert.message}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-rose-400 shrink-0 font-medium group-hover:translate-x-1 transition-transform">
-                Assess Threat <ArrowRight className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          </div>
-        </Link>
-      )}
 
       {/* ─── HEADER SECTION ──────────────────────────────────────────────────── */}
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
