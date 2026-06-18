@@ -1290,6 +1290,20 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     mapRef.current.setStyle(styleUrl);
   }, [mapMode]);
 
+  // Reactive panning to global selected district
+  useEffect(() => {
+    if (!mapRef.current || !selectedDistrictId || allDistricts.length === 0) return;
+    const d = allDistricts.find((dist) => dist.id === selectedDistrictId);
+    if (d) {
+      mapRef.current.easeTo({
+        center: [d.centroid_lon, d.centroid_lat],
+        zoom: compact ? 4.5 : 5.8,
+        duration: 1200
+      });
+    }
+  }, [selectedDistrictId, allDistricts, compact]);
+
+
   return (
     <div className={`relative w-full overflow-hidden rounded-xl border border-cyan-500/20 bg-slate-950 ${compact ? "h-full" : "h-[calc(100vh-112px)]"}`}>
       {/* Map Content Container */}

@@ -15,6 +15,8 @@ import {
   ArrowRight
 } from "lucide-react";
 
+import { useClimate } from "@/store/useClimateStore";
+
 import { DigitalTwinMap } from "@/components/climate/DigitalTwinMap";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -77,15 +79,14 @@ function LiveClock() {
 }
 
 export default function DashboardPage() {
+  const { selectedDistrictId, activeYear, rankings } = useClimate();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [rankings, setRankings] = useState<Ranking[]>([]);
   const [alerts, setAlerts] = useState<ClimateAlert[]>([]);
 
   useEffect(() => {
-    Promise.all([api.analytics(), api.rankings(30), api.alerts()])
-      .then(([analyticsResponse, rankingResponse, alertResponse]) => {
+    Promise.all([api.analytics(), api.alerts()])
+      .then(([analyticsResponse, alertResponse]) => {
         setAnalytics(analyticsResponse);
-        setRankings(rankingResponse);
         setAlerts(alertResponse);
       })
       .catch(() => undefined);
@@ -118,6 +119,14 @@ export default function DashboardPage() {
     if (!rankings.length) {
       return "Heavy rainfall is expected across Eastern India over the next 48 hours. Flood probability has increased in Odisha and Assam while western India continues to experience heatwave conditions. Immediate monitoring is recommended.";
     }
+
+    if (selectedDistrictId) {
+      const dist = rankings.find(r => r.district_id === selectedDistrictId);
+      if (dist) {
+        return `Telemetry for ${dist.district_name} (${activeYear}) indicates a composite risk score of ${dist.composite_risk}. Flood risk is ${dist.flood_risk}% and Drought risk is ${dist.drought_risk}%. Local command units should be aware of these metrics. Next Step: Open AI Copilot to generate a detailed local assessment.`;
+      }
+    }
+
     const criticalDistricts = rankings.filter(r => r.composite_risk > 70).slice(0, 2).map(d => d.district_name);
     const rainHigh = rankings.find(r => r.flood_risk > 70);
     const droughtHigh = rankings.find(r => r.drought_risk > 70);
@@ -132,7 +141,7 @@ export default function DashboardPage() {
     }
     brief += `Coordinated disaster mitigation centers should monitor the affected basins in ${locations} immediately.`;
     return brief;
-  }, [rankings]);
+  }, [rankings, selectedDistrictId, activeYear]);
 
   return (
     <div className="grid gap-6 pb-6">

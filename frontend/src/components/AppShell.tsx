@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useClimate } from "@/store/useClimateStore";
+import { DistrictSelector } from "@/components/climate/DistrictSelector";
 
 const navSections = [
   {
@@ -68,6 +70,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("Dr. Amit Sharma");
   const [userRole, setUserRole] = useState("Director (Operations)");
+
+  const { activeYear, setActiveYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -184,24 +188,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* ── Top header bar ─────────────────────────────────────── */}
       <header className="sticky top-0 z-30 border-b border-cyan-300/15 bg-slate-950/84 px-4 py-3 backdrop-blur-2xl lg:ml-72">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={() => setMobileOpen(true)}
-              className="grid h-10 w-10 place-items-center rounded-md border border-cyan-300/20 bg-white/5 text-cyan-100 lg:hidden"
+              className="grid h-10 w-10 place-items-center rounded-md border border-cyan-300/20 bg-white/5 text-cyan-100 lg:hidden shrink-0"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </button>
-            <Link href="/" className="flex items-center gap-2 lg:hidden">
+            <Link href="/" className="flex items-center gap-2 lg:hidden shrink-0">
               <Orbit className="h-5 w-5 text-cyan-200" />
               <span className="font-semibold text-sm">Bharat Climate Twin</span>
             </Link>
-            <div className="hidden text-sm text-muted-foreground lg:block">
-              National Climate Digital Twin Command Layer
+            
+            {/* ── Global Context Command Bar ── */}
+            <div className="hidden lg:flex items-center gap-3 flex-1">
+              <div className="w-[240px]">
+                <DistrictSelector 
+                  value={selectedDistrictId} 
+                  onChange={setSelectedDistrictId} 
+                />
+              </div>
+              <div className="w-[140px]">
+                <select
+                  value={activeYear}
+                  onChange={(e) => setActiveYear(Number(e.target.value))}
+                  className="h-10 w-full rounded-md border border-cyan-500/20 bg-slate-950/70 px-3 text-sm font-medium text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
+                >
+                  <option value={2025}>2025 (Current)</option>
+                  <option value={2030}>2030 (Projected)</option>
+                </select>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          
+          <div className="flex items-center gap-3 shrink-0">
             <div className="hidden rounded-md border border-emerald-300/25 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Live feeds active
