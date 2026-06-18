@@ -143,11 +143,7 @@ export default function CopilotPage() {
       };
 
       setMessages((prev) => [...prev, botMsg]);
-      
-      // Execute any returned controller actions
-      if (response.action) {
-        executeAction(response.action);
-      }
+      // Note: We do not automatically execute actions to keep the user on the Copilot page.
     } catch (err) {
       // Graceful fallback to avoid technical error displays
       const fallbackMsg: ChatMessage = {
