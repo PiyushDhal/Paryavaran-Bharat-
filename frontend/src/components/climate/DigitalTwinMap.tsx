@@ -12,6 +12,7 @@ import type { District } from "@/lib/types";
 import { riskFill } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
 import { INDIA_OUTLINE } from "@/lib/indiaOutline";
+import { INDIA_STATES } from "@/lib/indiaStates";
 
 const layerOptions = [
   "temperature",
@@ -36,7 +37,6 @@ function colorForFeature(feature: GeoJSON.Feature, layer: string) {
   return "#2dd4bf";
 }
 
-// India bounding box for SVG map
 const INDIA_LON_MIN = 68;
 const INDIA_LON_MAX = 97;
 const INDIA_LAT_MIN = 8;
@@ -44,11 +44,22 @@ const INDIA_LAT_MAX = 37;
 const SVG_W = 320;
 const SVG_H = 340;
 
-function lonToX(lon: number) {
-  return ((lon - INDIA_LON_MIN) / (INDIA_LON_MAX - INDIA_LON_MIN)) * SVG_W;
+const centerLon = 80.0;
+const centerLat = 22.5;
+const scaleX = 8.5;
+const scaleY = 9.2;
+
+function lonToX(lon: number, lat: number = 22.5) {
+  const latRad = (lat * Math.PI) / 180;
+  return SVG_W / 2 + (lon - centerLon) * scaleX * Math.cos(latRad) - 19.0;
 }
+
 function latToY(lat: number) {
-  return ((INDIA_LAT_MAX - lat) / (INDIA_LAT_MAX - INDIA_LAT_MIN)) * SVG_H;
+  const latRad = (lat * Math.PI) / 180;
+  const mercN = Math.log(Math.tan(Math.PI / 4 + latRad / 2));
+  const centerLatRad = (centerLat * Math.PI) / 180;
+  const mercCenter = Math.log(Math.tan(Math.PI / 4 + centerLatRad / 2));
+  return SVG_H / 2 - (mercN - mercCenter) * scaleY * 57.2958 + 9.0;
 }
 
 function RegionSelectorModal({
@@ -136,28 +147,84 @@ function RegionSelectorModal({
               viewBox={`0 0 ${SVG_W} ${SVG_H}`}
               className="rounded-md border border-cyan-300/10 bg-[#040d18]"
             >
-              {/* Grid lines */}
-              {Array.from({ length: 6 }, (_, i) => (
-                <line
-                  key={`vl-${i}`}
-                  x1={(i / 5) * SVG_W}
-                  y1={0}
-                  x2={(i / 5) * SVG_W}
-                  y2={SVG_H}
-                  stroke="rgba(34,211,238,0.06)"
-                  strokeWidth={1}
-                />
-              ))}
-              {Array.from({ length: 6 }, (_, i) => (
-                <line
-                  key={`hl-${i}`}
-                  x1={0}
-                  y1={(i / 5) * SVG_H}
-                  x2={SVG_W}
-                  y2={(i / 5) * SVG_H}
-                  stroke="rgba(34,211,238,0.06)"
-                  strokeWidth={1}
-                />
+              {/* Grid lines with labels */}
+              {[70, 75, 80, 85, 90, 95].map((lon) => {
+                const x = lonToX(lon, 22.5);
+                return (
+                  <g key={`lon-line-${lon}`}>
+                    <line
+                      x1={x}
+                      y1={15}
+                      x2={x}
+                      y2={SVG_H - 15}
+                      stroke="rgba(34,211,238,0.05)"
+                      strokeWidth={1}
+                      strokeDasharray="2 4"
+                    />
+                    <text
+                      x={x}
+                      y={SVG_H - 5}
+                      fontSize={6.5}
+                      fill="rgba(34,211,238,0.25)"
+                      textAnchor="middle"
+                      fontFamily="monospace"
+                    >
+                      {lon}°E
+                    </text>
+                  </g>
+                );
+              })}
+              {[10, 15, 20, 25, 30, 35].map((lat) => {
+                const y = latToY(lat);
+                return (
+                  <g key={`lat-line-${lat}`}>
+                    <line
+                      x1={15}
+                      y1={y}
+                      x2={SVG_W - 15}
+                      y2={y}
+                      stroke="rgba(34,211,238,0.05)"
+                      strokeWidth={1}
+                      strokeDasharray="2 4"
+                    />
+                    <text
+                      x={5}
+                      y={y + 2}
+                      fontSize={6.5}
+                      fill="rgba(34,211,238,0.25)"
+                      textAnchor="start"
+                      fontFamily="monospace"
+                    >
+                      {lat}°N
+                    </text>
+                  </g>
+                );
+              })}
+
+              {/* India States Boundaries */}
+              {INDIA_STATES.map((state) => (
+                <g key={state.name} id={`state-${state.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                  {state.paths.map((path, idx) => {
+                    const pathData = path
+                      .map((pt, i) => {
+                        const x = lonToX(pt.lon, pt.lat);
+                        const y = latToY(pt.lat);
+                        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+                      })
+                      .join(" ") + " Z";
+                    return (
+                      <path
+                        key={idx}
+                        d={pathData}
+                        fill="rgba(8, 20, 34, 0.45)"
+                        stroke="rgba(34, 211, 238, 0.08)"
+                        strokeWidth={0.7}
+                        strokeLinejoin="round"
+                        className="transition-all duration-300 hover:stroke-cyan-400 hover:fill-cyan-950/20"
+                      />
+                    );
+                  })}
+                </g>
               ))}
 
               {/* India outline border */}
@@ -165,9 +232,9 @@ function RegionSelectorModal({
                 const indiaOutline = INDIA_OUTLINE;
                 const pathData = indiaOutline
                   .map((pt, i) => {
-                    const x = lonToX(pt.lon);
-                    const y = latToY(pt.lat);
-                    return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+                     const x = lonToX(pt.lon, pt.lat);
+                     const y = latToY(pt.lat);
+                     return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
                   })
                   .join(" ") + " Z";
 
@@ -176,19 +243,21 @@ function RegionSelectorModal({
                     {/* Filled India shape */}
                     <path
                       d={pathData}
-                      fill="rgba(34, 211, 238, 0.04)"
-                      stroke="rgba(34, 211, 238, 0.25)"
+                      fill="rgba(34, 211, 238, 0.02)"
+                      stroke="rgba(34, 211, 238, 0.35)"
                       strokeWidth={1.5}
                       strokeLinejoin="round"
+                      style={{ pointerEvents: "none" }}
                     />
                     {/* Glow outline */}
                     <path
                       d={pathData}
                       fill="none"
-                      stroke="rgba(34, 211, 238, 0.10)"
+                      stroke="rgba(34, 211, 238, 0.15)"
                       strokeWidth={4}
                       strokeLinejoin="round"
                       filter="url(#glow)"
+                      style={{ pointerEvents: "none" }}
                     />
                     {/* SVG glow filter */}
                     <defs>
@@ -217,7 +286,7 @@ function RegionSelectorModal({
                 ];
                 const pathData = sriLanka
                   .map((pt, i) => {
-                    const x = lonToX(pt.lon);
+                    const x = lonToX(pt.lon, pt.lat);
                     const y = latToY(pt.lat);
                     return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
                   })
@@ -235,7 +304,7 @@ function RegionSelectorModal({
 
               {/* District dots */}
               {districts.map((d) => {
-                const x = lonToX(d.centroid_lon);
+                const x = lonToX(d.centroid_lon, d.centroid_lat);
                 const y = latToY(d.centroid_lat);
                 const isFiltered = filtered.some((f) => f.id === d.id);
                 return (
