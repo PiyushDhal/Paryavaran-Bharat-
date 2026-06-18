@@ -12,6 +12,10 @@ type ClimateContextType = {
   activeLayer: string;
   setActiveLayer: (layer: string) => void;
   rankings: Ranking[];
+  timelineStep: string;
+  setTimelineStep: (step: string) => void;
+  mapMode: string;
+  setMapMode: (mode: string) => void;
 };
 
 const ClimateContext = createContext<ClimateContextType | undefined>(undefined);
@@ -21,6 +25,16 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>(101);
   const [activeLayer, setActiveLayer] = useState<string>("composite");
   const [rankings, setRankings] = useState<Ranking[]>([]);
+  const [timelineStep, setTimelineStep] = useState<string>("today");
+  const [mapMode, setMapMode] = useState<string>("streets");
+
+  useEffect(() => {
+    if (timelineStep === "2030") {
+      setActiveYear(2030);
+    } else {
+      setActiveYear(2025);
+    }
+  }, [timelineStep]);
 
   useEffect(() => {
     setRankings(generateRankings(activeYear));
@@ -35,7 +49,11 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
         setSelectedDistrictId,
         activeLayer,
         setActiveLayer,
-        rankings
+        rankings,
+        timelineStep,
+        setTimelineStep,
+        mapMode,
+        setMapMode
       }}
     >
       {children}
