@@ -1095,49 +1095,18 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
         {/* ─── FLOATING UI OVERLAYS ──────────────────────────────────── */}
 
-        {/* 1. Search Bar */}
+        {/* 1. Select Region Button */}
         {!compact && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-64 md:w-80 pointer-events-auto">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-cyan-300/50" />
-              <input
-                type="text"
-                placeholder="Search State or District..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setShowSearchDropdown(true);
-                }}
-                onFocus={() => setShowSearchDropdown(true)}
-                className="w-full h-8.5 pl-9 pr-8 bg-slate-950/85 backdrop-blur text-white text-xs border border-cyan-500/25 rounded-full focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setShowSearchDropdown(false);
-                  }}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-              
-              {showSearchDropdown && searchResults.length > 0 && (
-                <div className="absolute top-9.5 left-0 right-0 max-h-48 overflow-y-auto bg-slate-950/90 border border-cyan-500/25 rounded-md shadow-2xl backdrop-blur">
-                  {searchResults.map((d) => (
-                    <button
-                      key={d.id}
-                      onClick={() => handleSearchSelect(d)}
-                      className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-cyan-500/20 hover:text-white border-b border-white/5 last:border-0"
-                    >
-                      <span className="font-semibold">{d.name}</span>
-                      <span className="text-[10px] text-slate-400 ml-1.5">({d.state_name})</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 pointer-events-auto">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowSelector(true)}
+              className="border border-cyan-500/35 bg-slate-950/85 hover:bg-slate-900 text-cyan-300 text-xs rounded-full flex items-center gap-1.5 px-4.5 py-1.5 shadow-lg shadow-cyan-500/5 transition-all"
+            >
+              <LocateFixed className="h-3.5 w-3.5 text-cyan-400" />
+              <span>Select Region</span>
+            </Button>
           </div>
         )}
 
@@ -1348,20 +1317,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           </div>
         )}
 
-        {/* 7. Locate Trigger Button */}
-        {!compact && (
-          <div className="absolute top-4 right-52 z-20 pointer-events-auto">
-            <Button 
-              size="sm" 
-              variant="outline" 
-              onClick={() => setShowSelector(true)}
-              className="border-cyan-500/30 bg-slate-950/85 hover:bg-slate-900 text-cyan-300 text-xs rounded-full flex items-center gap-1.5"
-            >
-              <LocateFixed className="h-3.5 w-3.5" />
-              <span>Select Region</span>
-            </Button>
-          </div>
-        )}
+        {/* 7. Locate Trigger Button (Moved to Center) */}
       </div>
 
       {/* ─── SLIDING DISTRICT INFORMATION SIDEBAR PANEL ──────────────── */}
