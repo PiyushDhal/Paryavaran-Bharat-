@@ -198,6 +198,84 @@ function getTimelineMetricValue(
   return 50;
 }
 
+function getStateMetricValue(stateName: string, layer: string, year: number, timelineStep: string): number {
+  const seed = stateName.charCodeAt(0) + (stateName.charCodeAt(1) || 0) + year;
+  
+  if (layer.includes("risk") || layer === "composite_risk") {
+    let baseVal = 30 + (seed % 55);
+    if (timelineStep === "tomorrow") baseVal = Math.min(100, Math.max(0, baseVal + Math.sin(seed) * 3));
+    if (timelineStep === "7d") baseVal = Math.min(100, Math.max(0, baseVal + Math.sin(seed + 1) * 6));
+    if (timelineStep === "30d") baseVal = Math.min(100, Math.max(0, baseVal + Math.sin(seed + 2) * 10));
+    return baseVal;
+  }
+  
+  if (layer === "temperature") {
+    let t = 22 + (seed % 16);
+    if (timelineStep === "tomorrow") t += Math.sin(seed) * 0.5;
+    return t;
+  }
+  
+  if (layer === "rainfall") {
+    let r = 20 + (seed % 350);
+    if (timelineStep === "tomorrow") r = Math.max(0, r + Math.sin(seed) * 15);
+    return r;
+  }
+  
+  if (layer === "aqi") {
+    return 40 + (seed % 220);
+  }
+  
+  if (layer === "humidity") {
+    return 35 + (seed % 50);
+  }
+  
+  if (layer === "soil_moisture") {
+    return 15 + (seed % 70);
+  }
+  
+  if (layer === "ndvi") {
+    return (15 + (seed % 75)) / 100;
+  }
+  
+  if (layer === "reservoir_level") {
+    return 20 + (seed % 75);
+  }
+  
+  if (layer === "river_level") {
+    return (5 + (seed % 30)) / 10;
+  }
+  
+  if (layer === "population_density") {
+    return 1000000 + (seed % 10) * 1500000;
+  }
+  
+  return 50;
+}
+
+function getStateForecastText(stateName: string, layer: string, value: number, year: number): string {
+  const rounded = value.toFixed(1);
+  if (layer === "temperature") {
+    if (value > 38) return `Extreme Heatwave alert. Temperature forecast is ${rounded}°C. High thermal risk.`;
+    if (value > 30) return `Warm seasonal temperature at ${rounded}°C. Nominal urban heat index.`;
+    return `Mild conditions at ${rounded}°C. No thermal warnings active.`;
+  }
+  if (layer === "rainfall") {
+    if (value > 250) return `Heavy precipitation alert: ${rounded} mm. Risk of localized run-offs.`;
+    if (value > 100) return `Moderate monsoon showers at ${rounded} mm. Stable hydrological replenishment.`;
+    return `Light rainfall forecast: ${rounded} mm. Dry atmospheric column.`;
+  }
+  if (layer.includes("risk") || layer === "composite_risk") {
+    const riskLabel = value > 80 ? "Critical Risk" : value > 60 ? "High Risk" : value > 35 ? "Moderate Risk" : "Safe/Normal";
+    return `Composite climate hazard index is at ${rounded}% (${riskLabel}). Adaptation models active.`;
+  }
+  if (layer === "aqi") {
+    if (value > 150) return `Hazardous air quality index: ${rounded}. Elevated particulate concentration.`;
+    if (value > 100) return `Moderate/Unhealthy air quality index at ${rounded}. Sensory precautions advised.`;
+    return `Clean atmosphere. AQI is at ${rounded} (Good).`;
+  }
+  return `${layerMeta[layer]?.label || "Environmental metric"} is at ${rounded}${layerMeta[layer]?.unit || ""}. Status nominal.`;
+}
+
 // Generate dynamic AI analyses
 function generateAiAnalysis(districtName: string, metrics: Record<string, number>) {
   const comp = metrics.composite_risk ?? 50;
@@ -667,6 +745,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const [districtHistory, setDistrictHistory] = useState<ClimateObservation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
 
+  // Interactive State hover telemetry
+  const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
+
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   // Extract rankings, timeline, and layers from global context store
@@ -956,30 +1037,37 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               })}
 
               {/* Geographic States outlines */}
-              {INDIA_STATES.map((state) => (
-                <g key={state.name} id={`fallback-state-${state.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                  {state.paths.map((path, idx) => {
-                    const pathData = path
-                      .map((pt, i) => {
-                        const x = lonToX(pt.lon, pt.lat);
-                        const y = latToY(pt.lat);
-                        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-                      })
-                      .join(" ") + " Z";
-                    return (
-                      <path
-                        key={idx}
-                        d={pathData}
-                        fill="rgba(8, 20, 34, 0.45)"
-                        stroke="rgba(34, 211, 238, 0.16)"
-                        strokeWidth={0.7}
-                        strokeLinejoin="round"
-                        className="transition-colors duration-500 hover:fill-cyan-950/20"
-                      />
-                    );
-                  })}
-                </g>
-              ))}
+              {INDIA_STATES.map((state) => {
+                const stateVal = getStateMetricValue(state.name, activeLayer, activeYear, timelineStep);
+                const stateColor = getLayerColor(activeLayer, stateVal);
+                return (
+                  <g key={state.name} id={`fallback-state-${state.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                    {state.paths.map((path, idx) => {
+                      const pathData = path
+                        .map((pt, i) => {
+                          const x = lonToX(pt.lon, pt.lat);
+                          const y = latToY(pt.lat);
+                          return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+                        })
+                        .join(" ") + " Z";
+                      return (
+                        <path
+                          key={idx}
+                          d={pathData}
+                          fill={stateColor}
+                          fillOpacity={hoveredStateName === state.name ? 0.85 : 0.45}
+                          stroke={hoveredStateName === state.name ? "#22d3ee" : "rgba(34, 211, 238, 0.15)"}
+                          strokeWidth={hoveredStateName === state.name ? 1.4 : 0.6}
+                          strokeLinejoin="round"
+                          className="transition-all duration-300 cursor-pointer"
+                          onMouseEnter={() => setHoveredStateName(state.name)}
+                          onMouseLeave={() => setHoveredStateName(null)}
+                        />
+                      );
+                    })}
+                  </g>
+                );
+              })}
 
               {/* Complete Outer Boundary of India */}
               {(() => {
@@ -1087,6 +1175,44 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 );
               })}
             </svg>
+
+            {/* Floating Telemetry Box for State */}
+            {hoveredStateName && (
+              <div 
+                className="absolute top-4 right-4 z-30 p-3 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all"
+              >
+                <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
+                  <span>{hoveredStateName}</span>
+                  <span className="bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 text-[7px] font-bold px-1 py-0.5 rounded font-mono uppercase">
+                    {layerMeta[activeLayer]?.label || "Metric"}
+                  </span>
+                </p>
+                <div className="space-y-1 mt-1.5 font-sans">
+                  <div className="flex justify-between items-center text-[8.5px]">
+                    <span className="text-slate-400 uppercase font-semibold">Value:</span>
+                    <span className="font-bold font-mono text-cyan-300">
+                      {getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep).toFixed(activeLayer === "ndvi" || activeLayer === "river_level" ? 2 : 1)}
+                      {layerMeta[activeLayer]?.unit || ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-[8.5px]">
+                    <span className="text-slate-400 uppercase font-semibold">Risk Rating:</span>
+                    <span className="font-bold text-rose-400 font-mono">
+                      {getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 75 ? "🚨 CRITICAL" :
+                       getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 55 ? "⚠️ HIGH" : "✓ NORMAL"}
+                    </span>
+                  </div>
+                  <p className="text-[8.5px] text-slate-300 leading-tight border-t border-cyan-500/5 pt-1.5 mt-1 font-medium">
+                    {getStateForecastText(
+                      hoveredStateName,
+                      activeLayer,
+                      getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep),
+                      activeYear
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
