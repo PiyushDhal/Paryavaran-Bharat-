@@ -763,6 +763,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const mapMode = climateContext?.mapMode ?? "streets";
   const setMapMode = climateContext?.setMapMode ?? (() => undefined);
 
+  const statesGeoJson = useMemo(() => {
+    return {
+      type: "FeatureCollection",
+      features: INDIA_STATES.map((state) => ({
+        type: "Feature",
+        properties: {
+          name: state.name,
+          active_val: getStateMetricValue(state.name, activeLayer, activeYear, timelineStep)
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: state.paths.map((path) =>
+            path.map((pt) => [pt.lon, pt.lat])
+          )
+        }
+      }))
+    } as GeoJSON.FeatureCollection;
+  }, [activeLayer, activeYear, timelineStep]);
+
   useEffect(() => {
     api.layers().then(setData).catch(() => setData(null));
     api.districts().then(setAllDistricts).catch(() => undefined);
@@ -880,6 +899,38 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     mapRef.current = map;
 
     map.on("load", () => {
+      map.addSource("state-boundaries", {
+        type: "geojson",
+        data: statesGeoJson
+      });
+
+      map.addLayer({
+        id: "state-fill",
+        type: "fill",
+        source: "state-boundaries",
+        paint: {
+          "fill-color": [
+            "step",
+            ["get", "active_val"],
+            "#10b981", 35,
+            "#eab308", 60,
+            "#f97316", 80,
+            "#ef4444"
+          ],
+          "fill-opacity": 0.35
+        }
+      });
+
+      map.addLayer({
+        id: "state-line",
+        type: "line",
+        source: "state-boundaries",
+        paint: {
+          "line-color": "rgba(34, 211, 238, 0.25)",
+          "line-width": 0.8
+        }
+      });
+
       map.addSource("district-risk", {
         type: "geojson",
         data: {
@@ -908,6 +959,23 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         }
       });
 
+      // Mousemove and mouseleave events for states in Mapbox GL
+      map.on("mousemove", "state-fill", (e) => {
+        if (e.features && e.features.length > 0) {
+          map.getCanvas().style.cursor = "pointer";
+          const feature = e.features[0];
+          const name = feature.properties?.name;
+          if (name) {
+            setHoveredStateName(name);
+          }
+        }
+      });
+
+      map.on("mouseleave", "state-fill", () => {
+        map.getCanvas().style.cursor = "";
+        setHoveredStateName(null);
+      });
+
       map.on("click", "district-risk-fill", (event) => {
         const feature = event.features?.[0];
         if (feature) {
@@ -921,7 +989,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       map.remove();
       mapRef.current = null;
     };
-  }, [compact, data, token, setSelectedDistrictId]);
+  }, [compact, data, token, setSelectedDistrictId, statesGeoJson]);
 
   // Update Mapbox features when layer/timeline changes
   useEffect(() => {
@@ -934,25 +1002,38 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       });
     }
 
+    const stateSource = mapRef.current.getSource("state-boundaries") as mapboxgl.GeoJSONSource;
+    if (stateSource) {
+      stateSource.setData(statesGeoJson);
+    }
+
+    const colors = activeLayer.includes("risk") || activeLayer === "composite_risk"
+      ? ["#10b981", 35, "#eab308", 60, "#f97316", 80, "#ef4444"]
+      : activeLayer === "temperature"
+      ? ["#3b82f6", 20, "#10b981", 28, "#f97316", 36, "#ef4444"]
+      : activeLayer === "rainfall"
+      ? ["#ecfeff", 50, "#67e8f9", 150, "#3b82f6", 300, "#1d4ed8"]
+      : activeLayer === "aqi"
+      ? ["#10b981", 50, "#eab308", 100, "#f97316", 150, "#ef4444"]
+      : ["#22d3ee", 40, "#3b82f6", 75, "#1d4ed8"];
+
     // Set paint colors dynamically to match color mapping
     if (mapRef.current.getLayer("district-risk-fill")) {
-      const colors = activeLayer.includes("risk") || activeLayer === "composite_risk"
-        ? ["#10b981", 35, "#eab308", 60, "#f97316", 80, "#ef4444"]
-        : activeLayer === "temperature"
-        ? ["#3b82f6", 20, "#10b981", 28, "#f97316", 36, "#ef4444"]
-        : activeLayer === "rainfall"
-        ? ["#ecfeff", 50, "#67e8f9", 150, "#3b82f6", 300, "#1d4ed8"]
-        : activeLayer === "aqi"
-        ? ["#10b981", 50, "#eab308", 100, "#f97316", 150, "#ef4444"]
-        : ["#22d3ee", 40, "#3b82f6", 75, "#1d4ed8"];
-
       mapRef.current.setPaintProperty("district-risk-fill", "circle-color", [
         "step",
         ["get", "active_val"],
         ...colors
       ]);
     }
-  }, [mappedFeatures, activeLayer]);
+
+    if (mapRef.current.getLayer("state-fill")) {
+      mapRef.current.setPaintProperty("state-fill", "fill-color", [
+        "step",
+        ["get", "active_val"],
+        ...colors
+      ]);
+    }
+  }, [mappedFeatures, statesGeoJson, activeLayer]);
 
   // Update Mapbox style when mapMode changes
   useEffect(() => {
@@ -1175,44 +1256,44 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 );
               })}
             </svg>
+          </div>
+        )}
 
-            {/* Floating Telemetry Box for State */}
-            {hoveredStateName && (
-              <div 
-                className="absolute top-4 right-4 z-30 p-3 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all"
-              >
-                <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
-                  <span>{hoveredStateName}</span>
-                  <span className="bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 text-[7px] font-bold px-1 py-0.5 rounded font-mono uppercase">
-                    {layerMeta[activeLayer]?.label || "Metric"}
-                  </span>
-                </p>
-                <div className="space-y-1 mt-1.5 font-sans">
-                  <div className="flex justify-between items-center text-[8.5px]">
-                    <span className="text-slate-400 uppercase font-semibold">Value:</span>
-                    <span className="font-bold font-mono text-cyan-300">
-                      {getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep).toFixed(activeLayer === "ndvi" || activeLayer === "river_level" ? 2 : 1)}
-                      {layerMeta[activeLayer]?.unit || ""}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-[8.5px]">
-                    <span className="text-slate-400 uppercase font-semibold">Risk Rating:</span>
-                    <span className="font-bold text-rose-400 font-mono">
-                      {getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 75 ? "🚨 CRITICAL" :
-                       getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 55 ? "⚠️ HIGH" : "✓ NORMAL"}
-                    </span>
-                  </div>
-                  <p className="text-[8.5px] text-slate-300 leading-tight border-t border-cyan-500/5 pt-1.5 mt-1 font-medium">
-                    {getStateForecastText(
-                      hoveredStateName,
-                      activeLayer,
-                      getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep),
-                      activeYear
-                    )}
-                  </p>
-                </div>
+        {/* Floating Telemetry Box for State */}
+        {hoveredStateName && (
+          <div 
+            className="absolute top-16 right-4 z-30 p-3 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all"
+          >
+            <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
+              <span>{hoveredStateName}</span>
+              <span className="bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 text-[7px] font-bold px-1 py-0.5 rounded font-mono uppercase">
+                {layerMeta[activeLayer]?.label || "Metric"}
+              </span>
+            </p>
+            <div className="space-y-1 mt-1.5 font-sans">
+              <div className="flex justify-between items-center text-[8.5px]">
+                <span className="text-slate-400 uppercase font-semibold">Value:</span>
+                <span className="font-bold font-mono text-cyan-300">
+                  {getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep).toFixed(activeLayer === "ndvi" || activeLayer === "river_level" ? 2 : 1)}
+                  {layerMeta[activeLayer]?.unit || ""}
+                </span>
               </div>
-            )}
+              <div className="flex justify-between items-center text-[8.5px]">
+                <span className="text-slate-400 uppercase font-semibold">Risk Rating:</span>
+                <span className="font-bold text-rose-400 font-mono">
+                  {getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 75 ? "🚨 CRITICAL" :
+                   getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 55 ? "⚠️ HIGH" : "✓ NORMAL"}
+                </span>
+              </div>
+              <p className="text-[8.5px] text-slate-300 leading-tight border-t border-cyan-500/5 pt-1.5 mt-1 font-medium">
+                {getStateForecastText(
+                  hoveredStateName,
+                  activeLayer,
+                  getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep),
+                  activeYear
+                )}
+              </p>
+            </div>
           </div>
         )}
 
