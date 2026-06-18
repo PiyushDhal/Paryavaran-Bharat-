@@ -26,7 +26,6 @@ import {
   FileText,
   Scale,
   CalendarRange,
-  Leaf,
   LogOut,
   UserCheck
 } from "lucide-react";
@@ -41,8 +40,7 @@ const navSections = [
       { href: "/map", label: "Digital Twin Map", icon: Map },
       { href: "/analytics", label: "Climate Analytics", icon: BarChart3 },
       { href: "/risk-center", label: "Risk Center", icon: Activity },
-      { href: "/compare", label: "District Comparison", icon: Scale },
-      { href: "/sustainability", label: "Sustainability Index", icon: Leaf }
+      { href: "/compare", label: "District Comparison", icon: Scale }
     ]
   },
   {

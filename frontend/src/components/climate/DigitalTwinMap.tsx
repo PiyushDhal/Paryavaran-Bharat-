@@ -171,6 +171,69 @@ const layerMeta: Record<
     colors: ["#fef08a", "#f97316", "#c084fc"],
     thresholds: [1500000, 5000000],
   },
+  sustainability_score: {
+    label: "Sustainability Score",
+    unit: " pts",
+    min: 0,
+    max: 100,
+    ranges: ["Critical (<40)", "Moderate (40-60)", "High (60-80)", "Lush (>=80)"],
+    colors: ["#ef4444", "#f59e0b", "#06b6d4", "#10b981"],
+    thresholds: [40, 60, 80],
+  },
+  green_cover: {
+    label: "Green Cover",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Barren (<30)", "Normal (30-65)", "Dense (>=65)"],
+    colors: ["#ca8a04", "#84cc16", "#15803d"],
+    thresholds: [30, 65],
+  },
+  water_resources: {
+    label: "Water Resources",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Scarcity (<35)", "Stressed (35-70)", "Abundant (>=70)"],
+    colors: ["#ef4444", "#eab308", "#3b82f6"],
+    thresholds: [35, 70],
+  },
+  air_quality: {
+    label: "Air Quality Score",
+    unit: " AQI",
+    min: 0,
+    max: 300,
+    ranges: ["Good (<50)", "Moderate (50-100)", "Unhealthy (100-150)", "Hazardous (>=150)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [50, 100, 150],
+  },
+  carbon_impact: {
+    label: "Carbon Impact",
+    unit: " tons",
+    min: 0,
+    max: 100,
+    ranges: ["Low (<35)", "Moderate (35-65)", "High (>=65)"],
+    colors: ["#10b981", "#f97316", "#ef4444"],
+    thresholds: [35, 65],
+  },
+  climate_resilience: {
+    label: "Climate Resilience",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Vulnerable (<40)", "Adaptive (40-75)", "Resilient (>=75)"],
+    colors: ["#ef4444", "#eab308", "#10b981"],
+    thresholds: [40, 75],
+  },
+  environmental_health: {
+    label: "Environmental Health",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Poor (<45)", "Fair (45-75)", "Excellent (>=75)"],
+    colors: ["#ef4444", "#eab308", "#10b981"],
+    thresholds: [45, 75],
+  },
 };
 
 // ─── Color Scales ────────────────────────────────────────────────────
@@ -273,6 +336,38 @@ function getTimelineMetricValue(
 
   const isWet = [201, 202, 203, 401, 701, 702].includes(districtId);
   const isHot = [301, 302, 303, 501].includes(districtId);
+
+  if (layer === "sustainability_score") {
+    const r = rankings.find((x) => x.district_id === districtId);
+    const risk = r?.composite_risk ?? 50;
+    const drought = r?.drought_risk ?? 50;
+    const safety = 100 - risk;
+    const soil = Math.max(10, Math.min(100, 100 - drought * 0.8));
+    const ndvi = isHot ? 22 : 65;
+    const aqi = isHot ? 60 : 80;
+    const reservoir = isWet ? 82 : 30;
+    return Math.round(ndvi * 0.25 + aqi * 0.2 + reservoir * 0.2 + safety * 0.2 + soil * 0.15);
+  }
+  if (layer === "green_cover") {
+    return isHot ? 22 : 65;
+  }
+  if (layer === "water_resources") {
+    return isWet ? 82 : 30;
+  }
+  if (layer === "air_quality") {
+    return isHot ? 140 : 65;
+  }
+  if (layer === "carbon_impact") {
+    return Math.round(45 + Math.sin(districtId) * 15);
+  }
+  if (layer === "climate_resilience") {
+    const r = rankings.find((x) => x.district_id === districtId);
+    return Math.round(100 - (r?.composite_risk ?? 50));
+  }
+  if (layer === "environmental_health") {
+    return isHot ? 40 : 78;
+  }
+
   if (layer === "temperature") return isHot ? 36.5 : 24.2;
   if (layer === "rainfall") return isWet ? 280 : 35;
   if (layer === "aqi") return isHot ? 120 : 65;
@@ -335,7 +430,31 @@ function getStateMetricValue(stateName: string, layer: string, year: number, tim
   if (layer === "population_density") {
     return 1000000 + (seed % 10) * 1500000;
   }
-  
+
+  if (layer === "sustainability_score") {
+    const risk = getStateMetricValue(stateName, "composite_risk", year, timelineStep);
+    return Math.round(100 - risk + (seed % 20) - 10);
+  }
+  if (layer === "green_cover") {
+    return 30 + (seed % 55);
+  }
+  if (layer === "water_resources") {
+    return 20 + (seed % 65);
+  }
+  if (layer === "air_quality") {
+    return 40 + (seed % 150);
+  }
+  if (layer === "carbon_impact") {
+    return 25 + (seed % 50);
+  }
+  if (layer === "climate_resilience") {
+    const risk = getStateMetricValue(stateName, "composite_risk", year, timelineStep);
+    return Math.round(100 - risk);
+  }
+  if (layer === "environmental_health") {
+    return 35 + (seed % 50);
+  }
+
   return 50;
 }
 
@@ -360,6 +479,28 @@ function getStateForecastText(stateName: string, layer: string, value: number, y
     if (value > 100) return `Moderate/Unhealthy air quality index at ${rounded}. Sensory precautions advised.`;
     return `Clean atmosphere. AQI is at ${rounded} (Good).`;
   }
+  if (layer === "sustainability_score") {
+    return `Composite ecological sustainability score is ${rounded} pts. Environmental systems are ${value >= 75 ? "robust and healthy" : value >= 50 ? "moderately balanced" : "vulnerable/under stress"}.`;
+  }
+  if (layer === "green_cover") {
+    return `Forest cover health and NDVI density is estimated at ${rounded}%. Canopy density matches normal seasonal variation.`;
+  }
+  if (layer === "water_resources") {
+    return `Basin water reserves and hydrological storage is at ${rounded}%. Recharge grids are functioning within nominal rates.`;
+  }
+  if (layer === "air_quality") {
+    return `Local air protection indices average ${rounded} AQI. Particulate densities are within acceptable grid limits.`;
+  }
+  if (layer === "carbon_impact") {
+    return `Carbon footprint index is ${rounded} tons CO2eq. Net emission index matches regional target guidelines.`;
+  }
+  if (layer === "climate_resilience") {
+    return `Adaptive capacity index stands at ${rounded}%. Infrastructure adaptation layers are operational.`;
+  }
+  if (layer === "environmental_health") {
+    return `Unified ecological health rating is ${rounded}%. Soil, biodiversity, and green covers show high integrity.`;
+  }
+
   return `${layerMeta[layer]?.label || "Environmental metric"} is at ${rounded}${layerMeta[layer]?.unit || ""}. Status nominal.`;
 }
 
