@@ -217,7 +217,7 @@ function RegionSelectorModal({
                         key={idx}
                         d={pathData}
                         fill="rgba(8, 20, 34, 0.45)"
-                        stroke="rgba(34, 211, 238, 0.08)"
+                        stroke="rgba(34, 211, 238, 0.16)"
                         strokeWidth={0.7}
                         strokeLinejoin="round"
                         className="transition-all duration-300 hover:stroke-cyan-400 hover:fill-cyan-950/20"
