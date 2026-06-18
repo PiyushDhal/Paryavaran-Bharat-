@@ -96,6 +96,20 @@ export default function AnalyticsPage() {
   const [compDistA, setCompDistA] = useState<number>(101);
   const [compDistB, setCompDistB] = useState<number>(303);
 
+  // ─── Sustainability Workspace Extensions ─────────────────────────
+  const [susSubTab, setSusSubTab] = useState<"scorecard" | "simulator" | "leaderboard" | "geogrid">("scorecard");
+
+  // Policy Simulator variables (rates as percentage)
+  const [reforestRate, setReforestRate] = useState<number>(15);
+  const [evShare, setEvShare] = useState<number>(20);
+  const [renewablesShare, setRenewablesShare] = useState<number>(30);
+  const [recycleRate, setRecycleRate] = useState<number>(25);
+
+  // Leaderboard sorting and searching parameters
+  const [rankSearchText, setRankSearchText] = useState<string>("");
+  const [rankSortKey, setRankSortKey] = useState<"name" | "score" | "forest" | "water" | "aqi" | "resilience">("score");
+  const [rankSortOrder, setRankSortOrder] = useState<"asc" | "desc">("desc");
+
   // Sync stateId from global selected district when page loads if possible
   useEffect(() => {
     if (climateContext?.selectedDistrictId) {
@@ -370,6 +384,161 @@ export default function AnalyticsPage() {
 
     return { distA, distB, dataA, dataB };
   }, [compDistA, compDistB, year]);
+
+  // ─── Sustainability Dynamic Leaderboard ───────────────────────────
+  const leaderboardList = useMemo(() => {
+    // 1. Gather all districts under the current state/filters
+    const list = filteredDistricts.map(d => {
+      // Calculate individual scores/metrics for each district
+      const histories = generateHistory(d.id, year);
+      const avgNdvi = histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length;
+      const avgAqi = histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length;
+      const avgReservoir = histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length;
+      const avgSoil = histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length;
+      const r = generateRankings(year).find(x => x.district_id === d.id) || { composite_risk: 50 };
+
+      const forest = Math.round(avgNdvi * 100);
+      const aqi = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
+      const water = Math.round(avgReservoir);
+      const resilience = Math.round(100 - r.composite_risk);
+      const soil = Math.round(avgSoil);
+
+      const score = Math.round(forest * 0.25 + aqi * 0.2 + water * 0.2 + resilience * 0.2 + soil * 0.15);
+
+      return {
+        id: d.id,
+        name: d.name,
+        state: d.state_name || "",
+        score,
+        forest,
+        water,
+        aqi,
+        resilience,
+        soil
+      };
+    });
+
+    // 2. Apply search filter
+    const searched = list.filter(item => 
+      item.name.toLowerCase().includes(rankSearchText.toLowerCase()) ||
+      item.state.toLowerCase().includes(rankSearchText.toLowerCase())
+    );
+
+    // 3. Apply sorting
+    return searched.sort((a, b) => {
+      let fieldA: any = a[rankSortKey];
+      let fieldB: any = b[rankSortKey];
+
+      if (typeof fieldA === "string") {
+        return rankSortOrder === "asc" 
+          ? fieldA.localeCompare(fieldB)
+          : fieldB.localeCompare(fieldA);
+      } else {
+        return rankSortOrder === "asc"
+          ? fieldA - fieldB
+          : fieldB - fieldA;
+      }
+    });
+  }, [filteredDistricts, year, rankSearchText, rankSortKey, rankSortOrder]);
+
+  // ─── Sustainability Decision Simulator ───────────────────────────
+  const simulatedData = useMemo(() => {
+    if (!metrics) return [];
+
+    const years = [2025, 2030, 2040, 2050];
+    return years.map(y => {
+      const timeFactor = Math.max(0, (y - 2025) / 25); // 0 to 1
+
+      // Baseline projections (assuming standard risk increase, no extra policy actions)
+      const baseForest = Math.max(10, metrics.forestHealth - timeFactor * 8);
+      const baseAqiScore = Math.max(10, metrics.airQualityScore - timeFactor * 12);
+      const baseWater = Math.max(10, metrics.waterSustainability - timeFactor * 15);
+      const baseSoil = Math.max(10, metrics.avgSoil - timeFactor * 10);
+      const baseResilience = Math.max(10, metrics.climateResilience - timeFactor * 10);
+
+      const baseComposite = Math.round(
+        baseForest * 0.25 + baseAqiScore * 0.2 + baseWater * 0.2 + baseResilience * 0.2 + baseSoil * 0.15
+      );
+
+      // Policy Simulated projections (factoring in the sliders)
+      const simulatedForest = Math.min(100, Math.round(
+        metrics.forestHealth - timeFactor * 8 + (reforestRate - 15) * 0.4 * timeFactor
+      ));
+      const simulatedAqiScore = Math.min(100, Math.round(
+        metrics.airQualityScore - timeFactor * 12 + (evShare - 20) * 0.3 * timeFactor + (renewablesShare - 30) * 0.2 * timeFactor
+      ));
+      const simulatedWater = Math.min(100, Math.round(
+        metrics.waterSustainability - timeFactor * 15 + (recycleRate - 25) * 0.5 * timeFactor
+      ));
+      const simulatedSoil = Math.min(100, Math.round(
+        metrics.avgSoil - timeFactor * 10 + (reforestRate - 15) * 0.15 * timeFactor
+      ));
+      const simulatedResilience = Math.min(100, Math.round(
+        metrics.climateResilience - timeFactor * 10 + (renewablesShare - 30) * 0.25 * timeFactor
+      ));
+
+      const simulatedComposite = Math.round(
+        simulatedForest * 0.25 + simulatedAqiScore * 0.2 + simulatedWater * 0.2 + simulatedResilience * 0.2 + simulatedSoil * 0.15
+      );
+
+      return {
+        year: `${y}`,
+        Baseline: baseComposite,
+        "Simulated Path": simulatedComposite,
+        Forest: simulatedForest,
+        Water: simulatedWater,
+        AirQuality: simulatedAqiScore
+      };
+    });
+  }, [metrics, reforestRate, evShare, renewablesShare, recycleRate]);
+
+  // ─── Geo-Grid Bounds & Nodes Calculations ─────────────────────────
+  const geoBounds = useMemo(() => {
+    if (filteredDistricts.length === 0) return null;
+    let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
+    filteredDistricts.forEach(d => {
+      if (d.centroid_lat < minLat) minLat = d.centroid_lat;
+      if (d.centroid_lat > maxLat) maxLat = d.centroid_lat;
+      if (d.centroid_lon < minLon) minLon = d.centroid_lon;
+      if (d.centroid_lon > maxLon) maxLon = d.centroid_lon;
+    });
+
+    const padLat = (maxLat - minLat) * 0.15 || 1;
+    const padLon = (maxLon - minLon) * 0.15 || 1;
+
+    return {
+      minLat: minLat - padLat,
+      maxLat: maxLat + padLat,
+      minLon: minLon - padLon,
+      maxLon: maxLon + padLon
+    };
+  }, [filteredDistricts]);
+
+  const svgWidth = 500;
+  const svgHeight = 400;
+
+  const districtNodes = useMemo(() => {
+    if (!geoBounds || filteredDistricts.length === 0) return [];
+    const { minLat, maxLat, minLon, maxLon } = geoBounds;
+
+    return filteredDistricts.map(d => {
+      const x = ((d.centroid_lon - minLon) / (maxLon - minLon)) * svgWidth;
+      const y = ((maxLat - d.centroid_lat) / (maxLat - minLat)) * svgHeight;
+
+      const matchedLeaderboard = leaderboardList.find(item => item.id === d.id);
+      const score = matchedLeaderboard ? matchedLeaderboard.score : 50;
+
+      return {
+        id: d.id,
+        name: d.name,
+        x,
+        y,
+        score
+      };
+    });
+  }, [filteredDistricts, geoBounds, leaderboardList]);
+
+  const [hoveredNode, setHoveredNode] = useState<{ id: number; name: string; score: number; x: number; y: number } | null>(null);
 
   if (!metrics) return null;
 
@@ -723,97 +892,523 @@ export default function AnalyticsPage() {
 
       {/* ─── TAB CONTENT: SUSTAINABILITY (MERGED SECTION) ────────────────── */}
       {activeTab === "sustainability" && (
-        <div className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-          <Card className="glass-card p-6 flex flex-col justify-between items-center text-center">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-white text-base">Composite Index Score</CardTitle>
-              <CardDescription>Ecological Sustainability & Resource Balance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 w-full flex flex-col items-center">
-              {/* Animated Ring Gauge */}
-              <div className="relative w-40 h-40 flex items-center justify-center">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                  <circle cx="60" cy="60" r="50" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="8" />
-                  <circle
-                    cx="60" cy="60" r="50"
-                    fill="transparent"
-                    stroke={metrics.compositeIndex >= 70 ? "#10b981" : metrics.compositeIndex >= 50 ? "#06b6d4" : "#f59e0b"}
-                    strokeWidth="8"
-                    strokeDasharray={2 * Math.PI * 50}
-                    strokeDashoffset={2 * Math.PI * 50 * (1 - metrics.compositeIndex / 100)}
-                    strokeLinecap="round"
-                    className="transition-all duration-1000 ease-out"
-                    style={{ filter: `drop-shadow(0 0 6px ${metrics.compositeIndex >= 70 ? "#10b981" : "#06b6d4"}70)` }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-4xl font-black text-white">{metrics.compositeIndex}</span>
-                  <span className="text-[8px] uppercase tracking-widest font-extrabold text-slate-400 mt-1">Sustainability Score</span>
-                </div>
-              </div>
+        <div className="space-y-5">
+          {/* ─── Sustainability Sub-Navigation ────────────────────────────── */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-cyan-500/10 pb-3">
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { id: "scorecard", label: "Executive Scorecard", icon: BarChart3 },
+                { id: "simulator", label: "Policy Simulator & Forecast", icon: Sparkles },
+                { id: "leaderboard", label: "District Leaderboard", icon: Activity },
+                { id: "geogrid", label: "Geo-Grid Map Visualizer", icon: Globe }
+              ].map((sub) => {
+                const Icon = sub.icon;
+                const active = susSubTab === sub.id;
+                return (
+                  <button
+                    key={sub.id}
+                    onClick={() => setSusSubTab(sub.id as any)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
+                      active
+                        ? "bg-cyan-500/10 text-cyan-300 border-cyan-500/35 shadow-[0_0_8px_rgba(6,182,212,0.15)]"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 border-transparent"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span>{sub.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <span>Overall Sustainability Index:</span>
+              <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold text-xs py-0.5 px-2">
+                {metrics.compositeIndex}/100
+              </Badge>
+            </div>
+          </div>
 
-              {/* Sub-Metric Cards */}
-              <div className="grid grid-cols-2 gap-2 w-full text-left text-[10px] text-slate-300">
-                <div className="p-2.5 rounded-lg bg-slate-900/40 border border-white/5 cursor-pointer hover:border-emerald-500/20" onClick={() => triggerMapUpdate("environmental_health")}>
-                  <span className="text-[7.5px] text-slate-500 font-bold block uppercase">Env Health</span>
-                  <p className="mt-0.5 font-bold text-white font-mono">{metrics.envHealthScore}/100</p>
-                </div>
-                <div className="p-2.5 rounded-lg bg-slate-900/40 border border-white/5 cursor-pointer hover:border-emerald-500/20" onClick={() => triggerMapUpdate("water_resources")}>
-                  <span className="text-[7.5px] text-slate-500 font-bold block uppercase">Water Status</span>
-                  <p className="mt-0.5 font-bold text-white font-mono">{metrics.waterSustainability}%</p>
-                </div>
-                <div className="p-2.5 rounded-lg bg-slate-900/40 border border-white/5 cursor-pointer hover:border-emerald-500/20" onClick={() => triggerMapUpdate("green_cover")}>
-                  <span className="text-[7.5px] text-slate-500 font-bold block uppercase">Forest Cover</span>
-                  <p className="mt-0.5 font-bold text-white font-mono">{metrics.forestHealth}%</p>
-                </div>
-                <div className="p-2.5 rounded-lg bg-slate-900/40 border border-white/5 cursor-pointer hover:border-emerald-500/20" onClick={() => triggerMapUpdate("climate_resilience")}>
-                  <span className="text-[7.5px] text-slate-500 font-bold block uppercase">Resilience Score</span>
-                  <p className="mt-0.5 font-bold text-white font-mono">{metrics.climateResilience}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card p-5 flex flex-col justify-between">
-            <CardHeader className="p-0 pb-3">
-              <CardTitle className="text-white text-base">5-Pillar Sustainability Radar</CardTitle>
-              <CardDescription>Balanced evaluation across standard index components.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6 items-center p-0">
-              <div className="w-full h-56 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height={220}>
-                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={[
-                    { subject: "Forest Cover", value: metrics.forestHealth, fullMark: 100 },
-                    { subject: "Air Quality", value: metrics.airQualityScore, fullMark: 100 },
-                    { subject: "Water Storage", value: metrics.waterSustainability, fullMark: 100 },
-                    { subject: "Soil Health", value: metrics.avgSoil, fullMark: 100 },
-                    { subject: "Climate Safety", value: metrics.climateResilience, fullMark: 100 }
-                  ]}>
-                    <PolarGrid stroke="rgba(148,163,184,0.1)" />
-                    <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fontSize: 9 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
-                    <Radar name="Index" dataKey="value" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Policy Tips */}
-              <div className="space-y-3">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Policy Directives
-                </h4>
-                <div className="space-y-2">
-                  {aiInsights?.recommendations.slice(0, 3).map((tip, idx) => (
-                    <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-emerald-500/10 bg-emerald-400/5 text-[11px] text-slate-300 leading-normal">
-                      <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400 mt-0.5" />
-                      <span>{tip}</span>
+          {/* ─── SUB TAB 1: EXECUTIVE SCORECARD ───────────────────────────── */}
+          {susSubTab === "scorecard" && (
+            <div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
+              {/* Radial Score Gauge Card */}
+              <Card className="glass-card p-6 flex flex-col justify-between items-center text-center">
+                <CardHeader className="pb-2 p-0">
+                  <CardTitle className="text-white text-base">Composite Index Score</CardTitle>
+                  <CardDescription>Overall Ecological Balance & Resource Security</CardDescription>
+                </CardHeader>
+                
+                <CardContent className="space-y-6 w-full flex flex-col items-center mt-4 p-0">
+                  {/* Gauge */}
+                  <div className="relative w-44 h-44 flex items-center justify-center">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                      <circle cx="60" cy="60" r="50" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="8" />
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="50"
+                        fill="transparent"
+                        stroke={metrics.compositeIndex >= 70 ? "#10b981" : metrics.compositeIndex >= 50 ? "#06b6d4" : "#f59e0b"}
+                        strokeWidth="8"
+                        strokeDasharray={2 * Math.PI * 50}
+                        strokeDashoffset={2 * Math.PI * 50 * (1 - metrics.compositeIndex / 100)}
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-out"
+                        style={{ filter: `drop-shadow(0 0 6px ${metrics.compositeIndex >= 70 ? "#10b981" : "#06b6d4"}70)` }}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-4xl font-extrabold text-white tracking-tighter">{metrics.compositeIndex}</span>
+                      <span className="text-[8px] uppercase tracking-widest font-extrabold text-slate-400 mt-1">Sustainability Score</span>
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Pillars cards */}
+                  <div className="grid grid-cols-2 gap-2.5 w-full text-left text-[10.5px]">
+                    {[
+                      { label: "Environmental Health", score: `${metrics.envHealthScore}/100`, key: "environmental_health", color: "hover:border-emerald-500/25" },
+                      { label: "Water Sustainability", score: `${metrics.waterSustainability}%`, key: "water_resources", color: "hover:border-cyan-500/25" },
+                      { label: "Forest Cover (NDVI)", score: `${metrics.forestHealth}%`, key: "green_cover", color: "hover:border-green-500/25" },
+                      { label: "Resilience Score", score: `${metrics.climateResilience}%`, key: "climate_resilience", color: "hover:border-rose-500/25" }
+                    ].map((item) => (
+                      <div
+                        key={item.key}
+                        onClick={() => triggerMapUpdate(item.key)}
+                        className={`p-3 rounded-xl bg-slate-900/40 border border-white/5 cursor-pointer transition ${item.color} active:scale-95`}
+                      >
+                        <span className="text-[7.5px] text-slate-500 font-bold block uppercase tracking-wider">{item.label}</span>
+                        <p className="mt-1 font-bold text-white font-mono text-sm">{item.score}</p>
+                        <span className="text-[8px] text-cyan-400/80 mt-1 block">Click to view map layer</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Radar Chart & Directives */}
+              <Card className="glass-card p-5 flex flex-col justify-between">
+                <CardHeader className="p-0 pb-3">
+                  <CardTitle className="text-white text-base">5-Pillar Sustainability Radar</CardTitle>
+                  <CardDescription>Multi-dimensional analysis relative to safety boundaries.</CardDescription>
+                </CardHeader>
+                
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-0 mt-2">
+                  <div className="w-full h-56 flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height={220}>
+                      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={[
+                        { subject: "Forest Cover", value: metrics.forestHealth, fullMark: 100 },
+                        { subject: "Air Quality", value: metrics.airQualityScore, fullMark: 100 },
+                        { subject: "Water Storage", value: metrics.waterSustainability, fullMark: 100 },
+                        { subject: "Soil Health", value: metrics.avgSoil, fullMark: 100 },
+                        { subject: "Climate Safety", value: metrics.climateResilience, fullMark: 100 }
+                      ]}>
+                        <PolarGrid stroke="rgba(148,163,184,0.1)" />
+                        <PolarAngleAxis dataKey="subject" stroke="#94a3b8" tick={{ fontSize: 9 }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
+                        <Radar name="Index" dataKey="value" stroke="#10b981" fill="#10b981" fillOpacity={0.25} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Policy Directives */}
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Enterprise Directives
+                    </h4>
+                    <div className="space-y-2">
+                      {aiInsights?.recommendations.slice(0, 3).map((tip, idx) => (
+                        <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-emerald-500/10 bg-emerald-400/5 text-[11px] text-slate-300 leading-normal">
+                          <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400 mt-0.5" />
+                          <span>{tip}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ─── SUB TAB 2: POLICY SIMULATOR & FORECAST ──────────────────── */}
+          {susSubTab === "simulator" && (
+            <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+              {/* Slider Panel */}
+              <Card className="glass-card p-5 space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-white text-base">Carbon & Ecology Budget Simulator</CardTitle>
+                    <CardDescription>Simulate target carbon neutral levers in real-time.</CardDescription>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-[10px] uppercase text-cyan-300 hover:bg-slate-900 px-2 h-7"
+                    onClick={() => {
+                      setReforestRate(15);
+                      setEvShare(20);
+                      setRenewablesShare(30);
+                      setRecycleRate(25);
+                    }}
+                  >
+                    Reset Defaults
+                  </Button>
                 </div>
+
+                <div className="space-y-4 pt-2">
+                  {/* Afforestation Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-slate-300">Forest Canopy/Afforestation Expansion</span>
+                      <span className="text-emerald-400 font-mono font-bold">+{reforestRate}% yr</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={reforestRate}
+                      onChange={(e) => setReforestRate(Number(e.target.value))}
+                      className="w-full accent-emerald-400 bg-slate-900 rounded-lg cursor-pointer h-1.5"
+                    />
+                    <p className="text-[9.5px] text-slate-400">Increases canopy NDVI levels and improves baseline soil moisture retention.</p>
+                  </div>
+
+                  {/* EV Adoption Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-slate-300">E-Mobility & Public Transit Grid Share</span>
+                      <span className="text-cyan-300 font-mono font-bold">{evShare}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={evShare}
+                      onChange={(e) => setEvShare(Number(e.target.value))}
+                      className="w-full accent-cyan-400 bg-slate-900 rounded-lg cursor-pointer h-1.5"
+                    />
+                    <p className="text-[9.5px] text-slate-400">Direct abatement of vehicular particulates and volatile carbon emissions.</p>
+                  </div>
+
+                  {/* Renewable Share Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-slate-300">Renewable Energy Share (Solar & Wind)</span>
+                      <span className="text-amber-400 font-mono font-bold">{renewablesShare}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={renewablesShare}
+                      onChange={(e) => setRenewablesShare(Number(e.target.value))}
+                      className="w-full accent-amber-400 bg-slate-900 rounded-lg cursor-pointer h-1.5"
+                    />
+                    <p className="text-[9.5px] text-slate-400">Reduces industrial coal burning emissions, improving CPCB Air Quality Index.</p>
+                  </div>
+
+                  {/* Water Recycling Slider */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-medium">
+                      <span className="text-slate-300">Hydrologic Recycling & Basin Recovery</span>
+                      <span className="text-sky-300 font-mono font-bold">{recycleRate}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={recycleRate}
+                      onChange={(e) => setRecycleRate(Number(e.target.value))}
+                      className="w-full accent-sky-400 bg-slate-900 rounded-lg cursor-pointer h-1.5"
+                    />
+                    <p className="text-[9.5px] text-slate-400">Preserves localized surface reservoir capacities, hedging drought anomalies.</p>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Simulation Result Chart */}
+              <Card className="glass-card p-5 flex flex-col justify-between">
+                <div>
+                  <CardTitle className="text-white text-base">Simulated Path vs Baseline Projection (to 2050)</CardTitle>
+                  <CardDescription>Decisions affect the composite index growth path relative to standard degradation models.</CardDescription>
+                </div>
+                
+                <CardContent className="h-64 mt-4 p-0">
+                  <ResponsiveContainer width="100%" height={230}>
+                    <LineChart data={simulatedData}>
+                      <XAxis dataKey="year" stroke="#94a3b8" fontSize={9} />
+                      <YAxis domain={[10, 100]} stroke="#94a3b8" fontSize={9} />
+                      <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
+                      <Legend wrapperStyle={{ fontSize: 9 }} />
+                      <Line type="monotone" dataKey="Baseline" stroke="#f87171" strokeWidth={2.5} strokeDasharray="5 5" name="Baseline (No Action)" />
+                      <Line type="monotone" dataKey="Simulated Path" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} name="Simulated Path (Proposed)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* ─── SUB TAB 3: DISTRICT LEADERBOARD GRID ────────────────────── */}
+          {susSubTab === "leaderboard" && (
+            <Card className="glass-card p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/5">
+                <div>
+                  <CardTitle className="text-white text-base">District Sustainability Leaderboard</CardTitle>
+                  <CardDescription>Detailed grid of districts, sortable by sustainability sub-pillars.</CardDescription>
+                </div>
+                
+                {/* Search Bar */}
+                <input
+                  type="text"
+                  placeholder="Search district..."
+                  value={rankSearchText}
+                  onChange={(e) => setRankSearchText(e.target.value)}
+                  className="bg-slate-950 border border-cyan-500/15 rounded-lg py-1.5 px-3 text-white focus:outline-none text-xs w-56 placeholder:text-slate-500"
+                />
               </div>
-            </CardContent>
-          </Card>
+
+              <div className="overflow-x-auto mt-4 max-h-[360px] overflow-y-auto pr-1">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-cyan-500/10 text-slate-400">
+                      {[
+                        { label: "District Name", sortKey: "name" },
+                        { label: "State", sortKey: "state" },
+                        { label: "Composite Index", sortKey: "score" },
+                        { label: "Forest NDVI", sortKey: "forest" },
+                        { label: "Water Status", sortKey: "water" },
+                        { label: "Clean Air Index", sortKey: "aqi" },
+                        { label: "Climate Resilience", sortKey: "resilience" }
+                      ].map((h) => (
+                        <th
+                          key={h.sortKey}
+                          onClick={() => {
+                            if (rankSortKey === h.sortKey) {
+                              setRankSortOrder(rankSortOrder === "asc" ? "desc" : "asc");
+                            } else {
+                              setRankSortKey(h.sortKey as any);
+                              setRankSortOrder("desc");
+                            }
+                          }}
+                          className="py-2.5 px-2 font-semibold hover:text-white cursor-pointer select-none whitespace-nowrap"
+                        >
+                          <div className="flex items-center gap-1">
+                            <span>{h.label}</span>
+                            <span className="text-[10px] text-cyan-400">
+                              {rankSortKey === h.sortKey ? (rankSortOrder === "asc" ? "▲" : "▼") : ""}
+                            </span>
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  
+                  <tbody className="divide-y divide-white/5">
+                    {leaderboardList.map((item) => {
+                      const isSelected = selectedDistId === item.id;
+                      return (
+                        <tr
+                          key={item.id}
+                          onClick={() => setSelectedDistId(item.id)}
+                          className={`hover:bg-slate-900/40 cursor-pointer transition ${
+                            isSelected ? "bg-cyan-500/5 border-l-2 border-l-cyan-400" : ""
+                          }`}
+                        >
+                          <td className="py-3 px-2 font-bold text-white whitespace-nowrap">{item.name}</td>
+                          <td className="py-3 px-2 text-slate-300">{item.state}</td>
+                          
+                          {/* Composite Index score bar */}
+                          <td className="py-3 px-2 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 rounded font-mono font-bold text-[11px] ${
+                              item.score >= 70
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : item.score >= 50
+                                ? "bg-cyan-500/10 text-cyan-300 border border-cyan-500/20"
+                                : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            }`}>
+                              {item.score}/100
+                            </span>
+                          </td>
+                          
+                          <td className="py-3 px-2 text-slate-300 font-mono">{item.forest}%</td>
+                          <td className="py-3 px-2 text-slate-300 font-mono">{item.water}%</td>
+                          <td className="py-3 px-2 text-slate-300 font-mono">{item.aqi}/100</td>
+                          <td className="py-3 px-2 text-slate-300 font-mono">{item.resilience}%</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          {/* ─── SUB TAB 4: GEO-GRID MAP VISUALIZER ────────────────────── */}
+          {susSubTab === "geogrid" && (
+            <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+              {/* Interactive SVG Choropleth/Mesh Container */}
+              <Card className="glass-card p-5 relative overflow-hidden flex flex-col items-center">
+                <div className="absolute top-4 left-4 z-10">
+                  <CardTitle className="text-white text-base">District Telemetry Geo-Mesh</CardTitle>
+                  <CardDescription>Hover over nodes to inspect real-time digital-twin telemetry.</CardDescription>
+                </div>
+
+                <div className="w-full h-[400px] flex items-center justify-center bg-slate-950/20 border border-cyan-500/5 rounded-xl mt-4 relative">
+                  {districtNodes.length === 0 ? (
+                    <p className="text-xs text-slate-500">Select a state above to display telemetry map</p>
+                  ) : (
+                    <svg className="w-full h-full max-w-[500px] max-h-[400px]" viewBox={`0 0 ${svgWidth} ${svgHeight}`}>
+                      {/* Connection Mesh Lines */}
+                      {districtNodes.map((n1, i) => {
+                        return districtNodes.slice(i + 1).map((n2) => {
+                          const dist = Math.sqrt(Math.pow(n1.x - n2.x, 2) + Math.pow(n1.y - n2.y, 2));
+                          // Connect nodes that are relatively close geographically
+                          if (dist < 180) {
+                            return (
+                              <line
+                                key={`${n1.id}-${n2.id}`}
+                                x1={n1.x}
+                                y1={n1.y}
+                                x2={n2.x}
+                                y2={n2.y}
+                                stroke="rgba(6, 182, 212, 0.06)"
+                                strokeWidth={1}
+                              />
+                            );
+                          }
+                          return null;
+                        });
+                      })}
+
+                      {/* Node Circles */}
+                      {districtNodes.map((node) => {
+                        const isSelected = selectedDistId === node.id;
+                        const isHovered = hoveredNode?.id === node.id;
+                        // Color based on sustainability score
+                        const color = node.score >= 70 ? "#10b981" : node.score >= 50 ? "#06b6d4" : "#f59e0b";
+                        
+                        return (
+                          <g key={node.id} className="cursor-pointer" onClick={() => setSelectedDistId(node.id)}>
+                            {/* Glow shadow ring when hovered/selected */}
+                            {(isSelected || isHovered) && (
+                              <circle
+                                cx={node.x}
+                                cy={node.y}
+                                r={14}
+                                fill={color}
+                                fillOpacity={0.15}
+                                className="animate-ping"
+                              />
+                            )}
+                            {/* Border circle */}
+                            <circle
+                              cx={node.x}
+                              cy={node.y}
+                              r={isSelected ? 9 : 7}
+                              fill="#020617"
+                              stroke={color}
+                              strokeWidth={isSelected ? 3.5 : 2}
+                              onMouseEnter={(e) => {
+                                setHoveredNode({
+                                  id: node.id,
+                                  name: node.name,
+                                  score: node.score,
+                                  x: node.x,
+                                  y: node.y
+                                });
+                              }}
+                              onMouseLeave={() => setHoveredNode(null)}
+                              className="transition-all duration-300"
+                            />
+                            {/* Inner core */}
+                            <circle
+                              cx={node.x}
+                              cy={node.y}
+                              r={3}
+                              fill={color}
+                            />
+                            {/* Text label */}
+                            <text
+                              x={node.x}
+                              y={node.y - 12}
+                              textAnchor="middle"
+                              fill="#94a3b8"
+                              fontSize={9}
+                              className="font-semibold select-none pointer-events-none drop-shadow"
+                            >
+                              {node.name}
+                            </text>
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  )}
+
+                  {/* Overlaid Floating Info Box */}
+                  {hoveredNode && (
+                    <div
+                      className="absolute p-3 rounded-xl bg-slate-950/95 border border-cyan-500/20 text-[10.5px] text-slate-300 backdrop-blur pointer-events-none z-20 shadow-2xl"
+                      style={{
+                        left: Math.min(320, Math.max(10, hoveredNode.x - 60)),
+                        top: Math.min(280, Math.max(10, hoveredNode.y + 15))
+                      }}
+                    >
+                      <p className="font-bold text-white text-xs">{hoveredNode.name}</p>
+                      <div className="mt-1 border-t border-cyan-500/10 pt-1 space-y-0.5">
+                        <p className="flex justify-between gap-4">
+                          <span>Sustainability Index:</span>
+                          <span className="font-bold text-cyan-300">{hoveredNode.score}/100</span>
+                        </p>
+                        <p className="text-[9px] text-slate-500">Click node to focus district telemetry.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              {/* Focused Node Telemetry panel */}
+              <Card className="glass-card p-5 flex flex-col justify-between">
+                <div>
+                  <Badge className="border-cyan-500/20 bg-cyan-400/5 text-cyan-300">Active Node telemetry</Badge>
+                  <h3 className="text-xl font-bold text-white mt-2">
+                    {leaderboardList.find(i => i.id === selectedDistId)?.name || "National Aggregate"}
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Geographic coordinates mapping: {
+                      MOCK_DISTRICTS.find(d => d.id === selectedDistId)
+                        ? `${MOCK_DISTRICTS.find(d => d.id === selectedDistId)?.centroid_lat}°N, ${MOCK_DISTRICTS.find(d => d.id === selectedDistId)?.centroid_lon}°E`
+                        : "State aggregated indices"
+                    }
+                  </p>
+
+                  <div className="mt-5 space-y-3.5">
+                    {[
+                      { label: "Clean Air Index Score", val: leaderboardList.find(i => i.id === selectedDistId)?.aqi || metrics.airQualityScore, max: 100, color: "text-amber-400" },
+                      { label: "Canopy Index (Forest Cover)", val: leaderboardList.find(i => i.id === selectedDistId)?.forest || metrics.forestHealth, max: 100, color: "text-emerald-400" },
+                      { label: "Hydrologic Storage Capacity", val: leaderboardList.find(i => i.id === selectedDistId)?.water || metrics.waterSustainability, max: 100, color: "text-cyan-400" },
+                      { label: "Climate Adaptation Resilience", val: leaderboardList.find(i => i.id === selectedDistId)?.resilience || metrics.climateResilience, max: 100, color: "text-rose-400" }
+                    ].map((item) => (
+                      <div key={item.label}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-slate-400">{item.label}</span>
+                          <span className={`font-bold font-mono ${item.color}`}>{item.val}%</span>
+                        </div>
+                        <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                          <div className={`h-full bg-current ${item.color}`} style={{ width: `${item.val}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-5 text-[10px] text-slate-400 leading-normal border-t border-white/5 pt-3">
+                  Telemetry data grids synchronize directly with digital twin models simulating daily convective variations and ground vegetation indexes.
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       )}
 
