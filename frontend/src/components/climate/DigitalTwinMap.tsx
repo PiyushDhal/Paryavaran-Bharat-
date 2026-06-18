@@ -33,80 +33,167 @@ import { INDIA_OUTLINE } from "@/lib/indiaOutline";
 import { INDIA_STATES } from "@/lib/indiaStates";
 
 // ─── Layer Metadata ──────────────────────────────────────────────────
-const layerMeta: Record<string, { label: string; unit: string; min: number; max: number; ranges: string[] }> = {
-  composite_risk: { label: "Composite Risk", unit: "%", min: 0, max: 100, ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"] },
-  flood_risk: { label: "Flood Risk", unit: "%", min: 0, max: 100, ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"] },
-  heatwave_risk: { label: "Heatwave Risk", unit: "%", min: 0, max: 100, ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"] },
-  drought_risk: { label: "Drought Risk", unit: "%", min: 0, max: 100, ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"] },
-  water_stress_risk: { label: "Water Stress", unit: "%", min: 0, max: 100, ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"] },
-  rainfall: { label: "Rainfall", unit: " mm", min: 0, max: 600, ranges: ["Light (<50)", "Moderate (50-150)", "Heavy (150-300)", "Torrential (>=300)"] },
-  temperature: { label: "Temperature", unit: " °C", min: 0, max: 50, ranges: ["Cold (<20)", "Mild (20-28)", "Warm (28-36)", "Extreme (>=36)"] },
-  aqi: { label: "Air Quality Index", unit: "", min: 0, max: 300, ranges: ["Good (<50)", "Moderate (50-100)", "Unhealthy (100-150)", "Hazardous (>=150)"] },
-  humidity: { label: "Humidity", unit: "%", min: 0, max: 100, ranges: ["Dry (<40)", "Normal (40-70)", "Humid (>=70)"] },
-  soil_moisture: { label: "Soil Moisture", unit: "%", min: 0, max: 100, ranges: ["Deficit (<25)", "Normal (25-55)", "Saturated (>=55)"] },
-  ndvi: { label: "NDVI Index", unit: "", min: 0, max: 1, ranges: ["Barren (<0.3)", "Moderate (0.3-0.6)", "Lush (>=0.6)"] },
-  reservoir_level: { label: "Reservoir Level", unit: "%", min: 0, max: 100, ranges: ["Low (<35)", "Moderate (35-70)", "High (>=70)"] },
-  river_level: { label: "River Level", unit: " m", min: 0, max: 5, ranges: ["Normal (<1.5)", "Alert (1.5-2.5)", "Danger (>=2.5)"] },
-  population_density: { label: "Population", unit: "", min: 0, max: 15000000, ranges: ["Rural (<1.5M)", "Urban (1.5M-5M)", "Metropolitan (>=5M)"] }
+const layerMeta: Record<
+  string,
+  {
+    label: string;
+    unit: string;
+    min: number;
+    max: number;
+    ranges: string[];
+    colors: string[];
+    thresholds: number[];
+  }
+> = {
+  composite_risk: {
+    label: "Composite Risk",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [35, 60, 80],
+  },
+  flood_risk: {
+    label: "Flood Risk",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [35, 60, 80],
+  },
+  heatwave_risk: {
+    label: "Heatwave Risk",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [35, 60, 80],
+  },
+  drought_risk: {
+    label: "Drought Risk",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [35, 60, 80],
+  },
+  water_stress_risk: {
+    label: "Water Stress",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Safe (<35)", "Moderate (35-60)", "High (60-80)", "Critical (>=80)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [35, 60, 80],
+  },
+  rainfall: {
+    label: "Rainfall",
+    unit: " mm",
+    min: 0,
+    max: 600,
+    ranges: ["Light (<50)", "Moderate (50-150)", "Heavy (150-300)", "Torrential (>=300)"],
+    colors: ["#ecfeff", "#67e8f9", "#3b82f6", "#1d4ed8"],
+    thresholds: [50, 150, 300],
+  },
+  temperature: {
+    label: "Temperature",
+    unit: " °C",
+    min: 0,
+    max: 50,
+    ranges: ["Cold (<20)", "Mild (20-28)", "Warm (28-36)", "Extreme (>=36)"],
+    colors: ["#3b82f6", "#10b981", "#f97316", "#ef4444"],
+    thresholds: [20, 28, 36],
+  },
+  aqi: {
+    label: "Air Quality Index",
+    unit: "",
+    min: 0,
+    max: 300,
+    ranges: ["Good (<50)", "Moderate (50-100)", "Unhealthy (100-150)", "Hazardous (>=150)"],
+    colors: ["#10b981", "#eab308", "#f97316", "#ef4444"],
+    thresholds: [50, 100, 150],
+  },
+  humidity: {
+    label: "Humidity",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Dry (<40)", "Normal (40-70)", "Humid (>=70)"],
+    colors: ["#a8a29e", "#22d3ee", "#2563eb"],
+    thresholds: [40, 70],
+  },
+  soil_moisture: {
+    label: "Soil Moisture",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Deficit (<25)", "Normal (25-55)", "Saturated (>=55)"],
+    colors: ["#ca8a04", "#84cc16", "#15803d"],
+    thresholds: [25, 55],
+  },
+  ndvi: {
+    label: "NDVI Index",
+    unit: "",
+    min: 0,
+    max: 1,
+    ranges: ["Barren (<0.3)", "Moderate (0.3-0.6)", "Lush (>=0.6)"],
+    colors: ["#ca8a04", "#4ade80", "#166534"],
+    thresholds: [0.3, 0.6],
+  },
+  reservoir_level: {
+    label: "Reservoir Level",
+    unit: "%",
+    min: 0,
+    max: 100,
+    ranges: ["Low (<35)", "Moderate (35-70)", "High (>=70)"],
+    colors: ["#ef4444", "#eab308", "#3b82f6"],
+    thresholds: [35, 70],
+  },
+  river_level: {
+    label: "River Level",
+    unit: " m",
+    min: 0,
+    max: 5,
+    ranges: ["Normal (<1.5)", "Alert (1.5-2.5)", "Danger (>=2.5)"],
+    colors: ["#10b981", "#f97316", "#ef4444"],
+    thresholds: [1.5, 2.5],
+  },
+  population_density: {
+    label: "Population",
+    unit: "",
+    min: 0,
+    max: 15000000,
+    ranges: ["Rural (<1.5M)", "Urban (1.5M-5M)", "Metropolitan (>=5M)"],
+    colors: ["#fef08a", "#f97316", "#c084fc"],
+    thresholds: [1500000, 5000000],
+  },
 };
 
 // ─── Color Scales ────────────────────────────────────────────────────
 function getLayerColor(layer: string, value: number): string {
-  if (layer.includes("risk") || layer === "composite_risk") {
-    if (value < 35) return "#10b981"; // Safe Green
-    if (value < 60) return "#eab308"; // Moderate Yellow
-    if (value < 80) return "#f97316"; // High Orange
-    return "#ef4444"; // Critical Red
+  const meta = layerMeta[layer];
+  if (!meta) return "#22d3ee";
+  for (let i = 0; i < meta.thresholds.length; i++) {
+    if (value < meta.thresholds[i]) {
+      return meta.colors[i];
+    }
   }
-  if (layer === "temperature") {
-    if (value < 20) return "#3b82f6"; // Cold Blue
-    if (value < 28) return "#10b981"; // Moderate Green
-    if (value < 36) return "#f97316"; // Warm Orange
-    return "#ef4444"; // Extreme Red
+  return meta.colors[meta.colors.length - 1];
+}
+
+function getMapboxColorSteps(layer: string): any[] {
+  const meta = layerMeta[layer];
+  if (!meta) return ["#22d3ee"];
+  const steps: any[] = [meta.colors[0]];
+  for (let i = 0; i < meta.thresholds.length; i++) {
+    steps.push(meta.thresholds[i]);
+    steps.push(meta.colors[i + 1]);
   }
-  if (layer === "rainfall") {
-    if (value < 50) return "#ecfeff";
-    if (value < 150) return "#67e8f9";
-    if (value < 300) return "#3b82f6";
-    return "#1d4ed8";
-  }
-  if (layer === "aqi") {
-    if (value < 50) return "#10b981";
-    if (value < 100) return "#eab308";
-    if (value < 150) return "#f97316";
-    return "#ef4444";
-  }
-  if (layer === "humidity") {
-    if (value < 40) return "#a8a29e";
-    if (value < 70) return "#22d3ee";
-    return "#2563eb";
-  }
-  if (layer === "soil_moisture") {
-    if (value < 25) return "#ca8a04";
-    if (value < 55) return "#84cc16";
-    return "#15803d";
-  }
-  if (layer === "ndvi") {
-    if (value < 0.3) return "#ca8a04";
-    if (value < 0.6) return "#4ade80";
-    return "#166534";
-  }
-  if (layer === "reservoir_level") {
-    if (value < 35) return "#ef4444";
-    if (value < 70) return "#eab308";
-    return "#3b82f6";
-  }
-  if (layer === "river_level") {
-    if (value < 1.5) return "#10b981";
-    if (value < 2.5) return "#f97316";
-    return "#ef4444";
-  }
-  if (layer === "population_density") {
-    if (value < 1500000) return "#fef08a";
-    if (value < 5000000) return "#f97316";
-    return "#c084fc";
-  }
-  return "#22d3ee";
+  return steps;
 }
 
 // ─── Projections and Grid setup ──────────────────────────────────────
@@ -633,15 +720,15 @@ function RegionSelectorModal({
                     <path
                       d={pathData}
                       fill="none"
-                      stroke="rgba(34, 211, 238, 0.15)"
-                      strokeWidth={4}
+                      stroke="rgba(34, 211, 238, 0.08)"
+                      strokeWidth={1.5}
                       strokeLinejoin="round"
                       filter="url(#glow-modal)"
                       style={{ pointerEvents: "none" }}
                     />
                     <defs>
                       <filter id="glow-modal" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
+                        <feGaussianBlur stdDeviation="1" result="blur" />
                         <feMerge>
                           <feMergeNode in="blur" />
                           <feMergeNode in="SourceGraphic" />
@@ -747,6 +834,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
   // Interactive State hover telemetry
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
+  const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -912,12 +1000,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           "fill-color": [
             "step",
             ["get", "active_val"],
-            "#10b981", 35,
-            "#eab308", 60,
-            "#f97316", 80,
-            "#ef4444"
+            ...getMapboxColorSteps(activeLayer)
           ],
-          "fill-opacity": 0.35
+          "fill-opacity": 0.25
         }
       });
 
@@ -926,8 +1011,8 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         type: "line",
         source: "state-boundaries",
         paint: {
-          "line-color": "rgba(34, 211, 238, 0.25)",
-          "line-width": 0.8
+          "line-color": "rgba(34, 211, 238, 0.15)",
+          "line-width": 0.6
         }
       });
 
@@ -947,10 +1032,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           "circle-color": [
             "step",
             ["get", "active_val"],
-            "#10b981", 35,
-            "#eab308", 60,
-            "#f97316", 80,
-            "#ef4444"
+            ...getMapboxColorSteps(activeLayer)
           ],
           "circle-radius": compact ? 7 : 9,
           "circle-opacity": 0.8,
@@ -967,6 +1049,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           const name = feature.properties?.name;
           if (name) {
             setHoveredStateName(name);
+            setHoverCoords({ x: e.point.x, y: e.point.y });
           }
         }
       });
@@ -974,6 +1057,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       map.on("mouseleave", "state-fill", () => {
         map.getCanvas().style.cursor = "";
         setHoveredStateName(null);
+        setHoverCoords(null);
       });
 
       map.on("click", "district-risk-fill", (event) => {
@@ -1007,15 +1091,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       stateSource.setData(statesGeoJson);
     }
 
-    const colors = activeLayer.includes("risk") || activeLayer === "composite_risk"
-      ? ["#10b981", 35, "#eab308", 60, "#f97316", 80, "#ef4444"]
-      : activeLayer === "temperature"
-      ? ["#3b82f6", 20, "#10b981", 28, "#f97316", 36, "#ef4444"]
-      : activeLayer === "rainfall"
-      ? ["#ecfeff", 50, "#67e8f9", 150, "#3b82f6", 300, "#1d4ed8"]
-      : activeLayer === "aqi"
-      ? ["#10b981", 50, "#eab308", 100, "#f97316", 150, "#ef4444"]
-      : ["#22d3ee", 40, "#3b82f6", 75, "#1d4ed8"];
+    const colors = getMapboxColorSteps(activeLayer);
 
     // Set paint colors dynamically to match color mapping
     if (mapRef.current.getLayer("district-risk-fill")) {
@@ -1034,6 +1110,33 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       ]);
     }
   }, [mappedFeatures, statesGeoJson, activeLayer]);
+
+  // Reactive state-hover updates for Mapbox GL layers (smooth opacity/width transitions)
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (mapRef.current.getLayer("state-fill")) {
+      mapRef.current.setPaintProperty("state-fill", "fill-opacity", [
+        "case",
+        ["==", ["get", "name"], hoveredStateName || ""],
+        0.65, // Hover opacity
+        0.25  // Default opacity
+      ]);
+    }
+    if (mapRef.current.getLayer("state-line")) {
+      mapRef.current.setPaintProperty("state-line", "line-width", [
+        "case",
+        ["==", ["get", "name"], hoveredStateName || ""],
+        1.8,  // Hover outline width
+        0.6   // Default outline width
+      ]);
+      mapRef.current.setPaintProperty("state-line", "line-color", [
+        "case",
+        ["==", ["get", "name"], hoveredStateName || ""],
+        "#22d3ee", // Hover outline color
+        "rgba(34, 211, 238, 0.15)" // Default outline color
+      ]);
+    }
+  }, [hoveredStateName]);
 
   // Update Mapbox style when mapMode changes
   useEffect(() => {
@@ -1136,13 +1239,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           key={idx}
                           d={pathData}
                           fill={stateColor}
-                          fillOpacity={hoveredStateName === state.name ? 0.85 : 0.45}
-                          stroke={hoveredStateName === state.name ? "#22d3ee" : "rgba(34, 211, 238, 0.15)"}
-                          strokeWidth={hoveredStateName === state.name ? 1.4 : 0.6}
+                          fillOpacity={hoveredStateName === state.name ? 0.65 : 0.25}
+                          stroke={hoveredStateName === state.name ? "#22d3ee" : "rgba(34, 211, 238, 0.12)"}
+                          strokeWidth={hoveredStateName === state.name ? 1.5 : 0.6}
                           strokeLinejoin="round"
                           className="transition-all duration-300 cursor-pointer"
                           onMouseEnter={() => setHoveredStateName(state.name)}
-                          onMouseLeave={() => setHoveredStateName(null)}
+                          onMouseLeave={() => {
+                            setHoveredStateName(null);
+                            setHoverCoords(null);
+                          }}
+                          onMouseMove={(e) => {
+                            const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                            if (rect) {
+                              setHoverCoords({
+                                x: e.clientX - rect.left,
+                                y: e.clientY - rect.top
+                              });
+                            }
+                          }}
                         />
                       );
                     })}
@@ -1173,8 +1288,8 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     <path
                       d={pathData}
                       fill="none"
-                      stroke="rgba(34, 211, 238, 0.12)"
-                      strokeWidth={4.5}
+                      stroke="rgba(34, 211, 238, 0.08)"
+                      strokeWidth={1.5}
                       strokeLinejoin="round"
                       filter="url(#glow-fallback)"
                       style={{ pointerEvents: "none" }}
@@ -1259,40 +1374,62 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           </div>
         )}
 
-        {/* Floating Telemetry Box for State */}
-        {hoveredStateName && (
+        {/* Floating Tooltip Cloud for State Hover */}
+        {hoveredStateName && hoverCoords && (
           <div 
-            className="absolute top-16 right-4 z-30 p-3 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all"
+            className="absolute z-[1000] pointer-events-none transition-all duration-75 ease-out select-none"
+            style={{ 
+              left: `${hoverCoords.x + 15}px`, 
+              top: `${hoverCoords.y + 15}px`,
+              transform: `translate(${hoverCoords.x > 350 ? -240 : 0}px, ${hoverCoords.y > 300 ? -200 : 0}px)`
+            }}
           >
-            <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
-              <span>{hoveredStateName}</span>
-              <span className="bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 text-[7px] font-bold px-1 py-0.5 rounded font-mono uppercase">
-                {layerMeta[activeLayer]?.label || "Metric"}
-              </span>
-            </p>
-            <div className="space-y-1 mt-1.5 font-sans">
-              <div className="flex justify-between items-center text-[8.5px]">
-                <span className="text-slate-400 uppercase font-semibold">Value:</span>
-                <span className="font-bold font-mono text-cyan-300">
-                  {getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep).toFixed(activeLayer === "ndvi" || activeLayer === "river_level" ? 2 : 1)}
-                  {layerMeta[activeLayer]?.unit || ""}
+            <div className="glass-panel backdrop-blur-md bg-slate-950/90 border border-cyan-500/30 rounded-xl p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.8)] shadow-cyan-950/20 w-[210px] space-y-2.5">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-cyan-500/10 pb-1.5">
+                <span className="font-bold text-xs text-white leading-none tracking-wide">{hoveredStateName}</span>
+                <span className="text-[7.5px] font-bold text-cyan-400/90 bg-cyan-950/50 border border-cyan-500/20 px-1.5 py-0.5 rounded uppercase font-mono tracking-wider">
+                  Forecast
                 </span>
               </div>
-              <div className="flex justify-between items-center text-[8.5px]">
-                <span className="text-slate-400 uppercase font-semibold">Risk Rating:</span>
-                <span className="font-bold text-rose-400 font-mono">
-                  {getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 75 ? "🚨 CRITICAL" :
-                   getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep) > 55 ? "⚠️ HIGH" : "✓ NORMAL"}
-                </span>
+              
+              {/* Weather Stats Grid */}
+              <div className="grid grid-cols-2 gap-2 text-[9px]">
+                <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
+                  <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Temperature</span>
+                  <span className="font-mono font-bold text-cyan-300 mt-0.5">
+                    {getStateMetricValue(hoveredStateName, "temperature", activeYear, timelineStep).toFixed(1)}°C
+                  </span>
+                </div>
+                <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
+                  <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Rainfall</span>
+                  <span className="font-mono font-bold text-cyan-300 mt-0.5">
+                    {getStateMetricValue(hoveredStateName, "rainfall", activeYear, timelineStep).toFixed(0)} mm
+                  </span>
+                </div>
+                <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
+                  <span className="text-slate-500 font-semibold uppercase text-[7.5px]">AQI</span>
+                  <span className="font-mono font-bold text-cyan-300 mt-0.5">
+                    {getStateMetricValue(hoveredStateName, "aqi", activeYear, timelineStep).toFixed(0)}
+                  </span>
+                </div>
+                <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
+                  <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Risk Index</span>
+                  <span className="font-mono font-bold text-rose-400 mt-0.5">
+                    {getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep).toFixed(0)}%
+                  </span>
+                </div>
               </div>
-              <p className="text-[8.5px] text-slate-300 leading-tight border-t border-cyan-500/5 pt-1.5 mt-1 font-medium">
+
+              {/* Dynamic Forecast Summary */}
+              <div className="border-t border-cyan-500/10 pt-2 text-[9px] text-slate-300 leading-normal font-sans italic">
                 {getStateForecastText(
                   hoveredStateName,
                   activeLayer,
                   getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep),
                   activeYear
                 )}
-              </p>
+              </div>
             </div>
           </div>
         )}
@@ -1427,11 +1564,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             </p>
             <div className="mt-2 space-y-1">
               {layerMeta[activeLayer]?.ranges.map((range, idx) => {
-                let color = "#22d3ee";
-                if (idx === 0) color = getLayerColor(activeLayer, 20);
-                else if (idx === 1) color = getLayerColor(activeLayer, 50);
-                else if (idx === 2) color = getLayerColor(activeLayer, 75);
-                else color = getLayerColor(activeLayer, 90);
+                const color = layerMeta[activeLayer]?.colors[idx] || "#22d3ee";
 
                 return (
                   <div key={idx} className="flex items-center gap-1.5">
