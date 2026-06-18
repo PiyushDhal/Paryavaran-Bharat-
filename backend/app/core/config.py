@@ -16,6 +16,14 @@ class Settings(BaseSettings):
     backend_cors_origins: list[AnyHttpUrl | str] = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+
+
+    "https://bharat-climate-twin-proxy.vercel.app",
+
+ 
+    "https://bharat-climate-twin-proxy-piyushdhals-projects.vercel.app",
+
+
     "https://bharat-climate-twin-frontend.onrender.com",
 ]
     seed_database: bool = True
