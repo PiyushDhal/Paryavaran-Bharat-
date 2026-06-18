@@ -107,3 +107,36 @@ export type CopilotResponse = {
   };
   insights?: string[];
 };
+
+export type ScenarioPayload = {
+  district_id?: number;
+  rainfall_delta_pct: number;
+  temperature_delta_c: number;
+  reservoir_delta_pct: number;
+  planning_horizon_years: number;
+  humidity_delta_pct?: number;
+  river_level_delta_m?: number;
+  soil_moisture_delta_pct?: number;
+  groundwater_delta_m?: number;
+  forest_cover_delta_pct?: number;
+  urbanization_delta_pct?: number;
+  population_growth_pct?: number;
+  agricultural_land_delta_pct?: number;
+  wind_speed_delta_kmh?: number;
+  cyclone_intensity_delta_pct?: number;
+  heatwave_duration_days?: number;
+};
+
+export type SimulationResult = {
+  water_availability: number;
+  crop_stress: number;
+  drought_risk: number;
+  heatwave_risk: number;
+  flood_risk: number;
+  water_stress_risk: number;
+  composite_risk: number;
+  population_at_risk?: number;
+  economic_loss_m_inr?: number;
+  infrastructure_risk?: number;
+  environmental_impact_score?: number;
+};

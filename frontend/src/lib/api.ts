@@ -7,6 +7,8 @@ import type {
   Prediction,
   Ranking,
   RiskScore,
+  ScenarioPayload,
+  SimulationResult,
   State
 } from "@/lib/types";
 
@@ -191,15 +193,9 @@ export const api = {
       () => mockPredict(kind, districtId)
     ),
 
-  simulate: (payload: {
-    district_id?: number;
-    rainfall_delta_pct: number;
-    temperature_delta_c: number;
-    reservoir_delta_pct: number;
-    planning_horizon_years: number;
-  }) =>
+  simulate: (payload: ScenarioPayload) =>
     withMockFallback(
-      () => apiFetch<{ scenario: Record<string, number>; results: Record<string, unknown> }>("/simulations/run", {
+      () => apiFetch<{ scenario: ScenarioPayload; results: SimulationResult }>("/simulations/run", {
         method: "POST",
         body: JSON.stringify(payload)
       }),

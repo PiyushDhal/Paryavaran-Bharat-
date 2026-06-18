@@ -5,6 +5,8 @@ import type {
   CopilotResponse,
   District,
   Ranking,
+  ScenarioPayload,
+  SimulationResult,
   State
 } from "@/lib/types";
 
@@ -112,40 +114,84 @@ export function generateRankings(year: number = 2025): Ranking[] {
 }
 
 // ─── Simulation engine ───────────────────────────────────────────────
-export function runSimulation(payload: {
-  district_id?: number;
-  rainfall_delta_pct: number;
-  temperature_delta_c: number;
-  reservoir_delta_pct: number;
-  planning_horizon_years: number;
-}) {
+function clamp(val: number, min = 0, max = 100): number {
+  return Math.min(max, Math.max(min, val));
+}
+
+export function runSimulation(payload: ScenarioPayload): { scenario: ScenarioPayload; results: SimulationResult } {
   const dId = payload.district_id || 101;
+  const district = MOCK_DISTRICTS.find((d) => d.id === dId) || MOCK_DISTRICTS[0];
   const isWet = [101, 201, 202, 203, 401, 701, 702].includes(dId);
+
+  const rain = payload.rainfall_delta_pct;
+  const temp = payload.temperature_delta_c;
+  const res = payload.reservoir_delta_pct;
+  const horizon = payload.planning_horizon_years;
+  const humidity = payload.humidity_delta_pct ?? 0;
+  const riverLevel = payload.river_level_delta_m ?? 0;
+  const soilMoisture = payload.soil_moisture_delta_pct ?? 0;
+  const groundwater = payload.groundwater_delta_m ?? 0;
+  const forestCover = payload.forest_cover_delta_pct ?? 0;
+  const urbanization = payload.urbanization_delta_pct ?? 0;
+  const population = payload.population_growth_pct ?? 0;
+  const agriLand = payload.agricultural_land_delta_pct ?? 0;
+  const windSpeed = payload.wind_speed_delta_kmh ?? 0;
+  const cyclone = payload.cyclone_intensity_delta_pct ?? 0;
+  const heatwaveDays = payload.heatwave_duration_days ?? 0;
 
   const baseFlood = isWet ? 70 : 25;
   const baseDrought = isWet ? 30 : 80;
   const baseWater = isWet ? 40 : 75;
 
-  const tempFactor = payload.temperature_delta_c * 5.5;
-  const rainFactor = payload.rainfall_delta_pct * -0.65;
-  const reservoirFactor = payload.reservoir_delta_pct * -0.45;
+  const flood_risk = clamp(
+    baseFlood + rain * 0.8 + temp * 1.5 + riverLevel * 6.0 + urbanization * 0.15 + cyclone * 0.2
+  );
+  const drought_risk = clamp(
+    baseDrought + rain * -0.65 + temp * 5.5 - groundwater * 0.3 - forestCover * 0.2 + heatwaveDays * 0.4
+  );
+  const heatwave_risk = clamp(
+    50 + temp * 9.5 + horizon * 0.4 + heatwaveDays * 0.5 + urbanization * 0.2
+  );
+  const water_stress_risk = clamp(
+    baseWater + rain * -0.65 + res * -0.45 + horizon * 0.5 - groundwater * 0.4 + population * 0.15
+  );
+  const composite_risk = clamp(
+    flood_risk * 0.3 + drought_risk * 0.3 + heatwave_risk * 0.2 + water_stress_risk * 0.2
+  );
 
-  const flood_risk = Math.min(100, Math.max(5, Math.round(baseFlood + payload.rainfall_delta_pct * 0.8 + payload.temperature_delta_c * 1.5)));
-  const drought_risk = Math.min(100, Math.max(5, Math.round(baseDrought + rainFactor + tempFactor)));
-  const water_stress_risk = Math.min(100, Math.max(5, Math.round(baseWater + rainFactor + reservoirFactor + payload.planning_horizon_years * 0.5)));
-  const heatwave_risk = Math.min(100, Math.max(5, Math.round(50 + payload.temperature_delta_c * 9.5 + payload.planning_horizon_years * 0.4)));
-  const composite_risk = Math.round(flood_risk * 0.3 + drought_risk * 0.3 + heatwave_risk * 0.2 + water_stress_risk * 0.2);
+  const water_availability = clamp(75 + rain * 0.6 + res * 0.4 + soilMoisture * 0.2 - temp * 1.5);
+  const crop_stress = clamp(40 + temp * 6.5 - rain * 0.4 - agriLand * 0.2 + drought_risk * 0.3);
+
+  const basePopulation = district.population;
+  const population_at_risk = Math.round(
+    basePopulation * (composite_risk / 100) * (1 + population / 100)
+  );
+  const economic_loss_m_inr = Math.round(
+    ((population_at_risk * 420 + flood_risk * 15000 + drought_risk * 10000) *
+      (1 + urbanization / 100)) /
+      1e6
+  );
+  const infrastructure_risk = clamp(
+    flood_risk * 0.4 + riverLevel * 5 + urbanization * 0.2 + cyclone * 0.1 + windSpeed * 0.05
+  );
+  const environmental_impact_score = clamp(
+    100 - (forestCover + soilMoisture * 0.2 + agriLand * 0.3) - composite_risk * 0.35
+  );
 
   return {
     scenario: { ...payload },
     results: {
-      water_availability: Math.max(0, Math.min(100, Math.round(75 + payload.rainfall_delta_pct * 0.6 + payload.reservoir_delta_pct * 0.4))),
-      crop_stress: Math.max(0, Math.min(100, Math.round(40 + payload.temperature_delta_c * 6.5 - payload.rainfall_delta_pct * 0.4))),
-      drought_risk,
-      heatwave_risk,
-      flood_risk,
-      water_stress_risk,
-      composite_risk
+      water_availability: Math.round(water_availability),
+      crop_stress: Math.round(crop_stress),
+      drought_risk: Math.round(drought_risk),
+      heatwave_risk: Math.round(heatwave_risk),
+      flood_risk: Math.round(flood_risk),
+      water_stress_risk: Math.round(water_stress_risk),
+      composite_risk: Math.round(composite_risk),
+      population_at_risk,
+      economic_loss_m_inr,
+      infrastructure_risk: Math.round(infrastructure_risk),
+      environmental_impact_score: Math.round(environmental_impact_score)
     }
   };
 }
