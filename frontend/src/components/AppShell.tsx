@@ -11,7 +11,6 @@ import {
   Bot,
   Cpu,
   Gauge,
-  History,
   Home,
   Layers3,
   LockKeyhole,
@@ -24,7 +23,6 @@ import {
   TrendingUp,
   UserPlus,
   X,
-  BookOpen,
   FileText,
   Scale,
   CalendarRange,
@@ -53,9 +51,7 @@ const navSections = [
       { href: "/simulator", label: "Scenario Simulator", icon: SlidersHorizontal },
       { href: "/timeline", label: "Climate Timeline", icon: CalendarRange },
       { href: "/copilot", label: "AI Copilot", icon: Bot },
-      { href: "/reports", label: "AI Report Generator", icon: FileText },
-      { href: "/story", label: "Story Mode", icon: BookOpen },
-      { href: "/history", label: "Explorer", icon: History }
+      { href: "/reports", label: "AI Report Generator", icon: FileText }
     ]
   },
   {
