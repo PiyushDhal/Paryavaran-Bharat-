@@ -1096,263 +1096,277 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         {/* ─── FLOATING UI OVERLAYS ──────────────────────────────────── */}
 
         {/* 1. Search Bar */}
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-64 md:w-80 pointer-events-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-cyan-300/50" />
-            <input
-              type="text"
-              placeholder="Search State or District..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowSearchDropdown(true);
-              }}
-              onFocus={() => setShowSearchDropdown(true)}
-              className="w-full h-8.5 pl-9 pr-8 bg-slate-950/85 backdrop-blur text-white text-xs border border-cyan-500/25 rounded-full focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setShowSearchDropdown(false);
+        {!compact && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 w-64 md:w-80 pointer-events-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-cyan-300/50" />
+              <input
+                type="text"
+                placeholder="Search State or District..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchDropdown(true);
                 }}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            )}
-            
-            {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-9.5 left-0 right-0 max-h-48 overflow-y-auto bg-slate-950/90 border border-cyan-500/25 rounded-md shadow-2xl backdrop-blur">
-                {searchResults.map((d) => (
-                  <button
-                    key={d.id}
-                    onClick={() => handleSearchSelect(d)}
-                    className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-cyan-500/20 hover:text-white border-b border-white/5 last:border-0"
-                  >
-                    <span className="font-semibold">{d.name}</span>
-                    <span className="text-[10px] text-slate-400 ml-1.5">({d.state_name})</span>
-                  </button>
-                ))}
-              </div>
-            )}
+                onFocus={() => setShowSearchDropdown(true)}
+                className="w-full h-8.5 pl-9 pr-8 bg-slate-950/85 backdrop-blur text-white text-xs border border-cyan-500/25 rounded-full focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setShowSearchDropdown(false);
+                  }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              
+              {showSearchDropdown && searchResults.length > 0 && (
+                <div className="absolute top-9.5 left-0 right-0 max-h-48 overflow-y-auto bg-slate-950/90 border border-cyan-500/25 rounded-md shadow-2xl backdrop-blur">
+                  {searchResults.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => handleSearchSelect(d)}
+                      className="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-cyan-500/20 hover:text-white border-b border-white/5 last:border-0"
+                    >
+                      <span className="font-semibold">{d.name}</span>
+                      <span className="text-[10px] text-slate-400 ml-1.5">({d.state_name})</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 2. Floating Layer Control Panel */}
-        <div className="absolute top-4 left-4 z-20 max-w-[155px] md:max-w-[185px] pointer-events-auto">
-          <div className="bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-lg overflow-hidden shadow-lg">
-            <button
-              onClick={() => setIsLayerPanelExpanded(!isLayerPanelExpanded)}
-              className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-300 hover:bg-cyan-500/10 border-b border-cyan-500/10 transition"
-            >
-              <span>Thematic Feed</span>
-              <Layers className="h-3.5 w-3.5" />
-            </button>
-            {isLayerPanelExpanded && (
-              <div className="p-1 max-h-56 overflow-y-auto space-y-2 select-none text-[9.5px] scrollbar-thin">
-                <div>
-                  <p className="px-2 py-0.5 text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">Risk Models</p>
-                  <div className="mt-0.5 space-y-0.5">
-                    {["composite_risk", "flood_risk", "heatwave_risk", "drought_risk", "water_stress_risk"].map((lyr) => (
-                      <button
-                        key={lyr}
-                        onClick={() => setActiveLayer(lyr)}
-                        className={`w-full text-left px-2 py-1 rounded transition ${
-                          activeLayer === lyr
-                            ? "bg-cyan-500/20 text-cyan-300 font-semibold"
-                            : "text-slate-300 hover:bg-white/5"
-                        }`}
-                      >
-                        {layerMeta[lyr]?.label}
-                      </button>
-                    ))}
+        {!compact && (
+          <div className="absolute top-4 left-4 z-20 max-w-[155px] md:max-w-[185px] pointer-events-auto">
+            <div className="bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-lg overflow-hidden shadow-lg">
+              <button
+                onClick={() => setIsLayerPanelExpanded(!isLayerPanelExpanded)}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-cyan-300 hover:bg-cyan-500/10 border-b border-cyan-500/10 transition"
+              >
+                <span>Thematic Feed</span>
+                <Layers className="h-3.5 w-3.5" />
+              </button>
+              {isLayerPanelExpanded && (
+                <div className="p-1 max-h-56 overflow-y-auto space-y-2 select-none text-[9.5px] scrollbar-thin">
+                  <div>
+                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">Risk Models</p>
+                    <div className="mt-0.5 space-y-0.5">
+                      {["composite_risk", "flood_risk", "heatwave_risk", "drought_risk", "water_stress_risk"].map((lyr) => (
+                        <button
+                          key={lyr}
+                          onClick={() => setActiveLayer(lyr)}
+                          className={`w-full text-left px-2 py-1 rounded transition ${
+                            activeLayer === lyr
+                              ? "bg-cyan-500/20 text-cyan-300 font-semibold"
+                              : "text-slate-300 hover:bg-white/5"
+                          }`}
+                        >
+                          {layerMeta[lyr]?.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <p className="px-2 py-0.5 text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">Climate Observations</p>
-                  <div className="mt-0.5 space-y-0.5">
-                    {["rainfall", "temperature", "aqi", "humidity", "soil_moisture", "ndvi"].map((lyr) => (
-                      <button
-                        key={lyr}
-                        onClick={() => setActiveLayer(lyr)}
-                        className={`w-full text-left px-2 py-1 rounded transition ${
-                          activeLayer === lyr
-                            ? "bg-cyan-500/20 text-cyan-300 font-semibold"
-                            : "text-slate-300 hover:bg-white/5"
-                        }`}
-                      >
-                        {layerMeta[lyr]?.label}
-                      </button>
-                    ))}
+                  <div>
+                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">Climate Observations</p>
+                    <div className="mt-0.5 space-y-0.5">
+                      {["rainfall", "temperature", "aqi", "humidity", "soil_moisture", "ndvi"].map((lyr) => (
+                        <button
+                          key={lyr}
+                          onClick={() => setActiveLayer(lyr)}
+                          className={`w-full text-left px-2 py-1 rounded transition ${
+                            activeLayer === lyr
+                              ? "bg-cyan-500/20 text-cyan-300 font-semibold"
+                              : "text-slate-300 hover:bg-white/5"
+                          }`}
+                        >
+                          {layerMeta[lyr]?.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <p className="px-2 py-0.5 text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">Infrastructures</p>
-                  <div className="mt-0.5 space-y-0.5">
-                    {["reservoir_level", "river_level", "population_density"].map((lyr) => (
-                      <button
-                        key={lyr}
-                        onClick={() => setActiveLayer(lyr)}
-                        className={`w-full text-left px-2 py-1 rounded transition ${
-                          activeLayer === lyr
-                            ? "bg-cyan-500/20 text-cyan-300 font-semibold"
-                            : "text-slate-300 hover:bg-white/5"
-                        }`}
-                      >
-                        {layerMeta[lyr]?.label}
-                      </button>
-                    ))}
+                  <div>
+                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-slate-500 uppercase tracking-widest">Infrastructures</p>
+                    <div className="mt-0.5 space-y-0.5">
+                      {["reservoir_level", "river_level", "population_density"].map((lyr) => (
+                        <button
+                          key={lyr}
+                          onClick={() => setActiveLayer(lyr)}
+                          className={`w-full text-left px-2 py-1 rounded transition ${
+                            activeLayer === lyr
+                              ? "bg-cyan-500/20 text-cyan-300 font-semibold"
+                              : "text-slate-300 hover:bg-white/5"
+                          }`}
+                        >
+                          {layerMeta[lyr]?.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 3. Map Mode Toggles */}
-        <div className="absolute top-4 right-4 z-20 flex bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-full p-0.5 shadow-lg select-none pointer-events-auto">
-          {[
-            { id: "streets", label: "Map" },
-            { id: "satellite", label: "Satellite" },
-            { id: "terrain", label: "Terrain" },
-            { id: "hybrid", label: "Hybrid" }
-          ].map((mode) => (
-            <button
-              key={mode.id}
-              onClick={() => setMapMode(mode.id)}
-              className={`px-3 py-1 rounded-full text-[9px] font-medium tracking-wide transition ${
-                mapMode === mode.id
-                  ? "bg-cyan-500 text-slate-950 font-bold"
-                  : "text-slate-300 hover:text-white"
-              }`}
-            >
-              {mode.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 4. Map Legend */}
-        <div className="absolute bottom-4 left-4 z-20 p-3 bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-lg max-w-[200px] shadow-lg pointer-events-auto">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
-            {layerMeta[activeLayer]?.label || "Layer Details"}
-          </p>
-          <p className="text-[9px] text-slate-400 mt-0.5">
-            Unit: {layerMeta[activeLayer]?.unit || "N/A"}
-          </p>
-          <div className="mt-2 space-y-1">
-            {layerMeta[activeLayer]?.ranges.map((range, idx) => {
-              let color = "#22d3ee";
-              if (idx === 0) color = getLayerColor(activeLayer, 20);
-              else if (idx === 1) color = getLayerColor(activeLayer, 50);
-              else if (idx === 2) color = getLayerColor(activeLayer, 75);
-              else color = getLayerColor(activeLayer, 90);
-
-              return (
-                <div key={idx} className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                  <span className="text-[9px] text-slate-300 leading-none">{range}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 5. Live Telemetry Status Card */}
-        <div className="absolute bottom-4 right-4 z-20 p-2.5 bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-lg text-[9px] shadow-lg max-w-[150px] pointer-events-auto">
-          <div className="flex items-center gap-1.5 font-bold uppercase text-cyan-300">
-            <span className="relative flex h-1.5 w-1.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-            </span>
-            Live Status
-          </div>
-          <div className="mt-1.5 pt-1.5 border-t border-cyan-500/10 space-y-1 text-slate-300 select-none">
-            <div className="flex justify-between">
-              <span>Database:</span>
-              <span className="text-emerald-400 font-semibold">ONLINE</span>
-            </div>
-            <div className="flex justify-between">
-              <span>AI Core:</span>
-              <span className="text-emerald-400 font-semibold">ONLINE</span>
-            </div>
-            <div className="flex justify-between">
-              <span>IMD Feed:</span>
-              <span className="text-emerald-400 font-semibold">SYNCED</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 6. Timeline Projection Slider */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 w-64 md:w-[360px] bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-full px-4 py-2.5 shadow-lg flex items-center gap-3 select-none pointer-events-auto">
-          <div className="text-[9px] font-bold uppercase tracking-wider text-cyan-300 whitespace-nowrap">
-            Timeline
-          </div>
-          <div className="flex-1 flex justify-between gap-1 items-center relative">
-            <div className="absolute left-1.5 right-1.5 h-0.5 bg-slate-800" />
-            <div
-              className="absolute left-1.5 h-0.5 bg-cyan-400"
-              style={{
-                width: `${
-                  timelineStep === "today" ? 0 :
-                  timelineStep === "tomorrow" ? 25 :
-                  timelineStep === "7d" ? 50 :
-                  timelineStep === "30d" ? 75 : 100
-                }%`
-              }}
-            />
+        {!compact && (
+          <div className="absolute top-4 right-4 z-20 flex bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-full p-0.5 shadow-lg select-none pointer-events-auto">
             {[
-              { id: "today", label: "Today" },
-              { id: "tomorrow", label: "Tomorrow" },
-              { id: "7d", label: "7 Days" },
-              { id: "30d", label: "30 Days" },
-              { id: "2030", label: "2030" }
-            ].map((step) => (
+              { id: "streets", label: "Map" },
+              { id: "satellite", label: "Satellite" },
+              { id: "terrain", label: "Terrain" },
+              { id: "hybrid", label: "Hybrid" }
+            ].map((mode) => (
               <button
-                key={step.id}
-                onClick={() => setTimelineStep(step.id)}
-                className="relative z-10 flex flex-col items-center group focus:outline-none"
+                key={mode.id}
+                onClick={() => setMapMode(mode.id)}
+                className={`px-3 py-1 rounded-full text-[9px] font-medium tracking-wide transition ${
+                  mapMode === mode.id
+                    ? "bg-cyan-500 text-slate-950 font-bold"
+                    : "text-slate-300 hover:text-white"
+                }`}
               >
-                <span
-                  className={`w-2.5 h-2.5 rounded-full border border-slate-700 transition ${
-                    timelineStep === step.id
-                      ? "bg-cyan-400 scale-125 border-cyan-400 shadow-[0_0_8px_#22d3ee]"
-                      : "bg-slate-950 group-hover:bg-slate-800"
-                  }`}
-                />
-                <span
-                  className={`absolute top-4 text-[8px] transition font-medium ${
-                    timelineStep === step.id
-                      ? "text-cyan-300 font-bold scale-105"
-                      : "text-slate-400 group-hover:text-slate-300"
-                  }`}
-                >
-                  {step.label}
-                </span>
+                {mode.label}
               </button>
             ))}
           </div>
-        </div>
+        )}
+
+        {/* 4. Map Legend */}
+        {!compact && (
+          <div className="absolute bottom-4 left-4 z-20 p-3 bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-lg max-w-[200px] shadow-lg pointer-events-auto">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
+              {layerMeta[activeLayer]?.label || "Layer Details"}
+            </p>
+            <p className="text-[9px] text-slate-400 mt-0.5">
+              Unit: {layerMeta[activeLayer]?.unit || "N/A"}
+            </p>
+            <div className="mt-2 space-y-1">
+              {layerMeta[activeLayer]?.ranges.map((range, idx) => {
+                let color = "#22d3ee";
+                if (idx === 0) color = getLayerColor(activeLayer, 20);
+                else if (idx === 1) color = getLayerColor(activeLayer, 50);
+                else if (idx === 2) color = getLayerColor(activeLayer, 75);
+                else color = getLayerColor(activeLayer, 90);
+
+                return (
+                  <div key={idx} className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-[9px] text-slate-300 leading-none">{range}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 5. Live Telemetry Status Card */}
+        {!compact && (
+          <div className="absolute bottom-4 right-4 z-20 p-2.5 bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-lg text-[9px] shadow-lg max-w-[150px] pointer-events-auto">
+            <div className="flex items-center gap-1.5 font-bold uppercase text-cyan-300">
+              <span className="relative flex h-1.5 w-1.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+              </span>
+              Live Status
+            </div>
+            <div className="mt-1.5 pt-1.5 border-t border-cyan-500/10 space-y-1 text-slate-300 select-none">
+              <div className="flex justify-between">
+                <span>Database:</span>
+                <span className="text-emerald-400 font-semibold">ONLINE</span>
+              </div>
+              <div className="flex justify-between">
+                <span>AI Core:</span>
+                <span className="text-emerald-400 font-semibold">ONLINE</span>
+              </div>
+              <div className="flex justify-between">
+                <span>IMD Feed:</span>
+                <span className="text-emerald-400 font-semibold">SYNCED</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 6. Timeline Projection Slider */}
+        {!compact && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 w-64 md:w-[360px] bg-slate-950/85 backdrop-blur border border-cyan-500/25 rounded-full px-4 py-2.5 shadow-lg flex items-center gap-3 select-none pointer-events-auto">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-cyan-300 whitespace-nowrap">
+              Timeline
+            </div>
+            <div className="flex-1 flex justify-between gap-1 items-center relative">
+              <div className="absolute left-1.5 right-1.5 h-0.5 bg-slate-800" />
+              <div
+                className="absolute left-1.5 h-0.5 bg-cyan-400"
+                style={{
+                  width: `${
+                    timelineStep === "today" ? 0 :
+                    timelineStep === "tomorrow" ? 25 :
+                    timelineStep === "7d" ? 50 :
+                    timelineStep === "30d" ? 75 : 100
+                  }%`
+                }}
+              />
+              {[
+                { id: "today", label: "Today" },
+                { id: "tomorrow", label: "Tomorrow" },
+                { id: "7d", label: "7 Days" },
+                { id: "30d", label: "30 Days" },
+                { id: "2030", label: "2030" }
+              ].map((step) => (
+                <button
+                  key={step.id}
+                  onClick={() => setTimelineStep(step.id)}
+                  className="relative z-10 flex flex-col items-center group focus:outline-none"
+                >
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full border border-slate-700 transition ${
+                      timelineStep === step.id
+                        ? "bg-cyan-400 scale-125 border-cyan-400 shadow-[0_0_8px_#22d3ee]"
+                        : "bg-slate-950 group-hover:bg-slate-800"
+                    }`}
+                  />
+                  <span
+                    className={`absolute top-4 text-[8px] transition font-medium ${
+                      timelineStep === step.id
+                        ? "text-cyan-300 font-bold scale-105"
+                        : "text-slate-400 group-hover:text-slate-300"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 7. Locate Trigger Button */}
-        <div className="absolute top-4 right-52 z-20 pointer-events-auto">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => setShowSelector(true)}
-            className="border-cyan-500/30 bg-slate-950/85 hover:bg-slate-900 text-cyan-300 text-xs rounded-full flex items-center gap-1.5"
-          >
-            <LocateFixed className="h-3.5 w-3.5" />
-            <span>Select Region</span>
-          </Button>
-        </div>
+        {!compact && (
+          <div className="absolute top-4 right-52 z-20 pointer-events-auto">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setShowSelector(true)}
+              className="border-cyan-500/30 bg-slate-950/85 hover:bg-slate-900 text-cyan-300 text-xs rounded-full flex items-center gap-1.5"
+            >
+              <LocateFixed className="h-3.5 w-3.5" />
+              <span>Select Region</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* ─── SLIDING DISTRICT INFORMATION SIDEBAR PANEL ──────────────── */}
       <div
-        className={`absolute top-0 right-0 bottom-0 z-50 w-full sm:w-[420px] bg-slate-950/95 border-l border-cyan-500/20 backdrop-blur shadow-2xl transition-transform duration-300 ease-in-out transform ${
+        className={`fixed inset-y-0 right-0 z-[100] w-full sm:w-[420px] bg-slate-950/95 border-l border-cyan-500/20 backdrop-blur shadow-2xl transition-transform duration-300 ease-in-out transform ${
           selectedDistrictId ? "translate-x-0" : "translate-x-full"
         } flex flex-col`}
       >
