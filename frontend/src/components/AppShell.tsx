@@ -212,16 +212,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Live feeds active
             </div>
-            <Link
-              href="/alerts"
-              className="relative grid h-10 w-10 place-items-center rounded-md border border-cyan-300/20 bg-white/5 text-cyan-100 hover:bg-white/10 transition"
-              aria-label="Alerts"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
-                3
-              </span>
-            </Link>
+
 
             {/* Profile / Auth Relocation */}
             <div className="h-8 w-px bg-slate-800" />
