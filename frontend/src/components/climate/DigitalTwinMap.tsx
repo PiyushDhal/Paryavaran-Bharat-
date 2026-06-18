@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import type { District } from "@/lib/types";
 import { riskFill } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
+import { INDIA_OUTLINE } from "@/lib/indiaOutline";
 
 const layerOptions = [
   "temperature",
@@ -161,74 +162,7 @@ function RegionSelectorModal({
 
               {/* India outline border */}
               {(() => {
-                const indiaOutline = [
-                  { lat: 8.08, lon: 77.53 },
-                  { lat: 8.4, lon: 76.9 },
-                  { lat: 9.5, lon: 76.2 },
-                  { lat: 10.0, lon: 76.0 },
-                  { lat: 11.7, lon: 75.7 },
-                  { lat: 12.8, lon: 74.8 },
-                  { lat: 14.5, lon: 74.0 },
-                  { lat: 15.4, lon: 73.8 },
-                  { lat: 17.0, lon: 73.3 },
-                  { lat: 19.0, lon: 72.8 },
-                  { lat: 20.7, lon: 72.0 },
-                  { lat: 21.5, lon: 72.2 },
-                  { lat: 22.4, lon: 69.0 },
-                  { lat: 23.0, lon: 68.5 },
-                  { lat: 23.7, lon: 68.3 },
-                  { lat: 24.0, lon: 68.8 },
-                  { lat: 24.5, lon: 71.0 },
-                  { lat: 26.0, lon: 70.0 },
-                  { lat: 27.0, lon: 71.0 },
-                  { lat: 28.5, lon: 71.5 },
-                  { lat: 29.4, lon: 73.5 },
-                  { lat: 30.0, lon: 74.5 },
-                  { lat: 31.0, lon: 77.0 },
-                  { lat: 32.5, lon: 76.0 },
-                  { lat: 34.0, lon: 74.5 },
-                  { lat: 35.5, lon: 76.8 },
-                  { lat: 35.0, lon: 77.8 },
-                  { lat: 34.0, lon: 78.0 },
-                  { lat: 32.5, lon: 79.0 },
-                  { lat: 31.0, lon: 79.0 },
-                  { lat: 30.0, lon: 80.5 },
-                  { lat: 29.0, lon: 81.0 },
-                  { lat: 28.0, lon: 84.0 },
-                  { lat: 27.5, lon: 85.5 },
-                  { lat: 26.5, lon: 86.5 },
-                  { lat: 26.5, lon: 88.0 },
-                  { lat: 27.0, lon: 88.0 },
-                  { lat: 28.0, lon: 88.5 },
-                  { lat: 27.5, lon: 89.0 },
-                  { lat: 26.5, lon: 90.0 },
-                  { lat: 25.5, lon: 90.0 },
-                  { lat: 25.0, lon: 91.5 },
-                  { lat: 25.5, lon: 92.5 },
-                  { lat: 27.0, lon: 93.0 },
-                  { lat: 28.0, lon: 96.0 },
-                  { lat: 27.5, lon: 97.0 },
-                  { lat: 26.0, lon: 97.0 },
-                  { lat: 25.0, lon: 95.0 },
-                  { lat: 24.0, lon: 94.0 },
-                  { lat: 23.0, lon: 93.5 },
-                  { lat: 22.0, lon: 92.5 },
-                  { lat: 21.5, lon: 92.0 },
-                  { lat: 22.0, lon: 90.5 },
-                  { lat: 22.0, lon: 89.0 },
-                  { lat: 21.5, lon: 88.0 },
-                  { lat: 20.0, lon: 86.0 },
-                  { lat: 19.0, lon: 85.0 },
-                  { lat: 17.5, lon: 83.5 },
-                  { lat: 16.0, lon: 81.0 },
-                  { lat: 15.0, lon: 80.2 },
-                  { lat: 13.5, lon: 80.3 },
-                  { lat: 13.0, lon: 80.2 },
-                  { lat: 11.5, lon: 80.0 },
-                  { lat: 10.0, lon: 79.8 },
-                  { lat: 9.0, lon: 79.0 },
-                  { lat: 8.08, lon: 77.53 }
-                ];
+                const indiaOutline = INDIA_OUTLINE;
                 const pathData = indiaOutline
                   .map((pt, i) => {
                     const x = lonToX(pt.lon);
