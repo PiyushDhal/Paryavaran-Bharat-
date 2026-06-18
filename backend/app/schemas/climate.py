@@ -85,6 +85,17 @@ class ScenarioRequest(BaseModel):
     temperature_delta_c: float = Field(default=0, ge=-10, le=10)
     reservoir_delta_pct: float = Field(default=0, ge=-100, le=100)
     planning_horizon_years: int = Field(default=5, ge=1, le=30)
+    humidity_delta_pct: float = Field(default=0, ge=-100, le=100)
+    river_level_delta_m: float = Field(default=0, ge=-10, le=10)
+    soil_moisture_delta_pct: float = Field(default=0, ge=-100, le=100)
+    groundwater_delta_m: float = Field(default=0, ge=-100, le=100)
+    forest_cover_delta_pct: float = Field(default=0, ge=-100, le=100)
+    urbanization_delta_pct: float = Field(default=0, ge=-100, le=100)
+    population_growth_pct: float = Field(default=0, ge=-100, le=100)
+    agricultural_land_delta_pct: float = Field(default=0, ge=-100, le=100)
+    wind_speed_delta_kmh: float = Field(default=0, ge=-100, le=100)
+    cyclone_intensity_delta_pct: float = Field(default=0, ge=-100, le=100)
+    heatwave_duration_days: float = Field(default=0, ge=0, le=90)
 
 
 class ScenarioResult(BaseModel):
