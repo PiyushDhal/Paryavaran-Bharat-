@@ -922,6 +922,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     api.districts().then(setAllDistricts).catch(() => undefined);
   }, []);
 
+  // Synchronize selected district from URL query parameters on mount or URL changes
+  useEffect(() => {
+    if (!compact && typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const dId = params.get("district_id");
+      if (dId) {
+        setSelectedDistrictId(Number(dId));
+      } else {
+        setSelectedDistrictId(undefined);
+      }
+    }
+  }, [compact, setSelectedDistrictId]);
+
   // Handle selected district history fetching
   useEffect(() => {
     if (!selectedDistrictId) {

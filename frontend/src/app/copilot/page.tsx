@@ -84,7 +84,7 @@ export default function CopilotPage() {
       case "zoom_to_district":
         setSelectedDistrictId(action.district_id);
         triggerToast(`Command executed: Centered map on Jodhpur/Mumbai. Redirecting to map...`);
-        setTimeout(() => router.push("/map"), 1500);
+        setTimeout(() => router.push(`/map?district_id=${action.district_id}`), 1500);
         break;
       case "open_compare":
         if (action.districtA && action.districtB) {

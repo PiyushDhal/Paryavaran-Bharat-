@@ -1708,7 +1708,7 @@ export default function ReportsPage() {
                         setActiveLayer(disasterType === "flood" ? "flood_risk" : disasterType === "drought" ? "drought_risk" : "composite_risk");
                       }}
                     >
-                      <Link href="/map" className="flex items-center justify-between border border-cyan-500/15 bg-cyan-500/5 hover:bg-cyan-500/10 p-3.5 rounded-xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
+                      <Link href={`/map?district_id=${districtId}`} className="flex items-center justify-between border border-cyan-500/15 bg-cyan-500/5 hover:bg-cyan-500/10 p-3.5 rounded-xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
                         <div className="flex items-center gap-2.5">
                           <div className="h-8 w-8 rounded-lg bg-cyan-400/10 grid place-items-center text-cyan-400">
                             <Globe2 className="w-4 h-4" />
