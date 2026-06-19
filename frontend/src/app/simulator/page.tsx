@@ -226,7 +226,25 @@ const DEFAULT_PAYLOAD: ScenarioPayload = {
   heatwave_duration_days: 0,
 };
 
-const BASELINE_RESULT: SimulationResult = {
+const ZERO_PAYLOAD: ScenarioPayload = {
+  rainfall_delta_pct: 0,
+  temperature_delta_c: 0,
+  reservoir_delta_pct: 0,
+  planning_horizon_years: 1,
+  humidity_delta_pct: 0,
+  river_level_delta_m: 0,
+  soil_moisture_delta_pct: 0,
+  groundwater_delta_m: 0,
+  forest_cover_delta_pct: 0,
+  urbanization_delta_pct: 0,
+  population_growth_pct: 0,
+  agricultural_land_delta_pct: 0,
+  wind_speed_delta_kmh: 0,
+  cyclone_intensity_delta_pct: 0,
+  heatwave_duration_days: 0,
+};
+
+const BASELINE_FALLBACK: SimulationResult = {
   water_availability: 72,
   crop_stress: 35,
   drought_risk: 38,
@@ -345,6 +363,7 @@ export default function SimulatorPage() {
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [payload, setPayload] = useState<ScenarioPayload>({ ...DEFAULT_PAYLOAD });
   const [result, setResult] = useState<SimulationResult | null>(null);
+  const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -352,6 +371,16 @@ export default function SimulatorPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [expandedSliders, setExpandedSliders] = useState(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load baseline results when district changes
+  useEffect(() => {
+    if (!districtId) return;
+    api.simulate({ district_id: districtId, ...ZERO_PAYLOAD })
+      .then((res) => {
+        setBaselineResult(res.results);
+      })
+      .catch(() => undefined);
+  }, [districtId]);
 
   // Load URL params + saved scenarios from localStorage
   useEffect(() => {
@@ -452,17 +481,18 @@ export default function SimulatorPage() {
 
   function exportCSV() {
     if (!result) return;
+    const base = baselineResult ?? BASELINE_FALLBACK;
     const rows = [
       ["Metric", "Baseline", "Simulated", "Delta"],
-      ["Composite Risk", BASELINE_RESULT.composite_risk, result.composite_risk, result.composite_risk - BASELINE_RESULT.composite_risk],
-      ["Flood Risk", BASELINE_RESULT.flood_risk, result.flood_risk, result.flood_risk - BASELINE_RESULT.flood_risk],
-      ["Drought Risk", BASELINE_RESULT.drought_risk, result.drought_risk, result.drought_risk - BASELINE_RESULT.drought_risk],
-      ["Heatwave Risk", BASELINE_RESULT.heatwave_risk, result.heatwave_risk, result.heatwave_risk - BASELINE_RESULT.heatwave_risk],
-      ["Water Stress", BASELINE_RESULT.water_stress_risk, result.water_stress_risk, result.water_stress_risk - BASELINE_RESULT.water_stress_risk],
-      ["Water Availability", BASELINE_RESULT.water_availability, result.water_availability, result.water_availability - BASELINE_RESULT.water_availability],
-      ["Crop Stress", BASELINE_RESULT.crop_stress, result.crop_stress, result.crop_stress - BASELINE_RESULT.crop_stress],
-      ["Population at Risk", BASELINE_RESULT.population_at_risk ?? 0, result.population_at_risk ?? 0, (result.population_at_risk ?? 0) - (BASELINE_RESULT.population_at_risk ?? 0)],
-      ["Economic Loss (M INR)", BASELINE_RESULT.economic_loss_m_inr ?? 0, result.economic_loss_m_inr ?? 0, (result.economic_loss_m_inr ?? 0) - (BASELINE_RESULT.economic_loss_m_inr ?? 0)],
+      ["Composite Risk", base.composite_risk, result.composite_risk, result.composite_risk - base.composite_risk],
+      ["Flood Risk", base.flood_risk, result.flood_risk, result.flood_risk - base.flood_risk],
+      ["Drought Risk", base.drought_risk, result.drought_risk, result.drought_risk - base.drought_risk],
+      ["Heatwave Risk", base.heatwave_risk, result.heatwave_risk, result.heatwave_risk - base.heatwave_risk],
+      ["Water Stress", base.water_stress_risk, result.water_stress_risk, result.water_stress_risk - base.water_stress_risk],
+      ["Water Availability", base.water_availability, result.water_availability, result.water_availability - base.water_availability],
+      ["Crop Stress", base.crop_stress, result.crop_stress, result.crop_stress - base.crop_stress],
+      ["Population at Risk", base.population_at_risk ?? 0, result.population_at_risk ?? 0, (result.population_at_risk ?? 0) - (base.population_at_risk ?? 0)],
+      ["Economic Loss (M INR)", base.economic_loss_m_inr ?? 0, result.economic_loss_m_inr ?? 0, (result.economic_loss_m_inr ?? 0) - (base.economic_loss_m_inr ?? 0)],
     ];
     const csv = rows.map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
@@ -846,7 +876,8 @@ export default function SimulatorPage() {
                         ["Env. Impact", "environmental_impact_score"],
                       ] as [string, keyof SimulationResult][]).map(([label, key]) => {
                         const sim = Number(result[key] ?? 0);
-                        const base = Number(BASELINE_RESULT[key] ?? 0);
+                        const baseVal = baselineResult ?? BASELINE_FALLBACK;
+                        const base = Number(baseVal[key] ?? 0);
                         const { d } = delta(sim, base);
                         const isImproved = key === "water_availability" || key === "environmental_impact_score" ? d > 0 : d < 0;
                         const DeltaIcon = d > 0 ? ArrowUpRight : d < 0 ? ArrowDownRight : Minus;

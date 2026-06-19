@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { generateRankings } from "@/lib/mock/engine";
+import { api } from "@/lib/api";
 import type { Ranking, SimulationResult } from "@/lib/types";
 
 type ClimateContextType = {
@@ -40,7 +40,7 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   }, [timelineStep]);
 
   useEffect(() => {
-    setRankings(generateRankings(activeYear));
+    api.rankings(1000, activeYear).then(setRankings).catch(() => undefined);
   }, [activeYear]);
 
   return (

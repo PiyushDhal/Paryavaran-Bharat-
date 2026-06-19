@@ -154,39 +154,79 @@ def synthetic_boundary(lat: float, lon: float, size: float = 0.5) -> dict:
     }
 
 
-def generate_observations(district_code: str, profile: str, years: int = 7) -> list[dict]:
+def generate_observations(district_code: str, profile: str, years: int | list[int] = 7) -> list[dict]:
     rng = Random(district_code)
     rainfall, temp, humidity, river, soil, ndvi, reservoir, aqi = PROFILE_BASELINES[profile]
-    today = date.today().replace(day=1)
     rows = []
-    months = years * 12
-    for offset in range(months):
-        observed = today - timedelta(days=30 * (months - offset))
-        monsoon = 1.0 + 0.55 * sin((observed.month - 5) / 12 * 6.283)
-        heat = 1.0 + 0.22 * sin((observed.month - 3) / 12 * 6.283)
-        noise = rng.uniform(-0.08, 0.08)
-        rainfall_mm = max(0, rainfall * monsoon * (1 + noise))
-        temp_c = temp * heat + rng.uniform(-1.5, 1.5)
-        soil_pct = clamp(soil + (rainfall_mm - rainfall) * 0.08 - (temp_c - temp) * 1.6)
-        ndvi_value = clamp(ndvi + (soil_pct - soil) * 0.006, 0, 1)
-        reservoir_pct = clamp(reservoir + (rainfall_mm - rainfall) * 0.12 - (temp_c - temp) * 1.3)
-        deficit = clamp((rainfall - rainfall_mm) / max(rainfall, 1) * 100, -100, 100)
-        rows.append(
-            {
-                "observed_on": observed,
-                "rainfall_mm": round(rainfall_mm, 1),
-                "rainfall_deficit_pct": round(deficit, 1),
-                "temperature_c": round(temp_c, 1),
-                "humidity_pct": round(clamp(humidity + rng.uniform(-8, 8)), 1),
-                "river_level_m": round(max(0.2, river + (rainfall_mm - rainfall) * 0.015), 2),
-                "soil_moisture_pct": round(soil_pct, 1),
-                "aqi": int(clamp(aqi + rng.uniform(-18, 22), 10, 400)),
-                "ndvi": round(ndvi_value, 3),
-                "land_surface_temp_c": round(temp_c + rng.uniform(1.5, 4.5), 1),
-                "water_body_index": round(clamp(0.2 + reservoir_pct / 180, 0, 1), 3),
-                "reservoir_level_pct": round(reservoir_pct, 1),
-            }
-        )
+
+    if isinstance(years, int):
+        today_year = date.today().year
+        years_list = list(range(today_year - years + 1, today_year + 1))
+    else:
+        years_list = years
+
+    is_wet = profile in ["coastal_flood", "riverine_flood", "heat_flood", "urban_coastal"]
+    is_dry = profile in ["arid_drought", "drought", "desert_heat"]
+
+    for year in years_list:
+        temp_rise = 0.0
+        if year == 2010:
+            temp_rise = -0.5
+        elif year == 2015:
+            temp_rise = -0.25
+        elif year == 2020:
+            temp_rise = 0.0
+        elif year == 2025:
+            temp_rise = 0.4
+        elif year == 2030:
+            temp_rise = 0.8
+        elif year == 2040:
+            temp_rise = 1.6
+        elif year == 2050:
+            temp_rise = 2.6
+        else:
+            temp_rise = (year - 2020) * 0.08
+
+        rain_scale = 1.0
+        if year >= 2030:
+            if is_wet:
+                rain_scale = 1.0 + (year - 2020) * 0.005
+            elif is_dry:
+                rain_scale = 1.0 - (year - 2020) * 0.008
+
+        for month in range(1, 13):
+            observed = date(year, month, 1)
+            monsoon = 1.0 + 0.55 * sin((month - 5) / 12 * 6.283)
+            heat = 1.0 + 0.22 * sin((month - 3) / 12 * 6.283)
+            noise = rng.uniform(-0.08, 0.08)
+
+            adjusted_rainfall = max(0.0, rainfall * monsoon * rain_scale * (1.0 + noise))
+            adjusted_temp = temp * heat + temp_rise + rng.uniform(-1.0, 1.0)
+
+            soil_scale = max(0.2, 1.0 - (temp_rise * 0.05)) if temp_rise > 0 else 1.0
+            adjusted_soil = clamp(soil * soil_scale + (adjusted_rainfall - rainfall) * 0.08 - (adjusted_temp - temp) * 1.2)
+            adjusted_ndvi = clamp(ndvi + (adjusted_soil - soil) * 0.005, 0.0, 1.0)
+            adjusted_reservoir = clamp(reservoir * (rain_scale if rain_scale < 1 else 1.0) + (adjusted_rainfall - rainfall) * 0.1 - (adjusted_temp - temp) * 1.0)
+
+            deficit = clamp((rainfall - adjusted_rainfall) / max(rainfall, 1) * 100, -100, 100)
+
+            rows.append(
+                {
+                    "observed_on": observed,
+                    "rainfall_mm": round(adjusted_rainfall, 1),
+                    "rainfall_deficit_pct": round(deficit, 1),
+                    "temperature_c": round(adjusted_temp, 1),
+                    "humidity_pct": round(clamp(humidity + rng.uniform(-5, 5)), 1),
+                    "river_level_m": round(max(0.2, river * (1.0 + (rain_scale - 1.0) * 0.5) + (adjusted_rainfall - rainfall) * 0.012), 2),
+                    "soil_moisture_pct": round(adjusted_soil, 1),
+                    "aqi": int(clamp(aqi + (temp_rise * 5) + rng.uniform(-12, 15), 10, 400)),
+                    "ndvi": round(adjusted_ndvi, 3),
+                    "land_surface_temp_c": round(adjusted_temp + rng.uniform(1.0, 3.5), 1),
+                    "water_body_index": round(clamp(0.2 + adjusted_reservoir / 180, 0, 1), 3),
+                    "reservoir_level_pct": round(adjusted_reservoir, 1),
+                }
+            )
+
     return rows
 
 

@@ -6,7 +6,7 @@ import { Calendar } from "lucide-react";
 
 export function TimelineSlider() {
   const { activeYear, setActiveYear } = useClimate();
-  const years = [2020, 2025, 2030, 2040, 2050];
+  const years = [2010, 2015, 2020, 2025, 2030, 2040, 2050];
 
   return (
     <div className="mx-auto mt-6 w-full max-w-4xl rounded-xl border border-cyan-400/25 bg-slate-950/75 p-5 shadow-[0_0_30px_rgba(6,182,212,0.15)] backdrop-blur-md">

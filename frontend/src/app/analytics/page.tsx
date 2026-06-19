@@ -53,9 +53,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_STATES, MOCK_DISTRICTS, generateRankings, generateHistory } from "@/lib/mock/engine";
+import { api } from "@/lib/api";
 import { useClimate } from "@/store/useClimateStore";
-import type { ClimateObservation, Ranking, District } from "@/lib/types";
+import type { ClimateObservation, Ranking, District, State } from "@/lib/types";
 
 // ─── District Metadata Classifications ────────────────────────────────
 const DISTRICT_METADATA: Record<number, { climateZone: string; riskCategory: string }> = {
@@ -79,14 +79,26 @@ const DISTRICT_METADATA: Record<number, { climateZone: string; riskCategory: str
 
 export default function AnalyticsPage() {
   const climateContext = useClimate();
-  
+
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [states, setStates] = useState<State[]>([]);
+  const [allRankings, setAllRankings] = useState<Ranking[]>([]);
+  const [allHistories, setAllHistories] = useState<Record<number, ClimateObservation[]>>({});
+
   // ─── Filter States ──────────────────────────────────────────────────
   const [stateId, setStateId] = useState<number | "">("");
   const [selectedDistId, setSelectedDistId] = useState<number | "">("");
   const [year, setYear] = useState<number>(2025);
   const [climateZone, setClimateZone] = useState<string>("");
   const [riskCategory, setRiskCategory] = useState<string>("");
-  
+
+  // Sync year state with activeYear from context
+  useEffect(() => {
+    if (climateContext?.activeYear) {
+      setYear(climateContext.activeYear);
+    }
+  }, [climateContext?.activeYear]);
+
   // ─── Workspace Tabs ────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<
     "overview" | "trends" | "risk" | "sustainability" | "water" | "air" | "agriculture" | "ai" | "compare"
@@ -110,58 +122,88 @@ export default function AnalyticsPage() {
   const [rankSortKey, setRankSortKey] = useState<"name" | "score" | "forest" | "water" | "aqi" | "resilience">("score");
   const [rankSortOrder, setRankSortOrder] = useState<"asc" | "desc">("desc");
 
+  // Load datasets from backend API on mount
+  useEffect(() => {
+    Promise.all([
+      api.states(),
+      api.districts(),
+      api.rankings(1000, year)
+    ]).then(([statesData, districtsData, rankingsData]) => {
+      setStates(statesData);
+      setDistricts(districtsData);
+      setAllRankings(rankingsData);
+
+      const historyPromises = districtsData.map(d =>
+        api.history(d.id, year).then(h => [d.id, h] as const)
+      );
+      Promise.all(historyPromises).then(results => {
+        const historyMap: Record<number, ClimateObservation[]> = {};
+        for (const [id, obs] of results) {
+          historyMap[id] = obs;
+        }
+        setAllHistories(historyMap);
+      }).catch(() => undefined);
+    }).catch(() => undefined);
+  }, [year]);
+
   // Sync stateId from global selected district when page loads if possible
   useEffect(() => {
-    if (climateContext?.selectedDistrictId) {
-      const dist = MOCK_DISTRICTS.find((d) => d.id === climateContext.selectedDistrictId);
+    if (districts.length > 0 && climateContext?.selectedDistrictId) {
+      const dist = districts.find((d) => d.id === climateContext.selectedDistrictId);
       if (dist) {
         setStateId(dist.state_id);
         setSelectedDistId(dist.id);
       }
     }
-  }, []);
+  }, [districts, climateContext?.selectedDistrictId]);
 
   // Filter districts based on current select states
   const filteredDistricts = useMemo(() => {
-    return MOCK_DISTRICTS.filter((d) => {
+    return districts.filter((d) => {
       if (stateId && d.state_id !== stateId) return false;
       const meta = DISTRICT_METADATA[d.id] || { climateZone: "Tropical", riskCategory: "Safe" };
       if (climateZone && meta.climateZone !== climateZone) return false;
       if (riskCategory && meta.riskCategory !== riskCategory) return false;
       return true;
     });
-  }, [stateId, climateZone, riskCategory]);
+  }, [districts, stateId, climateZone, riskCategory]);
 
   // Aggregate monthly observations for the filtered scope
   const monthlyData = useMemo(() => {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
+
     const rawData = (() => {
       if (filteredDistricts.length === 0) return [];
-      
+
       if (selectedDistId) {
         const matched = filteredDistricts.find(d => d.id === selectedDistId);
-        if (matched) return generateHistory(selectedDistId, year);
+        if (matched) return allHistories[selectedDistId] || [];
       }
-      
+
       // Otherwise aggregate across all matched districts
       const aggregated: ClimateObservation[] = [];
-      const histories = filteredDistricts.map(d => generateHistory(d.id, year));
+      const histories = filteredDistricts.map(d => allHistories[d.id]).filter(Boolean);
+      if (histories.length === 0) return [];
       const count = histories.length;
-      
-      for (let m = 0; m < 12; m++) {
+
+      const sampleHistory = histories[0];
+      if (!sampleHistory || sampleHistory.length === 0) return [];
+
+      for (let m = 0; m < sampleHistory.length; m++) {
         let rain = 0, temp = 0, aqi = 0, reservoir = 0, ndvi = 0, soil = 0;
         histories.forEach(h => {
           const obs = h[m];
-          rain += obs.rainfall_mm;
-          temp += obs.temperature_c;
-          aqi += obs.aqi;
-          reservoir += obs.reservoir_level_pct ?? 50;
-          ndvi += obs.ndvi ?? 0.5;
-          soil += obs.soil_moisture_pct;
+          if (obs) {
+            rain += obs.rainfall_mm;
+            temp += obs.temperature_c;
+            aqi += obs.aqi;
+            reservoir += obs.reservoir_level_pct ?? 50;
+            ndvi += obs.ndvi ?? 0.5;
+            soil += obs.soil_moisture_pct;
+          }
         });
         aggregated.push({
-          observed_on: histories[0][m].observed_on,
+          observed_on: sampleHistory[m].observed_on,
           rainfall_mm: Math.round(rain / count),
           rainfall_deficit_pct: 0,
           temperature_c: Math.round((temp / count) * 10) / 10,
@@ -177,6 +219,7 @@ export default function AnalyticsPage() {
     })();
 
     return rawData.map(obs => {
+      if (typeof obs.observed_on !== "string") return { ...obs, date: "" };
       const parts = obs.observed_on.split("-");
       const monthIdx = parts[1] ? parseInt(parts[1], 10) - 1 : 0;
       return {
@@ -184,12 +227,12 @@ export default function AnalyticsPage() {
         date: monthNames[monthIdx] || parts[1] || ""
       };
     });
-  }, [filteredDistricts, selectedDistId, year]);
+  }, [filteredDistricts, selectedDistId, allHistories]);
 
   // Compute indices dynamically
   const metrics = useMemo(() => {
     if (monthlyData.length === 0) return null;
-    
+
     const avgTemp = monthlyData.reduce((acc, obs) => acc + obs.temperature_c, 0) / monthlyData.length;
     const avgRain = monthlyData.reduce((acc, obs) => acc + obs.rainfall_mm, 0) / monthlyData.length;
     const avgAqi = monthlyData.reduce((acc, obs) => acc + obs.aqi, 0) / monthlyData.length;
@@ -198,8 +241,7 @@ export default function AnalyticsPage() {
     const avgSoil = monthlyData.reduce((acc, obs) => acc + obs.soil_moisture_pct, 0) / monthlyData.length;
 
     let avgRisk = 50, avgFlood = 50, avgDrought = 50, avgHeat = 50, avgWater = 50;
-    const currentRankings = generateRankings(year);
-    const activeRankings = currentRankings.filter(r => filteredDistricts.some(fd => fd.id === r.district_id));
+    const activeRankings = allRankings.filter(r => filteredDistricts.some(fd => fd.id === r.district_id));
     if (activeRankings.length > 0) {
       avgRisk = activeRankings.reduce((acc, r) => acc + r.composite_risk, 0) / activeRankings.length;
       avgFlood = activeRankings.reduce((acc, r) => acc + r.flood_risk, 0) / activeRankings.length;
@@ -248,15 +290,15 @@ export default function AnalyticsPage() {
       avgHeat: Math.round(avgHeat),
       avgWater: Math.round(avgWater)
     };
-  }, [monthlyData, filteredDistricts, year]);
+  }, [monthlyData, filteredDistricts, allRankings]);
 
   // Generate dynamic AI Insights & Explanations
   const aiInsights = useMemo(() => {
     if (!metrics) return null;
-    const name = selectedDistId 
-      ? MOCK_DISTRICTS.find(d => d.id === selectedDistId)?.name 
-      : stateId 
-      ? MOCK_STATES.find(s => s.id === stateId)?.name 
+    const name = selectedDistId
+      ? districts.find(d => d.id === selectedDistId)?.name
+      : stateId
+      ? states.find(s => s.id === stateId)?.name
       : "National aggregate";
 
     let summary = `Sustainability indicators for ${name} in ${year} AD are evaluated at a composite index score of ${metrics.compositeIndex}/100. `;
@@ -284,20 +326,20 @@ export default function AnalyticsPage() {
     }
 
     return { summary, drivers, positives, negatives, recommendations };
-  }, [metrics, selectedDistId, stateId, year]);
+  }, [metrics, districts, states, selectedDistId, stateId, year]);
 
   // Compute District Rankings based on current year and filters
   const rankingsList = useMemo(() => {
-    const list = MOCK_DISTRICTS.map(d => {
-      const histories = generateHistory(d.id, year);
+    const list = districts.map(d => {
+      const histories = allHistories[d.id] || [];
+      if (histories.length === 0) return null;
       const avgNdvi = histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length;
       const avgAqi = histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length;
       const avgReservoir = histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length;
       const avgSoil = histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length;
 
-      const currentRankings = generateRankings(year);
-      const r = currentRankings.find(x => x.district_id === d.id) || { composite_risk: 50, drought_risk: 50 };
-      
+      const r = allRankings.find(x => x.district_id === d.id) || { composite_risk: 50, drought_risk: 50 };
+
       const ndviScore = Math.round(avgNdvi * 100);
       const aqiScore = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
       const reservoirScore = Math.round(avgReservoir);
@@ -317,9 +359,9 @@ export default function AnalyticsPage() {
         resilience: safetyScore,
         risk: r.composite_risk
       };
-    });
+    }).filter(Boolean) as Array<{ id: number; name: string; state: string; score: number; water: number; aqi: number; forest: number; carbon: number; resilience: number; risk: number }>;
     return list;
-  }, [year]);
+  }, [districts, allHistories, allRankings]);
 
   // Export functions
   const handleExportCSV = () => {
@@ -349,13 +391,14 @@ export default function AnalyticsPage() {
 
   // Dynamic calculations for Comparison Tab
   const compMetrics = useMemo(() => {
+    if (districts.length === 0) return null;
     const fetchMetrics = (dId: number) => {
-      const histories = generateHistory(dId, year);
-      const avgNdvi = histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length;
-      const avgAqi = histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length;
-      const avgReservoir = histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length;
-      const avgSoil = histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length;
-      const r = generateRankings(year).find(x => x.district_id === dId) || { composite_risk: 50, drought_risk: 50 };
+      const histories = allHistories[dId] || [];
+      const avgNdvi = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length : 0.5;
+      const avgAqi = histories.length > 0 ? histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length : 100;
+      const avgReservoir = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length : 50;
+      const avgSoil = histories.length > 0 ? histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length : 30;
+      const r = allRankings.find(x => x.district_id === dId) || { composite_risk: 50, drought_risk: 50 };
 
       const ndviScore = Math.round(avgNdvi * 100);
       const aqiScore = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
@@ -376,26 +419,24 @@ export default function AnalyticsPage() {
       };
     };
 
-    const distA = MOCK_DISTRICTS.find(d => d.id === compDistA) || MOCK_DISTRICTS[0];
-    const distB = MOCK_DISTRICTS.find(d => d.id === compDistB) || MOCK_DISTRICTS[1];
+    const distA = districts.find(d => d.id === compDistA) || districts[0];
+    const distB = districts.find(d => d.id === compDistB) || districts[1];
 
     const dataA = fetchMetrics(distA.id);
     const dataB = fetchMetrics(distB.id);
 
     return { distA, distB, dataA, dataB };
-  }, [compDistA, compDistB, year]);
+  }, [districts, allHistories, allRankings, compDistA, compDistB]);
 
   // ─── Sustainability Dynamic Leaderboard ───────────────────────────
   const leaderboardList = useMemo(() => {
-    // 1. Gather all districts under the current state/filters
     const list = filteredDistricts.map(d => {
-      // Calculate individual scores/metrics for each district
-      const histories = generateHistory(d.id, year);
-      const avgNdvi = histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length;
-      const avgAqi = histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length;
-      const avgReservoir = histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length;
-      const avgSoil = histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length;
-      const r = generateRankings(year).find(x => x.district_id === d.id) || { composite_risk: 50 };
+      const histories = allHistories[d.id] || [];
+      const avgNdvi = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length : 0.5;
+      const avgAqi = histories.length > 0 ? histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length : 100;
+      const avgReservoir = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length : 50;
+      const avgSoil = histories.length > 0 ? histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length : 30;
+      const r = allRankings.find(x => x.district_id === d.id) || { composite_risk: 50 };
 
       const forest = Math.round(avgNdvi * 100);
       const aqi = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
@@ -418,19 +459,17 @@ export default function AnalyticsPage() {
       };
     });
 
-    // 2. Apply search filter
-    const searched = list.filter(item => 
+    const searched = list.filter(item =>
       item.name.toLowerCase().includes(rankSearchText.toLowerCase()) ||
       item.state.toLowerCase().includes(rankSearchText.toLowerCase())
     );
 
-    // 3. Apply sorting
     return searched.sort((a, b) => {
       let fieldA: any = a[rankSortKey];
       let fieldB: any = b[rankSortKey];
 
       if (typeof fieldA === "string") {
-        return rankSortOrder === "asc" 
+        return rankSortOrder === "asc"
           ? fieldA.localeCompare(fieldB)
           : fieldB.localeCompare(fieldA);
       } else {
@@ -439,7 +478,7 @@ export default function AnalyticsPage() {
           : fieldB - fieldA;
       }
     });
-  }, [filteredDistricts, year, rankSearchText, rankSortKey, rankSortOrder]);
+  }, [filteredDistricts, allHistories, allRankings, rankSearchText, rankSortKey, rankSortOrder]);
 
   // ─── Sustainability Decision Simulator ───────────────────────────
   const simulatedData = useMemo(() => {
@@ -493,6 +532,10 @@ export default function AnalyticsPage() {
   }, [metrics, reforestRate, evShare, renewablesShare, recycleRate]);
 
 
+  if (states.length === 0 || districts.length === 0 || allRankings.length === 0 || Object.keys(allHistories).length === 0) {
+    return <div className="text-center py-20 text-slate-500">Loading analytics datasets...</div>;
+  }
+
   if (!metrics) return null;
 
   return (
@@ -520,7 +563,7 @@ export default function AnalyticsPage() {
               className="bg-slate-950 border border-cyan-500/15 rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
             >
               <option value="">All States</option>
-              {MOCK_STATES.map((s) => (
+              {states.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
@@ -1402,7 +1445,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* ─── TAB CONTENT: DISTRICT COMPARE ──────────────────────────────── */}
-      {activeTab === "compare" && (
+      {activeTab === "compare" && compMetrics && (
         <div className="space-y-5">
           {/* Comparison Selector Dropdowns */}
           <div className="grid gap-4 md:grid-cols-2 bg-slate-900/40 border border-cyan-500/10 p-4 rounded-xl backdrop-blur-md">
@@ -1413,7 +1456,7 @@ export default function AnalyticsPage() {
                 onChange={(e) => setCompDistA(Number(e.target.value))}
                 className="bg-slate-950 border border-cyan-500/15 rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
               >
-                {MOCK_DISTRICTS.map((d) => (
+                {districts.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
                 ))}
               </select>
@@ -1426,7 +1469,7 @@ export default function AnalyticsPage() {
                 onChange={(e) => setCompDistB(Number(e.target.value))}
                 className="bg-slate-950 border border-cyan-500/15 rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
               >
-                {MOCK_DISTRICTS.map((d) => (
+                {districts.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
                 ))}
               </select>

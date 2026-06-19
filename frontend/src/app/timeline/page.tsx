@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { AlertTriangle, CalendarRange, Clock, CloudRain, Flame, History, Play } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_DISTRICTS } from "@/lib/mock/engine";
+import { api } from "@/lib/api";
+import type { District, ClimateObservation } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 
 type TimelineEvent = {
@@ -17,84 +18,123 @@ type TimelineEvent = {
   avgRain: string;
   riskScore: number;
   alert: string;
-  icon: typeof CloudRain;
+  icon: any;
 };
 
-const timelineData: TimelineEvent[] = [
-  {
-    year: 2018,
-    label: "Historical Drought Spell",
-    type: "historical",
-    description: "Localized delayed monsoon onset of 16 days. Reservoir storage capacity plummeted to an all-time low of 14% across the block.",
-    avgTemp: "28.5°C",
-    avgRain: "680mm",
-    riskScore: 78,
-    alert: "Severe agricultural aridity and crop loss reports",
-    icon: AlertTriangle
-  },
-  {
-    year: 2021,
-    label: "Extreme Coastal Precipitation",
-    type: "historical",
-    description: "Unprecedented short-duration high-intensity downpours (+140mm in 24 hours), causing severe runoff and river overflow anomalies.",
-    avgTemp: "27.1°C",
-    avgRain: "1240mm",
-    riskScore: 82,
-    alert: "Municipal drainage surge warnings",
-    icon: CloudRain
-  },
-  {
+export default function TimelinePage() {
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [districtId, setDistrictId] = useState<number>(0);
+  const [activeEventIndex, setActiveEventIndex] = useState<number>(3); // 2025 selected by default (index 3 of [2010, 2015, 2020, 2025, 2030, 2040, 2050])
+  const [historyData, setHistoryData] = useState<ClimateObservation[]>([]);
+  const [trendsData, setTrendsData] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.districts()
+      .then((data) => {
+        setDistricts(data);
+        if (data.length > 0) {
+          setDistrictId(data[0].id);
+        }
+      })
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (!districtId) return;
+    Promise.all([
+      api.history(districtId),
+      api.riskTrends(districtId)
+    ]).then(([historyResponse, trendsResponse]) => {
+      setHistoryData(historyResponse);
+      setTrendsData(trendsResponse);
+    }).catch(() => undefined);
+  }, [districtId]);
+
+  const years = [2010, 2015, 2020, 2025, 2030, 2040, 2050];
+
+  const timelineData = useMemo(() => {
+    return years.map((y) => {
+      const obsOfYear = historyData.filter(h => new Date(h.observed_on).getFullYear() === y);
+      const avgTemp = obsOfYear.length ? obsOfYear.reduce((sum, o) => sum + o.temperature_c, 0) / obsOfYear.length : 27.8;
+      const totalRain = obsOfYear.length ? obsOfYear.reduce((sum, o) => sum + o.rainfall_mm, 0) : 980;
+
+      const trendOfYear = trendsData.filter(t => new Date(t.date).getFullYear() === y);
+      const riskScore = trendOfYear.length ? Math.round(trendOfYear.reduce((sum, t) => sum + t.composite, 0) / trendOfYear.length) : 54;
+
+      const isHist = y < 2025;
+      const isPred = y > 2025;
+      const type: "historical" | "current" | "predicted" = isHist ? "historical" : (y === 2025 ? "current" : "predicted");
+
+      let label = "Baseline Transition Year";
+      let description = "Stabilized monsoon indicators with localized temperature rises. Current ground telemetry aligns with long-term climate baselines.";
+      let icon = Clock;
+
+      if (y === 2010) {
+        label = "Cooler Climate Baseline";
+        description = `Empirical records show a cooler climate baseline. Average temperature recorded at ${avgTemp.toFixed(1)}°C with annual precipitation of ${totalRain.toFixed(0)}mm.`;
+        icon = Clock;
+      } else if (y === 2015) {
+        label = "Slight Warming Transition";
+        description = `Gradual warming transition observed. Average temperature rose slightly to ${avgTemp.toFixed(1)}°C with annual precipitation of ${totalRain.toFixed(0)}mm.`;
+        icon = Clock;
+      } else if (y === 2020) {
+        label = "Reference Baseline Climate";
+        description = `Standard meteorological reference year. Precipitation patterns show standard deviation norms with a mean temperature of ${avgTemp.toFixed(1)}°C.`;
+        icon = CloudRain;
+      } else if (y === 2030) {
+        label = "SSP2-4.5 Intermediate Projections";
+        description = `Projected carbon forcing triggers temperature rise to ${avgTemp.toFixed(1)}°C. Sub-surface moisture depletion accelerates dryland aridity risks.`;
+        icon = Flame;
+      } else if (y === 2040) {
+        label = "SSP2-4.5 High Volatility Forcing";
+        description = `Intense spatiotemporal precipitation volatility. Annual rainfall projected at ${totalRain.toFixed(0)}mm, increasing local flash flood exposures.`;
+        icon = CloudRain;
+      } else if (y === 2050) {
+        label = "Thermal Heat Dome Scenario";
+        description = `Extreme heat dome frequency increases. Summer max temperatures projected to remain high with annual mean of ${avgTemp.toFixed(1)}°C.`;
+        icon = Flame;
+      }
+
+      const alert = riskScore >= 75
+        ? "Critical heat and agricultural aridity warnings"
+        : riskScore >= 55
+        ? "Elevated regional stress indicators active"
+        : "Standard background monitoring procedures";
+
+      if (riskScore >= 75) {
+        icon = AlertTriangle;
+      }
+
+      return {
+        year: y,
+        label,
+        type,
+        description,
+        avgTemp: `${avgTemp.toFixed(1)}°C`,
+        avgRain: `${totalRain.toFixed(0)}mm`,
+        riskScore,
+        alert,
+        icon,
+      };
+    });
+  }, [historyData, trendsData]);
+
+  const district = districts.find((d) => d.id === districtId);
+  const activeEvent = timelineData[activeEventIndex] || {
     year: 2025,
     label: "Baseline Transition Year",
     type: "current",
-    description: "Stabilized monsoon indicators with localized temperature rises. Current ground telemetry aligns with long-term climate baselines.",
+    description: "Stabilized monsoon indicators with localized temperature rises.",
     avgTemp: "27.8°C",
     avgRain: "980mm",
     riskScore: 54,
     alert: "Standard monitoring procedures active",
-    icon: Clock
-  },
-  {
-    year: 2030,
-    label: "SSP2-4.5 Intermediate Projections",
-    type: "predicted",
-    description: "Projected carbon forcing triggers temperature rise of +0.8°C. Sub-surface moisture depletion accelerates dryland aridity risks.",
-    avgTemp: "28.6°C",
-    avgRain: "940mm",
-    riskScore: 68,
-    alert: "Moderate drought warnings and heat index surges",
-    icon: Flame
-  },
-  {
-    year: 2040,
-    label: "SSP5-8.5 High-Forcing Anomalies",
-    type: "predicted",
-    description: "Intense spatiotemporal precipitation volatility. Runoff indices are projected to rise by 22%, increasing flash flood exposure.",
-    avgTemp: "29.2°C",
-    avgRain: "1120mm",
-    riskScore: 79,
-    alert: "Severe upstream river overflow alerts",
-    icon: CloudRain
-  },
-  {
-    year: 2050,
-    label: "Thermal Heat Dome Scenario",
-    type: "predicted",
-    description: "Extreme heat dome frequency increases. Summer max temperatures projected to remain above 45°C for extended 12-day durations.",
-    avgTemp: "30.4°C",
-    avgRain: "890mm",
-    riskScore: 88,
-    alert: "Critical heatwave and municipal power grid load warnings",
-    icon: Flame
+    icon: Clock,
+  };
+
+  if (!district) {
+    return <div className="text-center py-20 text-slate-500">Loading districts data...</div>;
   }
-];
-
-export default function TimelinePage() {
-  const [districtId, setDistrictId] = useState<number>(101);
-  const [activeEventIndex, setActiveEventIndex] = useState<number>(2); // 2025 selected by default
-
-  const district = MOCK_DISTRICTS.find((d) => d.id === districtId) || MOCK_DISTRICTS[0];
-  const activeEvent = timelineData[activeEventIndex];
 
   return (
     <div className="grid gap-5">
@@ -113,7 +153,7 @@ export default function TimelinePage() {
             onChange={(e) => setDistrictId(Number(e.target.value))}
             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-cyan-400/50 transition-all text-sm"
           >
-            {MOCK_DISTRICTS.map((d) => (
+            {districts.map((d) => (
               <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
             ))}
           </select>

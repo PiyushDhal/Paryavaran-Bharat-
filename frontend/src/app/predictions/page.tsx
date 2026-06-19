@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { AlertTriangle, Droplets, Flame, Sun, TrendingUp } from "lucide-react";
 import { api } from "@/lib/api";
-import { MOCK_DISTRICTS } from "@/lib/mock/engine";
-import type { Prediction } from "@/lib/types";
+import type { District, Prediction } from "@/lib/types";
 
 const hazardTypes = [
   { key: "flood" as const, label: "Flood", icon: Droplets, color: "cyan" },
@@ -47,11 +46,24 @@ function ProbabilityGauge({ value, color }: { value: number; color: string }) {
 }
 
 export default function PredictionsPage() {
-  const [districtId, setDistrictId] = useState(501);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [districtId, setDistrictId] = useState<number | undefined>(undefined);
   const [predictions, setPredictions] = useState<Record<string, Prediction>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    api.districts()
+      .then((data) => {
+        setDistricts(data);
+        if (data.length > 0) {
+          setDistrictId(data[0].id);
+        }
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (districtId === undefined) return;
     setLoading(true);
     Promise.all(
       hazardTypes.map((h) => api.predict(h.key, districtId).then((p) => [h.key, p] as const))
@@ -80,11 +92,11 @@ export default function PredictionsPage() {
         <div className="w-full max-w-xs">
           <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block">Target District</label>
           <select
-            value={districtId}
+            value={districtId || ""}
             onChange={(e) => setDistrictId(Number(e.target.value))}
             className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-cyan-400/50 transition-all text-sm"
           >
-            {MOCK_DISTRICTS.map((d) => (
+            {districts.map((d) => (
               <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
             ))}
           </select>

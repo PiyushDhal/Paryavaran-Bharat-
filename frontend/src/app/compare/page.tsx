@@ -6,41 +6,127 @@ import { AlertTriangle, ArrowLeftRight, Check, Droplets, Flame, HelpCircle, Laye
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_DISTRICTS, generateRankings } from "@/lib/mock/engine";
+import { api } from "@/lib/api";
+import type { District, RiskScore } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
+import { useClimate } from "@/store/useClimateStore";
 
 export default function ComparePage() {
-  const [districtIdA, setDistrictIdA] = useState<number>(101); // Mumbai
-  const [districtIdB, setDistrictIdB] = useState<number>(501); // Kutch
+  const { activeYear } = useClimate();
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [districtIdA, setDistrictIdA] = useState<number | undefined>(undefined);
+  const [districtIdB, setDistrictIdB] = useState<number | undefined>(undefined);
   const [year, setYear] = useState<number>(2025);
 
+  // Sync year state with activeYear from context
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const dA = params.get("districtA");
-      const dB = params.get("districtB");
-      if (dA) setDistrictIdA(Number(dA));
-      if (dB) setDistrictIdB(Number(dB));
-    }
+    setYear(activeYear);
+  }, [activeYear]);
+
+  const [riskA, setRiskA] = useState<RiskScore | null>(null);
+  const [riskB, setRiskB] = useState<RiskScore | null>(null);
+  const [trendsA, setTrendsA] = useState<Array<Record<string, number | string>>>([]);
+  const [trendsB, setTrendsB] = useState<Array<Record<string, number | string>>>([]);
+
+  useEffect(() => {
+    api.districts()
+      .then((data) => {
+        setDistricts(data);
+        let dA: number | undefined = undefined;
+        let dB: number | undefined = undefined;
+        if (typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const paramA = params.get("districtA");
+          const paramB = params.get("districtB");
+          if (paramA) dA = Number(paramA);
+          if (paramB) dB = Number(paramB);
+        }
+        
+        if (data.length > 0) {
+          const matchedA = dA && data.some(d => d.id === dA) ? dA : data[0].id;
+          const matchedB = dB && data.some(d => d.id === dB) ? dB : (data[1] ? data[1].id : data[0].id);
+          setDistrictIdA(matchedA);
+          setDistrictIdB(matchedB);
+        }
+      })
+      .catch(() => undefined);
   }, []);
-  
-  const rankings = useMemo(() => generateRankings(year), [year]);
 
-  const districtA = MOCK_DISTRICTS.find((d) => d.id === districtIdA) || MOCK_DISTRICTS[0];
-  const districtB = MOCK_DISTRICTS.find((d) => d.id === districtIdB) || MOCK_DISTRICTS[1];
+  useEffect(() => {
+    if (districtIdA === undefined) return;
+    api.risk(districtIdA).then(setRiskA).catch(() => undefined);
+    api.riskTrends(districtIdA).then(setTrendsA).catch(() => undefined);
+  }, [districtIdA]);
 
-  const rankingA = rankings.find((r) => r.district_id === districtIdA) || rankings[0];
-  const rankingB = rankings.find((r) => r.district_id === districtIdB) || rankings[1];
+  useEffect(() => {
+    if (districtIdB === undefined) return;
+    api.risk(districtIdB).then(setRiskB).catch(() => undefined);
+    api.riskTrends(districtIdB).then(setTrendsB).catch(() => undefined);
+  }, [districtIdB]);
 
-  const chartData = [
-    { name: "Flood Risk", [districtA.name]: rankingA.flood_risk, [districtB.name]: rankingB.flood_risk },
-    { name: "Drought Risk", [districtA.name]: rankingA.drought_risk, [districtB.name]: rankingB.drought_risk },
-    { name: "Heatwave Risk", [districtA.name]: rankingA.heatwave_risk, [districtB.name]: rankingB.heatwave_risk },
-    { name: "Water Stress", [districtA.name]: rankingA.water_stress_risk, [districtB.name]: rankingB.water_stress_risk },
-    { name: "Composite Risk", [districtA.name]: rankingA.composite_risk, [districtB.name]: rankingB.composite_risk }
-  ];
+  const districtA = useMemo(() => {
+    return districts.find((d) => d.id === districtIdA);
+  }, [districts, districtIdA]);
+
+  const districtB = useMemo(() => {
+    return districts.find((d) => d.id === districtIdB);
+  }, [districts, districtIdB]);
+
+  const rankingA = useMemo(() => {
+    if (!riskA) return null;
+    const matchedTrend = trendsA.find((t) => typeof t.date === "string" && t.date.startsWith(year.toString()));
+    if (matchedTrend) {
+      return {
+        flood_risk: Number(matchedTrend.flood),
+        drought_risk: Number(matchedTrend.drought),
+        heatwave_risk: Number(matchedTrend.heatwave),
+        water_stress_risk: Number(matchedTrend.water_stress),
+        composite_risk: Number(matchedTrend.composite),
+      };
+    }
+    return {
+      flood_risk: riskA.flood_risk,
+      drought_risk: riskA.drought_risk,
+      heatwave_risk: riskA.heatwave_risk,
+      water_stress_risk: riskA.water_stress_risk,
+      composite_risk: riskA.composite_risk,
+    };
+  }, [riskA, trendsA, year]);
+
+  const rankingB = useMemo(() => {
+    if (!riskB) return null;
+    const matchedTrend = trendsB.find((t) => typeof t.date === "string" && t.date.startsWith(year.toString()));
+    if (matchedTrend) {
+      return {
+        flood_risk: Number(matchedTrend.flood),
+        drought_risk: Number(matchedTrend.drought),
+        heatwave_risk: Number(matchedTrend.heatwave),
+        water_stress_risk: Number(matchedTrend.water_stress),
+        composite_risk: Number(matchedTrend.composite),
+      };
+    }
+    return {
+      flood_risk: riskB.flood_risk,
+      drought_risk: riskB.drought_risk,
+      heatwave_risk: riskB.heatwave_risk,
+      water_stress_risk: riskB.water_stress_risk,
+      composite_risk: riskB.composite_risk,
+    };
+  }, [riskB, trendsB, year]);
+
+  const chartData = useMemo(() => {
+    if (!districtA || !districtB || !rankingA || !rankingB) return [];
+    return [
+      { name: "Flood Risk", [districtA.name]: rankingA.flood_risk, [districtB.name]: rankingB.flood_risk },
+      { name: "Drought Risk", [districtA.name]: rankingA.drought_risk, [districtB.name]: rankingB.drought_risk },
+      { name: "Heatwave Risk", [districtA.name]: rankingA.heatwave_risk, [districtB.name]: rankingB.heatwave_risk },
+      { name: "Water Stress", [districtA.name]: rankingA.water_stress_risk, [districtB.name]: rankingB.water_stress_risk },
+      { name: "Composite Risk", [districtA.name]: rankingA.composite_risk, [districtB.name]: rankingB.composite_risk }
+    ];
+  }, [districtA, districtB, rankingA, rankingB]);
 
   const comparisonAdvisory = useMemo(() => {
+    if (!districtA || !districtB || !rankingA || !rankingB) return [];
     const lines = [];
     if (Math.abs(rankingA.composite_risk - rankingB.composite_risk) < 10) {
       lines.push(`Both ${districtA.name} and ${districtB.name} display similar composite risk profiles (${rankingA.composite_risk} vs ${rankingB.composite_risk}), though their underlying hazard drivers differ.`);
@@ -65,6 +151,10 @@ export default function ComparePage() {
     return lines;
   }, [rankingA, rankingB, districtA, districtB]);
 
+  if (!districtA || !districtB || !rankingA || !rankingB) {
+    return <div className="text-center py-20 text-slate-500">Loading comparison datasets...</div>;
+  }
+
   return (
     <div className="grid gap-5">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -82,7 +172,7 @@ export default function ComparePage() {
             onChange={(e) => setYear(Number(e.target.value))}
             className="bg-slate-950 border border-slate-700 rounded px-2.5 py-1 text-xs text-cyan-200 focus:outline-none"
           >
-            {[2020, 2025, 2030, 2040, 2050].map((y) => (
+            {[2010, 2015, 2020, 2025, 2030, 2040, 2050].map((y) => (
               <option key={y} value={y}>{y} AD</option>
             ))}
           </select>
@@ -104,7 +194,7 @@ export default function ComparePage() {
               onChange={(e) => setDistrictIdA(Number(e.target.value))}
               className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-cyan-400"
             >
-              {MOCK_DISTRICTS.map((d) => (
+              {districts.map((d) => (
                 <option key={d.id} value={d.id} disabled={d.id === districtIdB}>
                   {d.name}, {d.state_name}
                 </option>
@@ -141,7 +231,7 @@ export default function ComparePage() {
               onChange={(e) => setDistrictIdB(Number(e.target.value))}
               className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-400"
             >
-              {MOCK_DISTRICTS.map((d) => (
+              {districts.map((d) => (
                 <option key={d.id} value={d.id} disabled={d.id === districtIdA}>
                   {d.name}, {d.state_name}
                 </option>

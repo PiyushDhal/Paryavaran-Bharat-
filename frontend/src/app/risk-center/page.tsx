@@ -12,16 +12,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { API_BASE_URL, api } from "@/lib/api";
 import type { Ranking, RiskScore } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
+import { useClimate } from "@/store/useClimateStore";
 
 export default function RiskCenterPage() {
+  const { activeYear } = useClimate();
   const [districtId, setDistrictId] = useState<number>();
   const [risk, setRisk] = useState<RiskScore | null>(null);
   const [trends, setTrends] = useState<Array<Record<string, number | string>>>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
 
   useEffect(() => {
-    api.rankings(10).then(setRankings).catch(() => undefined);
-  }, []);
+    api.rankings(10, activeYear).then(setRankings).catch(() => undefined);
+  }, [activeYear]);
 
   useEffect(() => {
     if (!districtId) return;

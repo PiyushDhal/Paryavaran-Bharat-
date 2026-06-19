@@ -80,12 +80,11 @@ def district_history(
 
 
 @router.get("/map/layers")
-def map_layers(db: Session = Depends(get_db)) -> dict:
-    latest_subquery = (
-        db.query(RiskScore.district_id, func.max(RiskScore.valid_on).label("valid_on"))
-        .group_by(RiskScore.district_id)
-        .subquery()
-    )
+def map_layers(year: int | None = None, db: Session = Depends(get_db)) -> dict:
+    latest_subquery = db.query(RiskScore.district_id, func.max(RiskScore.valid_on).label("valid_on"))
+    if year:
+        latest_subquery = latest_subquery.filter(func.extract("year", RiskScore.valid_on) == year)
+    latest_subquery = latest_subquery.group_by(RiskScore.district_id).subquery()
     rows = (
         db.query(District, State, RiskScore)
         .join(State)
@@ -128,12 +127,11 @@ def map_layers(db: Session = Depends(get_db)) -> dict:
 
 
 @router.get("/rankings")
-def rankings(limit: int = 10, db: Session = Depends(get_db)) -> list[dict]:
-    latest = (
-        db.query(RiskScore.district_id, func.max(RiskScore.valid_on).label("valid_on"))
-        .group_by(RiskScore.district_id)
-        .subquery()
-    )
+def rankings(year: int | None = None, limit: int = 10, db: Session = Depends(get_db)) -> list[dict]:
+    query_latest = db.query(RiskScore.district_id, func.max(RiskScore.valid_on).label("valid_on"))
+    if year:
+        query_latest = query_latest.filter(func.extract("year", RiskScore.valid_on) == year)
+    latest = query_latest.group_by(RiskScore.district_id).subquery()
     rows = (
         db.query(District, State, RiskScore)
         .join(State)
@@ -160,8 +158,8 @@ def rankings(limit: int = 10, db: Session = Depends(get_db)) -> list[dict]:
 
 
 @router.get("/analytics")
-def analytics(db: Session = Depends(get_db)) -> dict:
-    rows = (
+def analytics(year: int | None = None, db: Session = Depends(get_db)) -> dict:
+    query = (
         db.query(
             WeatherData.observed_on,
             func.avg(WeatherData.temperature_c),
@@ -174,10 +172,10 @@ def analytics(db: Session = Depends(get_db)) -> dict:
             (SatelliteData.district_id == WeatherData.district_id)
             & (SatelliteData.observed_on == WeatherData.observed_on),
         )
-        .group_by(WeatherData.observed_on)
-        .order_by(WeatherData.observed_on)
-        .all()
     )
+    if year:
+        query = query.filter(func.extract("year", WeatherData.observed_on) == year)
+    rows = query.group_by(WeatherData.observed_on).order_by(WeatherData.observed_on).all()
     latest = rows[-1] if rows else None
     return {
         "national_trends": [

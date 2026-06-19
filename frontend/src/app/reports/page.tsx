@@ -38,7 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { MOCK_DISTRICTS, MOCK_STATES, generateRankings } from "@/lib/mock/engine";
+import { api } from "@/lib/api";
+import type { District, Ranking, State, ClimateObservation } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
 import {
@@ -75,64 +76,14 @@ interface PersistentReport {
   climateParameter?: string;
 }
 
-// ─── MOCK Historical Data for Charts ──────────────────────────────
-const generateHistoryData = (districtName: string) => {
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const seed = districtName.charCodeAt(0) + districtName.charCodeAt(1);
-  return months.map((month, idx) => {
-    const isMonsoon = idx >= 5 && idx <= 8;
-    const rainMultiplier = isMonsoon ? 5 : 0.8;
-    const rainfall = Math.round(((seed % 40) + 15) * (Math.sin(idx) * 0.4 + 1) * rainMultiplier);
-    const temperature = Math.round(22 + (seed % 12) + Math.sin((idx - 2) * 0.5) * 8);
-    const aqi = Math.round(55 + (seed % 90) + Math.sin(idx) * 25);
-    const risk = Math.round(30 + (seed % 45) + Math.cos(idx) * 15);
-    const floodRisk = Math.round(Math.min(100, Math.max(0, risk * 0.85 + Math.sin(idx) * 12)));
-    const droughtRisk = Math.round(Math.min(100, Math.max(0, (100 - risk) * 0.75 + Math.cos(idx) * 10)));
-    const heatwaveRisk = Math.round(Math.min(100, Math.max(0, temperature * 2.3 + Math.sin(idx) * 4)));
-    const populationImpact = Math.round(Math.min(100, Math.max(0, risk * 1.3 + (seed % 15))));
-    const ndvi = Math.round(Math.min(100, Math.max(0, 75 - droughtRisk * 0.5 + Math.sin(idx) * 8))) / 100;
-    return {
-      month,
-      rainfall,
-      temperature,
-      aqi,
-      risk,
-      floodRisk,
-      droughtRisk,
-      heatwaveRisk,
-      populationImpact,
-      ndvi
-    };
-  });
-};
 
-// ─── Interactive Map Forecast Lookups ────────────────────────────────
-const STATE_FORECASTS: Record<string, { alert: string; temp: number; risk: number; forecast: string }> = {
-  "Rajasthan": { alert: "CRITICAL HEAT", temp: 42, risk: 85, forecast: "Severe heatwave alert. High evaporative demand. Avoid midday exposure." },
-  "Gujarat": { alert: "HIGH RISK", temp: 38, risk: 70, forecast: "Extreme heat warning. Coastal humidity exacerbating thermal discomfort." },
-  "Maharashtra": { alert: "MODERATE RISK", temp: 34, risk: 55, forecast: "Stable seasonal conditions. Elevated humidity in coastal belt." },
-  "Karnataka": { alert: "SAFE ZONE", temp: 31, risk: 30, forecast: "Normal weather. Light convective rain showers expected in the evening." },
-  "Tamil Nadu": { alert: "SAFE ZONE", temp: 32, risk: 28, forecast: "Clear skies. Strong onshore coastal winds. Reservoir storage at safe capacity." },
-  "Uttar Pradesh": { alert: "HIGH HEAT", temp: 40, risk: 72, forecast: "Severe thermal anomaly. Dry conditions increasing dust storms risk." },
-  "West Bengal": { alert: "MODERATE FLOOD", temp: 33, risk: 62, forecast: "Heavy monsoon showers. Rising river levels in low-lying sub-basins." },
-  "Assam": { alert: "CRITICAL FLOOD", temp: 29, risk: 88, forecast: "Torrential downpours. Red flood warning. Extreme runoff expected." }
-};
-
-const DISTRICT_ZONE_FORECASTS: Record<string, { risk: number; temp: number; rainfall: number; soil: string; warning: string }> = {
-  "North Taluka": { risk: 78, temp: 39, rainfall: 12, soil: "Slightly Depleted (30% saturation)", warning: "⚠️ Crop stress warning" },
-  "East Taluka": { risk: 88, temp: 37, rainfall: 220, soil: "Saturated (92% saturation)", warning: "🚨 Flood inundation alert" },
-  "South Taluka": { risk: 42, temp: 32, rainfall: 45, soil: "Adequate (58% saturation)", warning: "✓ Conditions nominal" },
-  "West Taluka": { risk: 30, temp: 33, rainfall: 20, soil: "Adequate (52% saturation)", warning: "✓ Conditions nominal" }
-};
-
-const HEATMAP_HOTSPOT_FORECASTS: Record<string, { title: string; risk: string; desc: string }> = {
-  "basin": { title: "River Basin Discharge Point", risk: "CRITICAL FLOOD SPEED", desc: "Monsoon runoff peaks are causing rapid elevation rise. Watch levels closely." },
-  "urban": { title: "Metropolitan Heat Island", risk: "EXTREME TEMPERATURE", desc: "Concentrated concrete sprawl trapping convective heat. Thermal load is high." },
-  "farm": { title: "Arid Crop Belt Focus", risk: "HIGH MOISTURE DEFICIT", desc: "Topsoil moisture depleted below sustainable crop root-depth thresholds." }
-};
 
 export default function ReportsPage() {
-  const { setSelectedDistrictId, setActiveLayer } = useClimate();
+  const { setSelectedDistrictId, setActiveLayer, activeYear } = useClimate();
+
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [states, setStates] = useState<State[]>([]);
+  const [rankings, setRankings] = useState<Ranking[]>([]);
 
   // ─── States ────────────────────────────────────────────────────────
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
@@ -143,7 +94,7 @@ export default function ReportsPage() {
   const [compareStateId, setCompareStateId] = useState<string>("all");
   
   const [districtId, setDistrictId] = useState<number>(101);
-  const [year, setYear] = useState<number>(2030);
+  const [year, setYear] = useState<number>(2025);
   const [sector, setSector] = useState<string>("water");
   const [reportType, setReportType] = useState<string>("district_climate");
   const [disasterType, setDisasterType] = useState<string>("all");
@@ -151,6 +102,11 @@ export default function ReportsPage() {
   const [climateParameter, setClimateParameter] = useState<string>("all");
   const [startDate, setStartDate] = useState<string>("2026-06-01");
   const [endDate, setEndDate] = useState<string>("2026-12-31");
+
+  // Sync with global activeYear
+  useEffect(() => {
+    setYear(activeYear);
+  }, [activeYear]);
 
   // Comparison Mode states
   const [isComparison, setIsComparison] = useState<boolean>(false);
@@ -168,18 +124,40 @@ export default function ReportsPage() {
   const [renameValue, setRenameValue] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Load from backend APIs
+  useEffect(() => {
+    Promise.all([
+      api.states(),
+      api.districts()
+    ]).then(([statesData, districtsData]) => {
+      setStates(statesData);
+      setDistricts(districtsData);
+
+      if (districtsData.length > 0) {
+        setDistrictId(districtsData[0].id);
+        setCompareDistrictId(districtsData[1] ? districtsData[1].id : districtsData[0].id);
+      }
+    }).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    api.rankings(1000, year)
+      .then(setRankings)
+      .catch(() => undefined);
+  }, [year]);
+
   // ─── Dynamic Filtering Memos ──────────────────────────────────────
   const filteredDistricts = useMemo(() => {
-    if (selectedStateId === "all") return MOCK_DISTRICTS;
+    if (selectedStateId === "all") return districts;
     const stateIdNum = Number(selectedStateId);
-    return MOCK_DISTRICTS.filter((d) => d.state_id === stateIdNum);
-  }, [selectedStateId]);
+    return districts.filter((d) => d.state_id === stateIdNum);
+  }, [selectedStateId, districts]);
 
   const filteredCompareDistricts = useMemo(() => {
-    if (compareStateId === "all") return MOCK_DISTRICTS;
+    if (compareStateId === "all") return districts;
     const stateIdNum = Number(compareStateId);
-    return MOCK_DISTRICTS.filter((d) => d.state_id === stateIdNum);
-  }, [compareStateId]);
+    return districts.filter((d) => d.state_id === stateIdNum);
+  }, [compareStateId, districts]);
 
   // Adjust selections if state filter excludes current district
   useEffect(() => {
@@ -201,12 +179,139 @@ export default function ReportsPage() {
   }, [filteredCompareDistricts, compareDistrictId]);
 
   // ─── Setup Location Reference ──────────────────────────────────────
-  const district = useMemo(() => MOCK_DISTRICTS.find((d) => d.id === districtId) || MOCK_DISTRICTS[0], [districtId]);
-  const compareDistrict = useMemo(() => MOCK_DISTRICTS.find((d) => d.id === compareDistrictId) || MOCK_DISTRICTS[1], [compareDistrictId]);
+  const district = useMemo(() => districts.find((d) => d.id === districtId) || districts[0], [districts, districtId]);
+  const compareDistrict = useMemo(() => districts.find((d) => d.id === compareDistrictId) || districts[1], [districts, compareDistrictId]);
   
-  const rankings = useMemo(() => generateRankings(year), [year]);
   const ranking = useMemo(() => rankings.find((r) => r.district_id === districtId) || rankings[0], [rankings, districtId]);
   const compareRanking = useMemo(() => rankings.find((r) => r.district_id === compareDistrictId) || rankings[1], [rankings, compareDistrictId]);
+
+  // Safeguard loading state
+  const isDataLoading = states.length === 0 || districts.length === 0 || rankings.length === 0;
+
+  const [historyObservations, setHistoryObservations] = useState<ClimateObservation[]>([]);
+
+  // Load observations history for selected district and year
+  useEffect(() => {
+    if (!districtId) return;
+    api.history(districtId, year)
+      .then(setHistoryObservations)
+      .catch(() => setHistoryObservations([]));
+  }, [districtId, year]);
+
+  const districtZoneForecasts = useMemo(() => {
+    const forecasts: Record<string, { risk: number; temp: number; rainfall: number; soil: string; warning: string }> = {};
+    if (!ranking) return forecasts;
+    forecasts["North Taluka"] = { 
+      risk: Math.round(ranking.composite_risk * 0.9), 
+      temp: Math.round(ranking.heatwave_risk * 0.4 + 20), 
+      rainfall: Math.round(ranking.flood_risk * 2), 
+      soil: ranking.drought_risk > 60 ? "Depleted (22% saturation)" : "Adequate (52% saturation)", 
+      warning: ranking.drought_risk > 60 ? "⚠️ Crop stress warning" : "✓ Conditions nominal" 
+    };
+    forecasts["East Taluka"] = { 
+      risk: Math.round(ranking.composite_risk * 1.1), 
+      temp: Math.round(ranking.heatwave_risk * 0.35 + 20), 
+      rainfall: Math.round(ranking.flood_risk * 3.5), 
+      soil: ranking.flood_risk > 60 ? "Saturated (92% saturation)" : "Adequate (58% saturation)", 
+      warning: ranking.flood_risk > 60 ? "🚨 Flood inundation alert" : "✓ Conditions nominal" 
+    };
+    forecasts["South Taluka"] = { 
+      risk: Math.round(ranking.composite_risk * 0.8), 
+      temp: Math.round(ranking.heatwave_risk * 0.3 + 20), 
+      rainfall: Math.round(ranking.flood_risk * 1.2), 
+      soil: "Adequate (58% saturation)", 
+      warning: "✓ Conditions nominal" 
+    };
+    forecasts["West Taluka"] = { 
+      risk: Math.round(ranking.composite_risk * 0.75), 
+      temp: Math.round(ranking.heatwave_risk * 0.3 + 20), 
+      rainfall: Math.round(ranking.flood_risk * 0.8), 
+      soil: "Adequate (52% saturation)", 
+      warning: "✓ Conditions nominal" 
+    };
+    return forecasts;
+  }, [ranking]);
+
+  const stateForecasts = useMemo(() => {
+    const forecasts: Record<string, { alert: string; temp: number; risk: number; forecast: string }> = {};
+    const statesList = ["Rajasthan", "Gujarat", "Maharashtra", "Karnataka", "Tamil Nadu", "Uttar Pradesh", "West Bengal", "Assam"];
+    statesList.forEach((stateName) => {
+      const stateRankings = rankings.filter((r) => r.state_name === stateName);
+      const avgRisk = stateRankings.length
+        ? Math.round(stateRankings.reduce((sum, r) => sum + r.composite_risk, 0) / stateRankings.length)
+        : 45;
+      const avgTemp = stateRankings.length
+        ? Math.round(stateRankings.reduce((sum, r) => sum + (r.heatwave_risk * 0.2 + 25), 0) / stateRankings.length)
+        : 32;
+      const alert = avgRisk >= 70 ? "CRITICAL ALERT" : avgRisk >= 50 ? "HIGH RISK" : "SAFE ZONE";
+      const forecast = avgRisk >= 70 
+        ? "Extreme climate anomalies detected. Action required." 
+        : "Stable conditions with seasonal variations.";
+      forecasts[stateName] = { alert, temp: avgTemp, risk: avgRisk, forecast };
+    });
+    return forecasts;
+  }, [rankings]);
+
+  const heatmapHotspotForecasts = useMemo(() => {
+    const hotspots: Record<string, { title: string; risk: string; desc: string }> = {};
+    if (!ranking) return hotspots;
+    hotspots["basin"] = { 
+      title: "River Basin Discharge Point", 
+      risk: ranking.flood_risk > 60 ? "CRITICAL FLOOD SPEED" : "STANDARD DISCHARGE", 
+      desc: ranking.flood_risk > 60 ? "Monsoon runoff peaks are causing rapid elevation rise. Watch levels closely." : "River discharge levels within seasonal standard capacity." 
+    };
+    hotspots["urban"] = { 
+      title: "Metropolitan Heat Island", 
+      risk: ranking.heatwave_risk > 60 ? "EXTREME TEMPERATURE" : "MODERATE HEAT LOAD", 
+      desc: ranking.heatwave_risk > 60 ? "Concentrated concrete sprawl trapping convective heat. Thermal load is high." : "Standard metropolitan temperature anomaly dispersion." 
+    };
+    hotspots["farm"] = { 
+      title: "Arid Crop Belt Focus", 
+      risk: ranking.drought_risk > 60 ? "HIGH MOISTURE DEFICIT" : "NORMAL TOPSOIL MOISTURE", 
+      desc: ranking.drought_risk > 60 ? "Topsoil moisture depleted below sustainable crop root-depth thresholds." : "Topsoil moisture levels are sufficient for seasonal crops." 
+    };
+    return hotspots;
+  }, [ranking]);
+
+  const reportChartData = useMemo(() => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (historyObservations.length === 0) {
+      return months.map((m) => ({
+        month: m,
+        rainfall: 0,
+        temperature: 25,
+        aqi: 50,
+        risk: 30,
+        floodRisk: 30,
+        droughtRisk: 30,
+        heatwaveRisk: 30,
+        populationImpact: 30,
+        ndvi: 0.5
+      }));
+    }
+    
+    return historyObservations.map((obs) => {
+      const dateObj = new Date(obs.observed_on);
+      const monthLabel = months[dateObj.getMonth()] || "Jan";
+      const floodRisk = Math.round(obs.rainfall_mm > 150 ? 80 : obs.rainfall_mm > 80 ? 55 : 30);
+      const droughtRisk = Math.round(obs.rainfall_deficit_pct > 30 ? 75 : obs.rainfall_deficit_pct > 10 ? 50 : 25);
+      const heatwaveRisk = Math.round(obs.temperature_c > 38 ? 85 : obs.temperature_c > 33 ? 55 : 30);
+      const compositeRisk = Math.round((floodRisk + droughtRisk + heatwaveRisk) / 3);
+
+      return {
+        month: monthLabel,
+        rainfall: obs.rainfall_mm,
+        temperature: obs.temperature_c,
+        aqi: obs.aqi,
+        risk: compositeRisk,
+        floodRisk,
+        droughtRisk,
+        heatwaveRisk,
+        populationImpact: Math.round(compositeRisk * 1.1),
+        ndvi: obs.ndvi ?? 0.5
+      };
+    });
+  }, [historyObservations]);
 
   // Loading History
   useEffect(() => {
@@ -389,14 +494,14 @@ export default function ReportsPage() {
     setGeneratedReport(report);
     
     // Set UI selectors
-    const d = MOCK_DISTRICTS.find(x => x.name === report.districtName);
+    const d = districts.find(x => x.name === report.districtName);
     if (d) {
       setDistrictId(d.id);
       setSelectedStateId(d.state_id ? String(d.state_id) : "all");
     }
     
     if (report.isComparison && report.compareDistrictName) {
-      const cd = MOCK_DISTRICTS.find(x => x.name === report.compareDistrictName);
+      const cd = districts.find(x => x.name === report.compareDistrictName);
       if (cd) {
         setCompareDistrictId(cd.id);
         setCompareStateId(cd.state_id ? String(cd.state_id) : "all");
@@ -571,11 +676,11 @@ export default function ReportsPage() {
     };
   }, [generatedReport, district, compareDistrict, year, ranking, compareRanking]);
 
-  // Chart dataset for current generated report
-  const reportChartData = useMemo(() => {
-    if (!generatedReport) return [];
-    return generateHistoryData(generatedReport.districtName);
-  }, [generatedReport]);
+
+
+  if (isDataLoading) {
+    return <div className="text-center py-20 text-slate-500">Loading reports parameters...</div>;
+  }
 
   return (
     <div className="grid gap-6 pb-6 select-none">
@@ -751,7 +856,7 @@ export default function ReportsPage() {
                   className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
                 >
                   <option value="all">All States</option>
-                  {MOCK_STATES.map((s) => (
+                  {states.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
@@ -901,7 +1006,7 @@ export default function ReportsPage() {
                         className="w-full bg-slate-950/70 border border-cyan-500/25 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
                       >
                         <option value="all">All States</option>
-                        {MOCK_STATES.map((s) => (
+                        {states.map((s) => (
                           <option key={s.id} value={s.id}>{s.name}</option>
                         ))}
                       </select>
@@ -1123,15 +1228,15 @@ export default function ReportsPage() {
                             </svg>
 
                             {/* Floating Telemetry Box for District Zone */}
-                            {hoveredDistrictZone && DISTRICT_ZONE_FORECASTS[hoveredDistrictZone] && (
+                            {hoveredDistrictZone && districtZoneForecasts[hoveredDistrictZone] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
                                   <span>{hoveredDistrictZone}</span>
-                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">Risk: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].risk}%</span>
+                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">Risk: {districtZoneForecasts[hoveredDistrictZone].risk}%</span>
                                 </p>
-                                <p className="mt-1 font-semibold text-white font-mono">Temp: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].temp}°C | Precip: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].rainfall}mm</p>
-                                <p className="text-slate-400 mt-0.5 leading-tight text-[8px]">Soil: {DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].soil}</p>
-                                <p className="text-rose-300 mt-0.5 font-bold">{DISTRICT_ZONE_FORECASTS[hoveredDistrictZone].warning}</p>
+                                <p className="mt-1 font-semibold text-white font-mono">Temp: {districtZoneForecasts[hoveredDistrictZone].temp}°C | Precip: {districtZoneForecasts[hoveredDistrictZone].rainfall}mm</p>
+                                <p className="text-slate-400 mt-0.5 leading-tight text-[8px]">Soil: {districtZoneForecasts[hoveredDistrictZone].soil}</p>
+                                <p className="text-rose-300 mt-0.5 font-bold">{districtZoneForecasts[hoveredDistrictZone].warning}</p>
                               </div>
                             )}
                           </div>
@@ -1266,14 +1371,14 @@ export default function ReportsPage() {
                             </svg>
 
                             {/* Floating Telemetry Box for State */}
-                            {hoveredStateName && STATE_FORECASTS[hoveredStateName] && (
+                            {hoveredStateName && stateForecasts[hoveredStateName] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
                                   <span>{hoveredStateName}</span>
-                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">{STATE_FORECASTS[hoveredStateName].alert}</span>
+                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">{stateForecasts[hoveredStateName].alert}</span>
                                 </p>
-                                <p className="mt-1 font-semibold text-white font-mono">Temp: {STATE_FORECASTS[hoveredStateName].temp}°C | Risk: {STATE_FORECASTS[hoveredStateName].risk}%</p>
-                                <p className="text-slate-400 mt-0.5 leading-tight">{STATE_FORECASTS[hoveredStateName].forecast}</p>
+                                <p className="mt-1 font-semibold text-white font-mono">Temp: {stateForecasts[hoveredStateName].temp}°C | Risk: {stateForecasts[hoveredStateName].risk}%</p>
+                                <p className="text-slate-400 mt-0.5 leading-tight">{stateForecasts[hoveredStateName].forecast}</p>
                               </div>
                             )}
                           </div>
@@ -1347,13 +1452,13 @@ export default function ReportsPage() {
                             </svg>
 
                             {/* Floating Telemetry Box for Heatspot */}
-                            {hoveredHeatspot && HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot] && (
+                            {hoveredHeatspot && heatmapHotspotForecasts[hoveredHeatspot] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-rose-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-rose-400 border-b border-white/5 pb-0.5">
-                                  {HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot].title}
+                                  {heatmapHotspotForecasts[hoveredHeatspot].title}
                                 </p>
-                                <p className="mt-1 font-semibold text-white font-mono">Status: {HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot].risk}</p>
-                                <p className="text-slate-400 mt-0.5 leading-tight text-[8.5px]">{HEATMAP_HOTSPOT_FORECASTS[hoveredHeatspot].desc}</p>
+                                <p className="mt-1 font-semibold text-white font-mono">Status: {heatmapHotspotForecasts[hoveredHeatspot].risk}</p>
+                                <p className="text-slate-400 mt-0.5 leading-tight text-[8.5px]">{heatmapHotspotForecasts[hoveredHeatspot].desc}</p>
                               </div>
                             )}
                           </div>

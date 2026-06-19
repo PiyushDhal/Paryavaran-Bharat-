@@ -7,15 +7,23 @@ from shapely.geometry import MultiPolygon, shape
 from sqlalchemy.orm import Session
 
 from app.core.security import get_password_hash
-from app.models.climate import ClimateAlert, District, RiskScore, SatelliteData, State, WeatherData
+from app.models.climate import ClimateAlert, District, RiskScore, SatelliteData, State, WeatherData, SimulationResult
 from app.models.user import User
 from app.services.risk_engine import ClimateRiskEngine
 from app.services.sample_data import DISTRICTS, generate_observations, sample_alerts, synthetic_boundary
 
 
 def init_db(db: Session) -> None:
-    if db.query(State).first():
-        return
+    # Clear tables to rebuild database with new timeline years on startup
+    db.query(ClimateAlert).delete()
+    db.query(SimulationResult).delete()
+    db.query(RiskScore).delete()
+    db.query(SatelliteData).delete()
+    db.query(WeatherData).delete()
+    db.query(District).delete()
+    db.query(State).delete()
+    db.query(User).delete()
+    db.commit()
 
     admin = User(
         email="admin@bharatclimatetwin.in",
@@ -65,7 +73,7 @@ def init_db(db: Session) -> None:
         districts[row["district_code"]] = district
 
         risk_engine = ClimateRiskEngine()
-        for obs in generate_observations(row["district_code"], row["profile"], years=7):
+        for obs in generate_observations(row["district_code"], row["profile"], [2010, 2015, 2020, 2025, 2030, 2040, 2050]):
             weather = WeatherData(
                 district_id=district.id,
                 observed_on=obs["observed_on"],

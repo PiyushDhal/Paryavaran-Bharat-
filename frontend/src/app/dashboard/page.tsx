@@ -84,13 +84,13 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<ClimateAlert[]>([]);
 
   useEffect(() => {
-    Promise.all([api.analytics(), api.alerts()])
+    Promise.all([api.analytics(activeYear), api.alerts()])
       .then(([analyticsResponse, alertResponse]) => {
         setAnalytics(analyticsResponse);
         setAlerts(alertResponse);
       })
       .catch(() => undefined);
-  }, []);
+  }, [activeYear]);
 
   // ─── Dynamic Metrics derived from existing APIs ────────────────────────────
   const nationalRiskScore = useMemo(() => {

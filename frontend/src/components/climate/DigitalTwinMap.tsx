@@ -281,34 +281,28 @@ function latToY(lat: number) {
 }
 
 // Extract specific layer value at current timeline step
+// Extract specific layer value at current timeline step
 function getTimelineMetricValue(
   districtId: number,
   layer: string,
   rankings: Ranking[],
   allDistricts: District[],
   historyData: ClimateObservation[],
-  timelineStep: string
+  timelineStep: string,
+  features: GeoJSON.Feature[] = []
 ): number {
   if (layer === "population_density") {
     const dist = allDistricts.find((x) => x.id === districtId);
     return dist?.population ?? 1500000;
   }
 
-  if (layer.includes("risk") || layer === "composite_risk") {
-    const r = rankings.find((x) => x.district_id === districtId);
-    let baseVal = 50;
-    if (layer === "composite_risk") baseVal = r?.composite_risk ?? 50;
-    else if (layer === "flood_risk") baseVal = r?.flood_risk ?? 50;
-    else if (layer === "drought_risk") baseVal = r?.drought_risk ?? 50;
-    else if (layer === "heatwave_risk") baseVal = r?.heatwave_risk ?? 50;
-    else if (layer === "water_stress_risk") baseVal = r?.water_stress_risk ?? 50;
+  // Find properties from the backend features array if available
+  const feature = features.find((f) => Number(f.properties?.district_id) === districtId);
+  const props = feature?.properties || {};
 
-    if (timelineStep === "tomorrow") return Math.min(100, Math.max(0, baseVal + Math.sin(districtId) * 2));
-    if (timelineStep === "7d") return Math.min(100, Math.max(0, baseVal + Math.sin(districtId + 1) * 5));
-    if (timelineStep === "30d") return Math.min(100, Math.max(0, baseVal + Math.sin(districtId + 2) * 8));
-    return baseVal;
-  }
-
+  // For observations layer, if we have local historyData (selected district), get the timeline step observation
+  let hasObs = false;
+  let obsVal = 0;
   let monthIdx = 5; // June (default)
   if (timelineStep === "tomorrow") monthIdx = 5;
   if (timelineStep === "7d") monthIdx = 6;
@@ -316,146 +310,83 @@ function getTimelineMetricValue(
 
   const obs = historyData && historyData[monthIdx];
   if (obs) {
-    if (layer === "temperature") {
-      let t = obs.temperature_c;
-      if (timelineStep === "tomorrow") t += Math.sin(districtId) * 0.4;
-      return t;
+    hasObs = true;
+    if (layer === "temperature") obsVal = obs.temperature_c;
+    else if (layer === "rainfall") obsVal = obs.rainfall_mm;
+    else if (layer === "aqi" || layer === "air_quality") obsVal = obs.aqi;
+    else if (layer === "humidity") obsVal = obs.humidity_pct;
+    else if (layer === "soil_moisture") obsVal = obs.soil_moisture_pct;
+    else if (layer === "ndvi") obsVal = obs.ndvi ?? 0.5;
+    else if (layer === "reservoir_level") obsVal = obs.reservoir_level_pct ?? 50;
+    else if (layer === "river_level") obsVal = obs.river_level_m;
+    else hasObs = false;
+  }
+
+  // If we don't have history data, retrieve the value from the backend features
+  let val = 50;
+  if (hasObs) {
+    val = obsVal;
+  } else {
+    if (layer === "composite_risk") val = Number(props.composite_risk ?? 50);
+    else if (layer === "flood_risk") val = Number(props.flood_risk ?? 50);
+    else if (layer === "drought_risk") val = Number(props.drought_risk ?? 50);
+    else if (layer === "heatwave_risk") val = Number(props.heatwave_risk ?? 50);
+    else if (layer === "water_stress_risk") val = Number(props.water_stress_risk ?? 50);
+    else if (layer === "temperature") val = Number(props.temperature ?? 25);
+    else if (layer === "rainfall") val = Number(props.rainfall ?? 100);
+    else if (layer === "aqi" || layer === "air_quality") val = Number(props.air_quality ?? 60);
+    else if (layer === "soil_moisture") val = Number(props.soil_moisture ?? 40);
+    else if (layer === "ndvi") val = Number(props.ndvi ?? 0.5);
+    else if (layer === "reservoir_level") val = Number(props.reservoir_level ?? 50);
+    else if (layer === "river_level") val = Number(props.rainfall ?? 100) / 100;
+    else if (layer === "humidity") val = Math.min(100, Math.max(10, 40 + Number(props.rainfall ?? 100) * 0.1));
+    else if (layer === "sustainability_score") {
+      const risk = Number(props.composite_risk ?? 50);
+      const ndvi = Number(props.ndvi ?? 0.5) * 100;
+      const aqi = Math.max(0, Math.min(100, 100 - (Number(props.air_quality ?? 60) - 50) * 0.4));
+      const reservoir = Number(props.reservoir_level ?? 50);
+      val = Math.round(ndvi * 0.25 + aqi * 0.2 + reservoir * 0.2 + (100 - risk) * 0.2 + (Number(props.soil_moisture ?? 40)) * 0.15);
     }
-    if (layer === "rainfall") {
-      let r = obs.rainfall_mm;
-      if (timelineStep === "tomorrow") r = Math.max(0, r + Math.sin(districtId) * 8);
-      return r;
+    else if (layer === "green_cover") val = Number(props.ndvi ?? 0.5) * 100;
+    else if (layer === "water_resources") val = Number(props.reservoir_level ?? 50);
+    else if (layer === "carbon_impact") {
+      const ndvi = Number(props.ndvi ?? 0.5) * 100;
+      const aqi = Math.max(0, Math.min(100, 100 - (Number(props.air_quality ?? 60) - 50) * 0.4));
+      val = Math.round(100 - (ndvi * 0.6 + (100 - aqi) * 0.4));
     }
-    if (layer === "aqi") return obs.aqi;
-    if (layer === "humidity") return obs.humidity_pct;
-    if (layer === "soil_moisture") return obs.soil_moisture_pct;
-    if (layer === "ndvi") return obs.ndvi ?? 0.5;
-    if (layer === "reservoir_level") return obs.reservoir_level_pct ?? 50;
-    if (layer === "river_level") return obs.river_level_m;
+    else if (layer === "climate_resilience") val = 100 - Number(props.composite_risk ?? 50);
+    else if (layer === "environmental_health") {
+      const ndvi = Number(props.ndvi ?? 0.5) * 100;
+      const aqi = Math.max(0, Math.min(100, 100 - (Number(props.air_quality ?? 60) - 50) * 0.4));
+      const soil = Number(props.soil_moisture ?? 40);
+      val = Math.round(ndvi * 0.4 + aqi * 0.3 + soil * 0.3);
+    }
   }
 
-  const isWet = [201, 202, 203, 401, 701, 702].includes(districtId);
-  const isHot = [301, 302, 303, 501].includes(districtId);
+  // Adjust for future timelineStep projections
+  if (timelineStep === "tomorrow") val = Math.min(100, Math.max(0, val + Math.sin(districtId) * 2));
+  else if (timelineStep === "7d") val = Math.min(100, Math.max(0, val + Math.sin(districtId + 1) * 5));
+  else if (timelineStep === "30d") val = Math.min(100, Math.max(0, val + Math.sin(districtId + 2) * 8));
+  else if (timelineStep === "2030") val = Math.min(100, Math.max(0, val + Math.sin(districtId + 3) * 12));
 
-  if (layer === "sustainability_score") {
-    const r = rankings.find((x) => x.district_id === districtId);
-    const risk = r?.composite_risk ?? 50;
-    const drought = r?.drought_risk ?? 50;
-    const safety = 100 - risk;
-    const soil = Math.max(10, Math.min(100, 100 - drought * 0.8));
-    const ndvi = isHot ? 22 : 65;
-    const aqi = isHot ? 60 : 80;
-    const reservoir = isWet ? 82 : 30;
-    return Math.round(ndvi * 0.25 + aqi * 0.2 + reservoir * 0.2 + safety * 0.2 + soil * 0.15);
-  }
-  if (layer === "green_cover") {
-    return isHot ? 22 : 65;
-  }
-  if (layer === "water_resources") {
-    return isWet ? 82 : 30;
-  }
-  if (layer === "air_quality") {
-    return isHot ? 140 : 65;
-  }
-  if (layer === "carbon_impact") {
-    return Math.round(45 + Math.sin(districtId) * 15);
-  }
-  if (layer === "climate_resilience") {
-    const r = rankings.find((x) => x.district_id === districtId);
-    return Math.round(100 - (r?.composite_risk ?? 50));
-  }
-  if (layer === "environmental_health") {
-    return isHot ? 40 : 78;
-  }
-
-  if (layer === "temperature") return isHot ? 36.5 : 24.2;
-  if (layer === "rainfall") return isWet ? 280 : 35;
-  if (layer === "aqi") return isHot ? 120 : 65;
-  if (layer === "humidity") return isWet ? 80 : 45;
-  if (layer === "soil_moisture") return isWet ? 75 : 20;
-  if (layer === "ndvi") return isHot ? 0.25 : 0.62;
-  if (layer === "reservoir_level") return isWet ? 82 : 30;
-  if (layer === "river_level") return isWet ? 2.8 : 0.8;
-
-  return 50;
+  return val;
 }
 
-function getStateMetricValue(stateName: string, layer: string, year: number, timelineStep: string): number {
-  const seed = stateName.charCodeAt(0) + (stateName.charCodeAt(1) || 0) + year;
-  
-  if (layer.includes("risk") || layer === "composite_risk") {
-    let baseVal = 30 + (seed % 55);
-    if (timelineStep === "tomorrow") baseVal = Math.min(100, Math.max(0, baseVal + Math.sin(seed) * 3));
-    if (timelineStep === "7d") baseVal = Math.min(100, Math.max(0, baseVal + Math.sin(seed + 1) * 6));
-    if (timelineStep === "30d") baseVal = Math.min(100, Math.max(0, baseVal + Math.sin(seed + 2) * 10));
-    return baseVal;
+function getStateMetricValue(
+  stateName: string,
+  layer: string,
+  rankings: Ranking[],
+  allDistricts: District[],
+  timelineStep: string,
+  features: GeoJSON.Feature[] = []
+): number {
+  const stateDistricts = allDistricts.filter((d) => d.state_name === stateName);
+  if (stateDistricts.length === 0) return 50;
+  let sum = 0;
+  for (const d of stateDistricts) {
+    sum += getTimelineMetricValue(d.id, layer, rankings, allDistricts, [], timelineStep, features);
   }
-  
-  if (layer === "temperature") {
-    let t = 22 + (seed % 16);
-    if (timelineStep === "tomorrow") t += Math.sin(seed) * 0.5;
-    return t;
-  }
-  
-  if (layer === "rainfall") {
-    let r = 20 + (seed % 350);
-    if (timelineStep === "tomorrow") r = Math.max(0, r + Math.sin(seed) * 15);
-    return r;
-  }
-  
-  if (layer === "aqi") {
-    return 40 + (seed % 220);
-  }
-  
-  if (layer === "humidity") {
-    return 35 + (seed % 50);
-  }
-  
-  if (layer === "soil_moisture") {
-    return 15 + (seed % 70);
-  }
-  
-  if (layer === "ndvi") {
-    return (15 + (seed % 75)) / 100;
-  }
-  
-  if (layer === "reservoir_level") {
-    return 20 + (seed % 75);
-  }
-  
-  if (layer === "river_level") {
-    return (5 + (seed % 30)) / 10;
-  }
-  
-  if (layer === "population_density") {
-    return 1000000 + (seed % 10) * 1500000;
-  }
-
-  if (layer === "sustainability_score") {
-    const risk = getStateMetricValue(stateName, "composite_risk", year, timelineStep);
-    return Math.round(100 - risk + (seed % 20) - 10);
-  }
-  if (layer === "green_cover") {
-    return 30 + (seed % 55);
-  }
-  if (layer === "water_resources") {
-    return 20 + (seed % 65);
-  }
-  if (layer === "air_quality") {
-    return 40 + (seed % 150);
-  }
-  if (layer === "carbon_impact") {
-    return 25 + (seed % 50);
-  }
-  if (layer === "climate_resilience") {
-    const risk = getStateMetricValue(stateName, "composite_risk", year, timelineStep);
-    return Math.round(100 - risk);
-  }
-  if (layer === "environmental_health") {
-    return 35 + (seed % 50);
-  }
-
-  return 50;
+  return sum / stateDistricts.length;
 }
 
 function getStateForecastText(stateName: string, layer: string, value: number, year: number): string {
@@ -504,44 +435,6 @@ function getStateForecastText(stateName: string, layer: string, value: number, y
   return `${layerMeta[layer]?.label || "Environmental metric"} is at ${rounded}${layerMeta[layer]?.unit || ""}. Status nominal.`;
 }
 
-// Generate dynamic AI analyses
-function generateAiAnalysis(districtName: string, metrics: Record<string, number>) {
-  const comp = metrics.composite_risk ?? 50;
-  const flood = metrics.flood_risk ?? 50;
-  const heat = metrics.heatwave_risk ?? 50;
-  const drought = metrics.drought_risk ?? 50;
-  const soil = metrics.soil_moisture ?? 50;
-  const rain = metrics.rainfall ?? 50;
-  const river = metrics.river_level ?? 1.0;
-  const res = metrics.reservoir_level ?? 50;
-  const temp = metrics.temperature ?? 25.0;
-
-  let summary = "";
-  const confidence = 88 + Math.round((Math.sin(comp) * 0.05 + 0.05) * 10);
-  const trend = comp >= 70 ? "Increasing" : comp >= 45 ? "Stable" : "Decreasing";
-  let drivers: string[] = [];
-  let actions: string[] = [];
-
-  if (flood > 65) {
-    summary = `Heavy precipitation (${rain.toFixed(0)}mm) has saturated the soil profile to ${soil.toFixed(0)}%. Combined with elevated river discharge levels (${river.toFixed(1)}m) and high reservoir head pressures (${res.toFixed(0)}%), the hydrologic model projects an imminent overflow risk. Low-lying zones face severe exposure.`;
-    drivers = ["High Precipitation Accumulation", "Critical Soil Saturation Index", "Elevated River Run-off Rate"];
-    actions = ["Activate disaster response alert level-2", "Pre-position rescue teams in low-lying sectors", "Review reservoir flood control gate schedule"];
-  } else if (drought > 65) {
-    summary = `A prolonged precipitation deficit coupled with depleted reservoir volumes (${res.toFixed(0)}%) has accelerated agricultural soil drying to a critical ${soil.toFixed(0)}% moisture level. Evapotranspiration demands are high, and vegetation indices (NDVI) indicate active crop stress.`;
-    drivers = ["Precipitation Deficit", "Soil Moisture Index Depletion", "Low Surface Water Reserve"];
-    actions = ["Establish municipal water-rationing guidelines", "Advise farmers on moisture-retaining soil cover", "Review emergency fodder supply chains"];
-  } else if (heat > 65) {
-    summary = `Atmospheric pressure ridges are trapping convective heat, pushing surface temperatures to ${temp.toFixed(1)}°C. Combined with low relative humidity, this is driving extreme heat index anomalies. Ground vegetation stress is high, increasing localized fire hazards.`;
-    drivers = ["Severe Surface Temp Anomaly", "Atmospheric Thermal Inversion", "Vegetative Moisture Evaporation"];
-    actions = ["Issue thermal alert grid warning", "Modify public utility work hours", "Establish cooling centers in high-density wards"];
-  } else {
-    summary = `Environmental metrics remain within seasonal variance limits. Soil moisture level of ${soil.toFixed(0)}% and river discharge rate of ${river.toFixed(1)}m are currently stable. Overall composite climate risk index is low to moderate at ${comp.toFixed(0)}%. No immediate weather alerts are active.`;
-    drivers = ["Atmospheric Temperature Stability", "Monsoon Distribution Parity", "Stable Hydrological Reserves"];
-    actions = ["Continue regular telemetry scanning", "Maintain standard reservoir release schedules", "Log monthly crop index benchmarks"];
-  }
-
-  return { summary, confidence, trend, drivers, actions };
-}
 
 // ─── Custom Sparkline Component ──────────────────────────────────────
 function Sparkline({ data, color }: { data: number[]; color: string }) {
@@ -963,6 +856,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   
   const [data, setData] = useState<GeoJSON.FeatureCollection | null>(null);
+  const features = useMemo(() => data?.features ?? [], [data]);
   const [allDistricts, setAllDistricts] = useState<District[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -972,6 +866,14 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   // Local state for selected district observations
   const [districtHistory, setDistrictHistory] = useState<ClimateObservation[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    summary: string;
+    confidence: number;
+    trend: string;
+    drivers: string[];
+    actions: string[];
+  } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // Interactive State hover telemetry
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
@@ -999,7 +901,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         type: "Feature",
         properties: {
           name: state.name,
-          active_val: getStateMetricValue(state.name, activeLayer, activeYear, timelineStep)
+          active_val: getStateMetricValue(state.name, activeLayer, rankings, allDistricts, timelineStep, features)
         },
         geometry: {
           type: "Polygon",
@@ -1009,14 +911,15 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         }
       }))
     } as GeoJSON.FeatureCollection;
-  }, [activeLayer, activeYear, timelineStep]);
+  }, [activeLayer, rankings, allDistricts, timelineStep, features]);
 
   useEffect(() => {
-    api.layers().then(setData).catch(() => setData(null));
+    api.layers(activeYear).then(setData).catch(() => setData(null));
+  }, [activeYear]);
+
+  useEffect(() => {
     api.districts().then(setAllDistricts).catch(() => undefined);
   }, []);
-
-  const features = useMemo(() => data?.features ?? [], [data]);
 
   // Handle selected district history fetching
   useEffect(() => {
@@ -1047,17 +950,51 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         rankings,
         allDistricts,
         districtHistory,
-        timelineStep
+        timelineStep,
+        features
       );
     }
     return metrics;
-  }, [selectedDistrictId, rankings, allDistricts, districtHistory, timelineStep]);
+  }, [selectedDistrictId, rankings, allDistricts, districtHistory, timelineStep, features]);
 
-  // AI Climate Analysis summary
-  const aiAnalysis = useMemo(() => {
-    if (!selectedDistrict || !selectedMetrics) return null;
-    return generateAiAnalysis(selectedDistrict.name, selectedMetrics);
-  }, [selectedDistrict, selectedMetrics]);
+  // AI Climate Analysis summary fetched dynamically from backend
+  useEffect(() => {
+    if (!selectedDistrict || !selectedMetrics) {
+      setAiAnalysis(null);
+      return;
+    }
+    setAiLoading(true);
+    api.copilot(`Explain risk drivers for district ${selectedDistrict.name}`, {
+      selected_district_id: selectedDistrict.id,
+      active_layer: activeLayer,
+      active_year: activeYear,
+      timeline_step: timelineStep,
+      map_mode: mapMode
+    })
+      .then((res) => {
+        setAiAnalysis({
+          summary: res.explanation || res.risk_analysis,
+          confidence: res.explainable_risk?.confidence ?? 92,
+          trend: (() => {
+            const distRanking = rankings.find(r => r.district_id === selectedDistrict.id);
+            return distRanking?.trend === "Stable" ? "Stable" : distRanking?.trend === "Increasing" ? "Increasing" : "Decreasing";
+          })(),
+          drivers: res.explainable_risk?.drivers ?? [
+            `Surface Temperature Anomaly: ${selectedMetrics.temperature?.toFixed(1)}°C`,
+            `Precipitation: ${selectedMetrics.rainfall?.toFixed(0)}mm`,
+            `Soil Moisture: ${selectedMetrics.soil_moisture?.toFixed(0)}%`
+          ],
+          actions: res.explainable_risk?.actions ?? res.recommended_actions ?? []
+        });
+      })
+      .catch(() => {
+        setAiAnalysis(null);
+      })
+      .finally(() => {
+        setAiLoading(false);
+      });
+  }, [selectedDistrict, activeLayer, activeYear, timelineStep, mapMode, selectedMetrics]);
+
 
   // Build the search result suggestions
   const searchResults = useMemo(() => {
@@ -1097,7 +1034,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     return features.map((f) => {
       const props = f.properties as Record<string, number | string>;
       const dId = Number(props.district_id);
-      const val = getTimelineMetricValue(dId, activeLayer, rankings, allDistricts, [], timelineStep);
+      const val = getTimelineMetricValue(dId, activeLayer, rankings, allDistricts, [], timelineStep, features);
       return {
         ...f,
         properties: {
@@ -1377,7 +1314,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
               {/* Geographic States outlines */}
               {INDIA_STATES.map((state) => {
-                const stateVal = getStateMetricValue(state.name, activeLayer, activeYear, timelineStep);
+                const stateVal = getStateMetricValue(state.name, activeLayer, rankings, allDistricts, timelineStep, features);
                 const stateColor = getLayerColor(activeLayer, stateVal);
                 return (
                   <g key={state.name} id={`fallback-state-${state.name.toLowerCase().replace(/\s+/g, '-')}`}>
@@ -1553,25 +1490,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Temperature</span>
                   <span className="font-mono font-bold text-cyan-300 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "temperature", activeYear, timelineStep).toFixed(1)}°C
+                    {getStateMetricValue(hoveredStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Rainfall</span>
                   <span className="font-mono font-bold text-cyan-300 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "rainfall", activeYear, timelineStep).toFixed(0)} mm
+                    {getStateMetricValue(hoveredStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">AQI</span>
                   <span className="font-mono font-bold text-cyan-300 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "aqi", activeYear, timelineStep).toFixed(0)}
+                    {getStateMetricValue(hoveredStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Risk Index</span>
                   <span className="font-mono font-bold text-rose-400 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "composite_risk", activeYear, timelineStep).toFixed(0)}%
+                    {getStateMetricValue(hoveredStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
                   </span>
                 </div>
               </div>
@@ -1581,7 +1518,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 {getStateForecastText(
                   hoveredStateName,
                   activeLayer,
-                  getStateMetricValue(hoveredStateName, activeLayer, activeYear, timelineStep),
+                  getStateMetricValue(hoveredStateName, activeLayer, rankings, allDistricts, timelineStep, features),
                   activeYear
                 )}
               </div>
@@ -1939,7 +1876,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             </div>
 
             {/* AI Climate Analysis Panel */}
-            {aiAnalysis && (
+            {aiLoading ? (
+              <div className="text-xs text-slate-500 py-6 text-center animate-pulse">
+                Consulting AI Command Core...
+              </div>
+            ) : aiAnalysis ? (
               <div className="space-y-2">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-300">
                   AI Cognitive Insights
@@ -2000,7 +1941,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* Mini Analytics sparklines */}
             {districtHistory.length > 0 && (
