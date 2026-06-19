@@ -875,9 +875,10 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Interactive State hover telemetry
+  // Interactive State hover & click telemetry
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
-  const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
+  const [clickedStateName, setClickedStateName] = useState<string | null>(null);
+  const [tooltipCoords, setTooltipCoords] = useState<{ x: number; y: number } | null>(null);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -1127,7 +1128,6 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           const name = feature.properties?.name;
           if (name) {
             setHoveredStateName(name);
-            setHoverCoords({ x: e.point.x, y: e.point.y });
           }
         }
       });
@@ -1135,7 +1135,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       map.on("mouseleave", "state-fill", () => {
         map.getCanvas().style.cursor = "";
         setHoveredStateName(null);
-        setHoverCoords(null);
+      });
+
+      map.on("click", "state-fill", (e) => {
+        if (e.features && e.features.length > 0) {
+          const feature = e.features[0];
+          const name = feature.properties?.name;
+          if (name) {
+            setClickedStateName(name);
+            setTooltipCoords({ x: e.point.x, y: e.point.y });
+            // Prevent map general click handler from running
+            (e as any)._stateClick = true;
+          }
+        }
       });
 
       map.on("click", "district-risk-fill", (event) => {
@@ -1143,6 +1155,17 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         if (feature) {
           const props = feature.properties as Record<string, number | string>;
           setSelectedDistrictId(Number(props.district_id));
+          // Close state tooltip when selecting a district
+          setClickedStateName(null);
+          setTooltipCoords(null);
+          (event as any)._stateClick = true;
+        }
+      });
+
+      map.on("click", (e) => {
+        if (!(e as any)._stateClick) {
+          setClickedStateName(null);
+          setTooltipCoords(null);
         }
       });
     });
@@ -1249,7 +1272,13 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           <div ref={mapNode} className="w-full h-full" />
         ) : (
           /* Premium Fallback Geographic Vector Map */
-          <div className="relative w-full h-full overflow-hidden bg-[radial-gradient(circle_at_center,rgba(6,25,44,0.60),transparent_48%),linear-gradient(135deg,#030914,#081c2e)] select-none">
+          <div 
+            onClick={() => {
+              setClickedStateName(null);
+              setTooltipCoords(null);
+            }}
+            className="relative w-full h-full overflow-hidden bg-[radial-gradient(circle_at_center,rgba(6,25,44,0.60),transparent_48%),linear-gradient(135deg,#030914,#081c2e)] select-none"
+          >
             <div className="absolute inset-0 bg-radar-grid bg-[size:40px_40px] opacity-25" />
             
             <svg
@@ -1339,12 +1368,13 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           onMouseEnter={() => setHoveredStateName(state.name)}
                           onMouseLeave={() => {
                             setHoveredStateName(null);
-                            setHoverCoords(null);
                           }}
-                          onMouseMove={(e) => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
                             if (rect) {
-                              setHoverCoords({
+                              setClickedStateName(state.name);
+                              setTooltipCoords({
                                 x: e.clientX - rect.left,
                                 y: e.clientY - rect.top
                               });
@@ -1440,7 +1470,12 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 return (
                   <g 
                     key={d.id} 
-                    onClick={() => setSelectedDistrictId(d.id)} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedDistrictId(d.id);
+                      setClickedStateName(null);
+                      setTooltipCoords(null);
+                    }} 
                     className="cursor-pointer"
                   >
                     <circle
@@ -1466,23 +1501,31 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           </div>
         )}
 
-        {/* Floating Tooltip Cloud for State Hover */}
-        {hoveredStateName && hoverCoords && (
+        {/* Floating Tooltip Cloud for State Click */}
+        {clickedStateName && tooltipCoords && (
           <div 
-            className="absolute z-[1000] pointer-events-none transition-all duration-75 ease-out select-none"
+            className="absolute z-[1000] pointer-events-auto transition-all duration-75 ease-out select-none"
             style={{ 
-              left: `${hoverCoords.x + 15}px`, 
-              top: `${hoverCoords.y + 15}px`,
-              transform: `translate(${hoverCoords.x > 350 ? -240 : 0}px, ${hoverCoords.y > 300 ? -200 : 0}px)`
+              left: `${tooltipCoords.x + 15}px`, 
+              top: `${tooltipCoords.y + 15}px`,
+              transform: `translate(${tooltipCoords.x > 350 ? -240 : 0}px, ${tooltipCoords.y > 300 ? -200 : 0}px)`
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="glass-panel backdrop-blur-md bg-slate-950/90 border border-cyan-500/30 rounded-xl p-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.8)] shadow-cyan-950/20 w-[210px] space-y-2.5">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-cyan-500/10 pb-1.5">
-                <span className="font-bold text-xs text-white leading-none tracking-wide">{hoveredStateName}</span>
-                <span className="text-[7.5px] font-bold text-cyan-400/90 bg-cyan-950/50 border border-cyan-500/20 px-1.5 py-0.5 rounded uppercase font-mono tracking-wider">
-                  Forecast
-                </span>
+                <span className="font-bold text-xs text-white leading-none tracking-wide">{clickedStateName}</span>
+                <button
+                  onClick={() => {
+                    setClickedStateName(null);
+                    setTooltipCoords(null);
+                  }}
+                  className="text-slate-400 hover:text-white transition"
+                  aria-label="Close state tooltip"
+                >
+                  <X className="h-3 w-3" />
+                </button>
               </div>
               
               {/* Weather Stats Grid */}
@@ -1490,25 +1533,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Temperature</span>
                   <span className="font-mono font-bold text-cyan-300 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
+                    {getStateMetricValue(clickedStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Rainfall</span>
                   <span className="font-mono font-bold text-cyan-300 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
+                    {getStateMetricValue(clickedStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">AQI</span>
                   <span className="font-mono font-bold text-cyan-300 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
+                    {getStateMetricValue(clickedStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-cyan-500/5 rounded p-1.5">
                   <span className="text-slate-500 font-semibold uppercase text-[7.5px]">Risk Index</span>
                   <span className="font-mono font-bold text-rose-400 mt-0.5">
-                    {getStateMetricValue(hoveredStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
+                    {getStateMetricValue(clickedStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
                   </span>
                 </div>
               </div>
@@ -1516,9 +1559,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               {/* Dynamic Forecast Summary */}
               <div className="border-t border-cyan-500/10 pt-2 text-[9px] text-slate-300 leading-normal font-sans italic">
                 {getStateForecastText(
-                  hoveredStateName,
+                  clickedStateName,
                   activeLayer,
-                  getStateMetricValue(hoveredStateName, activeLayer, rankings, allDistricts, timelineStep, features),
+                  getStateMetricValue(clickedStateName, activeLayer, rankings, allDistricts, timelineStep, features),
                   activeYear
                 )}
               </div>
