@@ -82,7 +82,7 @@ class ScenarioSimulator:
         infra_risk = clamp(flood_risk * 0.4 + river_level_delta_m * 5.0 + urbanization_delta_pct * 0.2 + cyclone_intensity_delta_pct * 0.1)
         env_impact = clamp(100.0 - (forest_cover_delta_pct + soil_moisture_delta_pct * 0.2 + agricultural_land_delta_pct * 0.3) - (composite_risk * 0.35))
 
-        return {
+        result_payload = {
             "adjusted_climate": adjusted,
             "water_availability": round(water_availability, 1),
             "crop_stress": round(crop_stress, 1),
@@ -102,3 +102,91 @@ class ScenarioSimulator:
                 "legend": "Projected composite climate risk",
             },
         }
+        result_payload["ai_analysis"] = self.generate_ai_analysis(scenario, result_payload)
+        return result_payload
+
+    def generate_ai_analysis(self, payload: dict, result: dict) -> dict:
+        cr = result.get("composite_risk", 50.0)
+        alert_level = "critical" if cr >= 75 else "high" if cr >= 55 else "moderate" if cr >= 35 else "low"
+        
+        drivers = []
+        if abs(payload.get("rainfall_delta_pct") or 0.0) > 20:
+            drivers.append("Extreme rainfall anomaly")
+        if (payload.get("temperature_delta_c") or 0.0) > 2:
+            drivers.append("Critical temperature rise")
+        if (payload.get("heatwave_duration_days") or 0.0) > 20:
+            drivers.append("Prolonged heatwave duration")
+        if (payload.get("river_level_delta_m") or 0.0) > 2:
+            drivers.append("Dangerous river level surge")
+        if (payload.get("cyclone_intensity_delta_pct") or 0.0) > 30:
+            drivers.append("High-intensity cyclonic activity")
+        if (payload.get("urbanization_delta_pct") or 0.0) > 15:
+            drivers.append("Rapid urban heat island effect")
+        if (payload.get("groundwater_delta_m") or 0.0) < -10:
+            drivers.append("Critical groundwater depletion")
+        if (payload.get("forest_cover_delta_pct") or 0.0) < -10:
+            drivers.append("Severe deforestation pressure")
+            
+        if not drivers:
+            drivers = ["Multiple moderate stressors", "Climate variability baseline"]
+            
+        vulnerable_zones = []
+        if result.get("flood_risk", 50.0) > 60:
+            vulnerable_zones.append("Low-lying river floodplains")
+        if result.get("drought_risk", 50.0) > 60:
+            vulnerable_zones.append("Rainfed agricultural belts")
+        if result.get("heatwave_risk", 50.0) > 65:
+            vulnerable_zones.append("Dense urban residential zones")
+        if result.get("water_stress_risk", 50.0) > 60:
+            vulnerable_zones.append("Water-scarce semi-arid regions")
+            
+        if not vulnerable_zones:
+            vulnerable_zones = ["Coastal estuaries", "Hill-slope micro-watersheds"]
+            
+        recommendations = []
+        if result.get("flood_risk", 50.0) > 55:
+            recommendations.extend([
+                "Activate SDMA flood early-warning cascade protocols",
+                "Pre-position emergency response teams at flood-prone corridors"
+            ])
+        if result.get("drought_risk", 50.0) > 55:
+            recommendations.extend([
+                "Issue contingency drought advisory for rainfed agricultural blocks",
+                "Enforce Minimum Support Price for drought-affected kharif crops"
+            ])
+        if result.get("heatwave_risk", 50.0) > 60:
+            recommendations.extend([
+                "Establish district-level cooling center network in high-density wards",
+                "Restrict outdoor labor during 11 AM–4 PM window in affected zones"
+            ])
+        if result.get("water_stress_risk", 50.0) > 55:
+            recommendations.extend([
+                "Prioritize micro-irrigation scheme rollout in water-stress blocks",
+                "Initiate aquifer recharge through rainwater harvesting mandates"
+            ])
+            
+        if len(recommendations) < 3:
+            recommendations.extend([
+                "Monitor composite risk trajectory on 7-day rolling basis",
+                "Update public utility contingency plans with latest projections"
+            ])
+            
+        headline = (
+            f"CRITICAL: {drivers[0]} is driving composite climate risk to dangerous levels. Immediate multi-agency response required."
+            if cr >= 75
+            else f"HIGH RISK: Elevated {drivers[0].lower()} detected. Proactive intervention required within 7 days."
+            if cr >= 55
+            else "MODERATE: Climate indicators show elevated stress under current scenario. Monitor and prepare contingency responses."
+            if cr >= 35
+            else "LOW RISK: Scenario parameters remain within manageable bounds. Standard monitoring protocols sufficient."
+        )
+        
+        return {
+            "headline": headline,
+            "confidence": min(96, 72 + len(drivers) * 4),
+            "drivers": drivers,
+            "vulnerableZones": vulnerable_zones,
+            "recommendations": recommendations,
+            "alertLevel": alert_level
+        }
+

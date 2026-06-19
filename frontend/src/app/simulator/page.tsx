@@ -282,76 +282,6 @@ function formatLargeNum(n: number) {
   return `${n}`;
 }
 
-function generateAIAnalysis(payload: ScenarioPayload, result: SimulationResult): {
-  headline: string;
-  confidence: number;
-  drivers: string[];
-  vulnerableZones: string[];
-  recommendations: string[];
-  alertLevel: "low" | "moderate" | "high" | "critical";
-} {
-  const cr = result.composite_risk;
-  const alertLevel: "low" | "moderate" | "high" | "critical" =
-    cr >= 75 ? "critical" : cr >= 55 ? "high" : cr >= 35 ? "moderate" : "low";
-
-  const drivers: string[] = [];
-  if (Math.abs(payload.rainfall_delta_pct ?? 0) > 20) drivers.push("Extreme rainfall anomaly");
-  if ((payload.temperature_delta_c ?? 0) > 2) drivers.push("Critical temperature rise");
-  if ((payload.heatwave_duration_days ?? 0) > 20) drivers.push("Prolonged heatwave duration");
-  if ((payload.river_level_delta_m ?? 0) > 2) drivers.push("Dangerous river level surge");
-  if ((payload.cyclone_intensity_delta_pct ?? 0) > 30) drivers.push("High-intensity cyclonic activity");
-  if ((payload.urbanization_delta_pct ?? 0) > 15) drivers.push("Rapid urban heat island effect");
-  if ((payload.groundwater_delta_m ?? 0) < -10) drivers.push("Critical groundwater depletion");
-  if ((payload.forest_cover_delta_pct ?? 0) < -10) drivers.push("Severe deforestation pressure");
-  if (drivers.length === 0) drivers.push("Multiple moderate stressors", "Climate variability baseline");
-
-  const vulnerableZones: string[] = [];
-  if (result.flood_risk > 60) vulnerableZones.push("Low-lying river floodplains");
-  if (result.drought_risk > 60) vulnerableZones.push("Rainfed agricultural belts");
-  if (result.heatwave_risk > 65) vulnerableZones.push("Dense urban residential zones");
-  if (result.water_stress_risk > 60) vulnerableZones.push("Water-scarce semi-arid regions");
-  if (vulnerableZones.length === 0) vulnerableZones.push("Coastal estuaries", "Hill-slope micro-watersheds");
-
-  const recommendations: string[] = [];
-  if (result.flood_risk > 55) {
-    recommendations.push("Activate SDMA flood early-warning cascade protocols");
-    recommendations.push("Pre-position emergency response teams at flood-prone corridors");
-  }
-  if (result.drought_risk > 55) {
-    recommendations.push("Issue contingency drought advisory for rainfed agricultural blocks");
-    recommendations.push("Enforce Minimum Support Price for drought-affected kharif crops");
-  }
-  if (result.heatwave_risk > 60) {
-    recommendations.push("Establish district-level cooling center network in high-density wards");
-    recommendations.push("Restrict outdoor labor during 11 AM–4 PM window in affected zones");
-  }
-  if (result.water_stress_risk > 55) {
-    recommendations.push("Prioritize micro-irrigation scheme rollout in water-stress blocks");
-    recommendations.push("Initiate aquifer recharge through rainwater harvesting mandates");
-  }
-  if (recommendations.length < 3) {
-    recommendations.push("Monitor composite risk trajectory on 7-day rolling basis");
-    recommendations.push("Update public utility contingency plans with latest projections");
-  }
-
-  const headline =
-    cr >= 75
-      ? `CRITICAL: ${drivers[0]} is driving composite climate risk to dangerous levels. Immediate multi-agency response required.`
-      : cr >= 55
-      ? `HIGH RISK: Elevated ${drivers[0]?.toLowerCase() ?? "climate stress"} detected. Proactive intervention required within 7 days.`
-      : cr >= 35
-      ? `MODERATE: Climate indicators show elevated stress under current scenario. Monitor and prepare contingency responses.`
-      : `LOW RISK: Scenario parameters remain within manageable bounds. Standard monitoring protocols sufficient.`;
-
-  return {
-    headline,
-    confidence: Math.min(96, 72 + drivers.length * 4),
-    drivers,
-    vulnerableZones,
-    recommendations,
-    alertLevel,
-  };
-}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SimulatorPage() {
@@ -509,7 +439,7 @@ export default function SimulatorPage() {
     window.print();
   }
 
-  const ai = result ? generateAIAnalysis(payload, result) : null;
+  const ai = result?.ai_analysis || null;
 
   const IMPACT_METRICS = result
     ? [

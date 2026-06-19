@@ -25,8 +25,15 @@ export default function TimelinePage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<number>(0);
   const [activeEventIndex, setActiveEventIndex] = useState<number>(3); // 2025 selected by default (index 3 of [2010, 2015, 2020, 2025, 2030, 2040, 2050])
-  const [historyData, setHistoryData] = useState<ClimateObservation[]>([]);
-  const [trendsData, setTrendsData] = useState<any[]>([]);
+  const [timelineEvents, setTimelineEvents] = useState<any[]>([
+    { year: 2010, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2015, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2020, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2025, label: "Loading...", type: "current", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2030, label: "Loading...", type: "predicted", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2040, label: "Loading...", type: "predicted", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2050, label: "Loading...", type: "predicted", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+  ]);
 
   useEffect(() => {
     api.districts()
@@ -41,83 +48,31 @@ export default function TimelinePage() {
 
   useEffect(() => {
     if (!districtId) return;
-    Promise.all([
-      api.history(districtId),
-      api.riskTrends(districtId)
-    ]).then(([historyResponse, trendsResponse]) => {
-      setHistoryData(historyResponse);
-      setTrendsData(trendsResponse);
-    }).catch(() => undefined);
+    api.timeline(districtId)
+      .then((data) => {
+        setTimelineEvents(data);
+      })
+      .catch(() => undefined);
   }, [districtId]);
 
-  const years = [2010, 2015, 2020, 2025, 2030, 2040, 2050];
-
   const timelineData = useMemo(() => {
-    return years.map((y) => {
-      const obsOfYear = historyData.filter(h => new Date(h.observed_on).getFullYear() === y);
-      const avgTemp = obsOfYear.length ? obsOfYear.reduce((sum, o) => sum + o.temperature_c, 0) / obsOfYear.length : 27.8;
-      const totalRain = obsOfYear.length ? obsOfYear.reduce((sum, o) => sum + o.rainfall_mm, 0) : 980;
-
-      const trendOfYear = trendsData.filter(t => new Date(t.date).getFullYear() === y);
-      const riskScore = trendOfYear.length ? Math.round(trendOfYear.reduce((sum, t) => sum + t.composite, 0) / trendOfYear.length) : 54;
-
-      const isHist = y < 2025;
-      const isPred = y > 2025;
-      const type: "historical" | "current" | "predicted" = isHist ? "historical" : (y === 2025 ? "current" : "predicted");
-
-      let label = "Baseline Transition Year";
-      let description = "Stabilized monsoon indicators with localized temperature rises. Current ground telemetry aligns with long-term climate baselines.";
+    return timelineEvents.map((ev) => {
       let icon = Clock;
+      if (ev.year === 2020) icon = CloudRain;
+      else if (ev.year === 2030) icon = Flame;
+      else if (ev.year === 2040) icon = CloudRain;
+      else if (ev.year === 2050) icon = Flame;
 
-      if (y === 2010) {
-        label = "Cooler Climate Baseline";
-        description = `Empirical records show a cooler climate baseline. Average temperature recorded at ${avgTemp.toFixed(1)}°C with annual precipitation of ${totalRain.toFixed(0)}mm.`;
-        icon = Clock;
-      } else if (y === 2015) {
-        label = "Slight Warming Transition";
-        description = `Gradual warming transition observed. Average temperature rose slightly to ${avgTemp.toFixed(1)}°C with annual precipitation of ${totalRain.toFixed(0)}mm.`;
-        icon = Clock;
-      } else if (y === 2020) {
-        label = "Reference Baseline Climate";
-        description = `Standard meteorological reference year. Precipitation patterns show standard deviation norms with a mean temperature of ${avgTemp.toFixed(1)}°C.`;
-        icon = CloudRain;
-      } else if (y === 2030) {
-        label = "SSP2-4.5 Intermediate Projections";
-        description = `Projected carbon forcing triggers temperature rise to ${avgTemp.toFixed(1)}°C. Sub-surface moisture depletion accelerates dryland aridity risks.`;
-        icon = Flame;
-      } else if (y === 2040) {
-        label = "SSP2-4.5 High Volatility Forcing";
-        description = `Intense spatiotemporal precipitation volatility. Annual rainfall projected at ${totalRain.toFixed(0)}mm, increasing local flash flood exposures.`;
-        icon = CloudRain;
-      } else if (y === 2050) {
-        label = "Thermal Heat Dome Scenario";
-        description = `Extreme heat dome frequency increases. Summer max temperatures projected to remain high with annual mean of ${avgTemp.toFixed(1)}°C.`;
-        icon = Flame;
-      }
-
-      const alert = riskScore >= 75
-        ? "Critical heat and agricultural aridity warnings"
-        : riskScore >= 55
-        ? "Elevated regional stress indicators active"
-        : "Standard background monitoring procedures";
-
-      if (riskScore >= 75) {
+      if (ev.riskScore >= 75) {
         icon = AlertTriangle;
       }
 
       return {
-        year: y,
-        label,
-        type,
-        description,
-        avgTemp: `${avgTemp.toFixed(1)}°C`,
-        avgRain: `${totalRain.toFixed(0)}mm`,
-        riskScore,
-        alert,
+        ...ev,
         icon,
       };
     });
-  }, [historyData, trendsData]);
+  }, [timelineEvents]);
 
   const district = districts.find((d) => d.id === districtId);
   const activeEvent = timelineData[activeEventIndex] || {

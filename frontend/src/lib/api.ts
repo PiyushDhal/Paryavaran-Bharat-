@@ -129,7 +129,26 @@ export const api = {
       predictions: number;
       simulations: number;
       integrations: Array<{ name: string; status: string }>;
-    }>("/admin/overview")
+    }>("/admin/overview"),
+
+  timeline: (districtId: number) =>
+    apiFetch<any[]>(`/climate/timeline?district_id=${districtId}`),
+
+  analyticsMetrics: (filters: Record<string, string | number | undefined | null>) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, val]) => {
+      if (val !== undefined && val !== null && val !== "") {
+        params.append(key, String(val));
+      }
+    });
+    return apiFetch<any>(`/climate/analytics/metrics?${params.toString()}`);
+  },
+
+  simulateSustainability: (payload: any) =>
+    apiFetch<any[]>("/climate/analytics/sustainability/simulate", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    })
 };
 
 export { API_BASE_URL };

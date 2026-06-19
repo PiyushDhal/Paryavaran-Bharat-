@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from app.api import admin, auth, climate, copilot, predictions, risk, simulations
+from app.api import admin, auth, climate, copilot, predictions, risk, simulations, timeline, sustainability
 from app.core.config import get_settings
 from app.db.base import Base
 from app.db.init_db import init_db
@@ -45,6 +45,8 @@ def health() -> dict:
 
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(climate.router, prefix=settings.api_v1_prefix)
+app.include_router(timeline.router, prefix=settings.api_v1_prefix)
+app.include_router(sustainability.router, prefix=settings.api_v1_prefix)
 app.include_router(risk.router, prefix=settings.api_v1_prefix)
 app.include_router(predictions.router, prefix=settings.api_v1_prefix)
 app.include_router(simulations.router, prefix=settings.api_v1_prefix)

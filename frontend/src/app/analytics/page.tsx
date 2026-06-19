@@ -122,6 +122,14 @@ export default function AnalyticsPage() {
   const [rankSortKey, setRankSortKey] = useState<"name" | "score" | "forest" | "water" | "aqi" | "resilience">("score");
   const [rankSortOrder, setRankSortOrder] = useState<"asc" | "desc">("desc");
 
+  // ─── Sustainability API States ────────────────────────────────────
+  const [analyticsData, setAnalyticsData] = useState<{
+    monthlyData: any[];
+    metrics: any;
+    aiInsights: any;
+  } | null>(null);
+  const [simulatedData, setSimulatedData] = useState<any[]>([]);
+
   // Load datasets from backend API on mount
   useEffect(() => {
     Promise.all([
@@ -157,6 +165,42 @@ export default function AnalyticsPage() {
     }
   }, [districts, climateContext?.selectedDistrictId]);
 
+  // Fetch sustainability analytics metrics from backend
+  useEffect(() => {
+    api.analyticsMetrics({
+      year,
+      state_id: stateId || undefined,
+      district_id: selectedDistId || undefined,
+      climate_zone: climateZone || undefined,
+      risk_category: riskCategory || undefined
+    })
+    .then((data) => {
+      setAnalyticsData(data);
+    })
+    .catch(() => undefined);
+  }, [year, stateId, selectedDistId, climateZone, riskCategory]);
+
+  // Fetch simulated projections from backend
+  useEffect(() => {
+    const activeMetrics = analyticsData?.metrics;
+    if (!activeMetrics) return;
+    api.simulateSustainability({
+      forest_health: activeMetrics.forestHealth,
+      air_quality_score: activeMetrics.airQualityScore,
+      water_sustainability: activeMetrics.waterSustainability,
+      avg_soil: activeMetrics.avgSoil,
+      climate_resilience: activeMetrics.climateResilience,
+      reforest_rate: reforestRate,
+      ev_share: evShare,
+      renewables_share: renewablesShare,
+      recycle_rate: recycleRate
+    })
+    .then((data) => {
+      setSimulatedData(data);
+    })
+    .catch(() => undefined);
+  }, [analyticsData?.metrics, reforestRate, evShare, renewablesShare, recycleRate]);
+
   // Filter districts based on current select states
   const filteredDistricts = useMemo(() => {
     return districts.filter((d) => {
@@ -168,165 +212,20 @@ export default function AnalyticsPage() {
     });
   }, [districts, stateId, climateZone, riskCategory]);
 
-  // Aggregate monthly observations for the filtered scope
+  // Aggregate monthly observations for the filtered scope from backend
   const monthlyData = useMemo(() => {
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return analyticsData?.monthlyData || [];
+  }, [analyticsData]);
 
-    const rawData = (() => {
-      if (filteredDistricts.length === 0) return [];
-
-      if (selectedDistId) {
-        const matched = filteredDistricts.find(d => d.id === selectedDistId);
-        if (matched) return allHistories[selectedDistId] || [];
-      }
-
-      // Otherwise aggregate across all matched districts
-      const aggregated: ClimateObservation[] = [];
-      const histories = filteredDistricts.map(d => allHistories[d.id]).filter(Boolean);
-      if (histories.length === 0) return [];
-      const count = histories.length;
-
-      const sampleHistory = histories[0];
-      if (!sampleHistory || sampleHistory.length === 0) return [];
-
-      for (let m = 0; m < sampleHistory.length; m++) {
-        let rain = 0, temp = 0, aqi = 0, reservoir = 0, ndvi = 0, soil = 0;
-        histories.forEach(h => {
-          const obs = h[m];
-          if (obs) {
-            rain += obs.rainfall_mm;
-            temp += obs.temperature_c;
-            aqi += obs.aqi;
-            reservoir += obs.reservoir_level_pct ?? 50;
-            ndvi += obs.ndvi ?? 0.5;
-            soil += obs.soil_moisture_pct;
-          }
-        });
-        aggregated.push({
-          observed_on: sampleHistory[m].observed_on,
-          rainfall_mm: Math.round(rain / count),
-          rainfall_deficit_pct: 0,
-          temperature_c: Math.round((temp / count) * 10) / 10,
-          humidity_pct: 0,
-          river_level_m: 0,
-          soil_moisture_pct: Math.round(soil / count),
-          aqi: Math.round(aqi / count),
-          ndvi: Math.round((ndvi / count) * 100) / 100,
-          reservoir_level_pct: Math.round(reservoir / count)
-        });
-      }
-      return aggregated;
-    })();
-
-    return rawData.map(obs => {
-      if (typeof obs.observed_on !== "string") return { ...obs, date: "" };
-      const parts = obs.observed_on.split("-");
-      const monthIdx = parts[1] ? parseInt(parts[1], 10) - 1 : 0;
-      return {
-        ...obs,
-        date: monthNames[monthIdx] || parts[1] || ""
-      };
-    });
-  }, [filteredDistricts, selectedDistId, allHistories]);
-
-  // Compute indices dynamically
+  // Compute indices from backend
   const metrics = useMemo(() => {
-    if (monthlyData.length === 0) return null;
+    return analyticsData?.metrics || null;
+  }, [analyticsData]);
 
-    const avgTemp = monthlyData.reduce((acc, obs) => acc + obs.temperature_c, 0) / monthlyData.length;
-    const avgRain = monthlyData.reduce((acc, obs) => acc + obs.rainfall_mm, 0) / monthlyData.length;
-    const avgAqi = monthlyData.reduce((acc, obs) => acc + obs.aqi, 0) / monthlyData.length;
-    const avgReservoir = monthlyData.reduce((acc, obs) => acc + (obs.reservoir_level_pct ?? 50), 0) / monthlyData.length;
-    const avgNdvi = monthlyData.reduce((acc, obs) => acc + (obs.ndvi ?? 0.5), 0) / monthlyData.length;
-    const avgSoil = monthlyData.reduce((acc, obs) => acc + obs.soil_moisture_pct, 0) / monthlyData.length;
-
-    let avgRisk = 50, avgFlood = 50, avgDrought = 50, avgHeat = 50, avgWater = 50;
-    const activeRankings = allRankings.filter(r => filteredDistricts.some(fd => fd.id === r.district_id));
-    if (activeRankings.length > 0) {
-      avgRisk = activeRankings.reduce((acc, r) => acc + r.composite_risk, 0) / activeRankings.length;
-      avgFlood = activeRankings.reduce((acc, r) => acc + r.flood_risk, 0) / activeRankings.length;
-      avgDrought = activeRankings.reduce((acc, r) => acc + r.drought_risk, 0) / activeRankings.length;
-      avgHeat = activeRankings.reduce((acc, r) => acc + r.heatwave_risk, 0) / activeRankings.length;
-      avgWater = activeRankings.reduce((acc, r) => acc + r.water_stress_risk, 0) / activeRankings.length;
-    }
-
-    const ndviScore = Math.round(avgNdvi * 100);
-    const aqiScore = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
-    const reservoirScore = Math.round(avgReservoir);
-    const safetyScore = Math.round(100 - avgRisk);
-    const soilScore = Math.max(10, Math.min(100, Math.round(100 - avgDrought * 0.8)));
-
-    const compositeIndex = Math.round(ndviScore * 0.25 + aqiScore * 0.2 + reservoirScore * 0.2 + safetyScore * 0.2 + soilScore * 0.15);
-    const envHealthScore = Math.round(ndviScore * 0.4 + aqiScore * 0.3 + soilScore * 0.3);
-    const waterSustainability = reservoirScore;
-    const forestHealth = ndviScore;
-    const biodiversity = Math.min(100, Math.max(15, Math.round(ndviScore * 1.1 - (100 - safetyScore) * 0.1)));
-    const carbonImpact = Math.max(10, Math.min(95, Math.round(100 - (ndviScore * 0.6 + (100 - aqiScore) * 0.4))));
-    const renewableEnergy = Math.min(100, Math.max(10, Math.round(safetyScore * 0.7 + reservoirScore * 0.3)));
-    const climateResilience = safetyScore;
-    const greenInfrastructure = Math.round((ndviScore + reservoirScore) / 2);
-
-    return {
-      avgTemp: Math.round(avgTemp * 10) / 10,
-      avgRain: Math.round(avgRain),
-      avgAqi: Math.round(avgAqi),
-      avgReservoir: Math.round(avgReservoir),
-      avgNdvi: Math.round(avgNdvi * 100) / 100,
-      avgSoil: Math.round(avgSoil),
-      compositeIndex,
-      envHealthScore,
-      waterSustainability,
-      forestHealth,
-      biodiversity,
-      airQualityScore: aqiScore,
-      carbonImpact,
-      renewableEnergy,
-      climateResilience,
-      waterStress: Math.round(avgWater),
-      greenInfrastructure,
-      avgRisk: Math.round(avgRisk),
-      avgFlood: Math.round(avgFlood),
-      avgDrought: Math.round(avgDrought),
-      avgHeat: Math.round(avgHeat),
-      avgWater: Math.round(avgWater)
-    };
-  }, [monthlyData, filteredDistricts, allRankings]);
-
-  // Generate dynamic AI Insights & Explanations
+  // Generate AI Insights from backend
   const aiInsights = useMemo(() => {
-    if (!metrics) return null;
-    const name = selectedDistId
-      ? districts.find(d => d.id === selectedDistId)?.name
-      : stateId
-      ? states.find(s => s.id === stateId)?.name
-      : "National aggregate";
-
-    let summary = `Sustainability indicators for ${name} in ${year} AD are evaluated at a composite index score of ${metrics.compositeIndex}/100. `;
-    let drivers = ["Thermal variations pushing grid adaptations", "Hydrological storage conditions", "Vegetative carbon capture variance"];
-    let positives = ["Baseline air quality index within targets", "Safe boundaries for reservoir headroom"];
-    let negatives = ["Rising convective heat waves during pre-monsoon", "Depleting ground moisture indicators"];
-    let recommendations = [
-      "Launch extensive Miyawaki mini-forest grids near high-density blocks to optimize carbon capture.",
-      "Deploy localized block-level rainwater harvesting basins to arrest hydrological depletion.",
-      "Incentivize grid-connected solar power transitions to reduce industrial carbon loads.",
-      "Restrict groundwater drafts in semi-arid zones to safeguard aquifer pressures."
-    ];
-
-    if (metrics.compositeIndex < 55) {
-      summary += "The ecosystem shows high vulnerability due to a combination of high climatic hazard risk and low ecological adaptation buffer. Urgent structural adjustments are advised.";
-      drivers = ["Prolonged dry soil index profiles", "High urban thermal heatwaves", "Low surface water reserve levels"];
-      negatives = ["Critical groundwater drawdowns", "Severe vegetative thermal stress (depleted NDVI)"];
-      recommendations.unshift("Establish absolute municipal water-rationing protocols and clean-air corridors.");
-    } else if (metrics.compositeIndex >= 72) {
-      summary += "The ecosystem shows strong climate resilience and excellent environmental resource management, maintaining rich ecological buffers against seasonal climatic hazards.";
-      positives = ["High canopy carbon density (elevated NDVI)", "Stable river run-off profiles", "Optimum aquifer replenishment"];
-      recommendations.push("Establish local green bonds to finance community-level biodiversity sanctuaries.");
-    } else {
-      summary += "The ecosystem is currently stable, showing moderate resilience against seasonal climatic hazards. Focus should remain on maintaining vegetation shields.";
-    }
-
-    return { summary, drivers, positives, negatives, recommendations };
-  }, [metrics, districts, states, selectedDistId, stateId, year]);
+    return analyticsData?.aiInsights || null;
+  }, [analyticsData]);
 
   // Compute District Rankings based on current year and filters
   const rankingsList = useMemo(() => {
@@ -480,59 +379,8 @@ export default function AnalyticsPage() {
     });
   }, [filteredDistricts, allHistories, allRankings, rankSearchText, rankSortKey, rankSortOrder]);
 
-  // ─── Sustainability Decision Simulator ───────────────────────────
-  const simulatedData = useMemo(() => {
-    if (!metrics) return [];
 
-    const years = [2025, 2030, 2040, 2050];
-    return years.map(y => {
-      const timeFactor = Math.max(0, (y - 2025) / 25); // 0 to 1
-
-      // Baseline projections (assuming standard risk increase, no extra policy actions)
-      const baseForest = Math.max(10, metrics.forestHealth - timeFactor * 8);
-      const baseAqiScore = Math.max(10, metrics.airQualityScore - timeFactor * 12);
-      const baseWater = Math.max(10, metrics.waterSustainability - timeFactor * 15);
-      const baseSoil = Math.max(10, metrics.avgSoil - timeFactor * 10);
-      const baseResilience = Math.max(10, metrics.climateResilience - timeFactor * 10);
-
-      const baseComposite = Math.round(
-        baseForest * 0.25 + baseAqiScore * 0.2 + baseWater * 0.2 + baseResilience * 0.2 + baseSoil * 0.15
-      );
-
-      // Policy Simulated projections (factoring in the sliders)
-      const simulatedForest = Math.min(100, Math.round(
-        metrics.forestHealth - timeFactor * 8 + (reforestRate - 15) * 0.4 * timeFactor
-      ));
-      const simulatedAqiScore = Math.min(100, Math.round(
-        metrics.airQualityScore - timeFactor * 12 + (evShare - 20) * 0.3 * timeFactor + (renewablesShare - 30) * 0.2 * timeFactor
-      ));
-      const simulatedWater = Math.min(100, Math.round(
-        metrics.waterSustainability - timeFactor * 15 + (recycleRate - 25) * 0.5 * timeFactor
-      ));
-      const simulatedSoil = Math.min(100, Math.round(
-        metrics.avgSoil - timeFactor * 10 + (reforestRate - 15) * 0.15 * timeFactor
-      ));
-      const simulatedResilience = Math.min(100, Math.round(
-        metrics.climateResilience - timeFactor * 10 + (renewablesShare - 30) * 0.25 * timeFactor
-      ));
-
-      const simulatedComposite = Math.round(
-        simulatedForest * 0.25 + simulatedAqiScore * 0.2 + simulatedWater * 0.2 + simulatedResilience * 0.2 + simulatedSoil * 0.15
-      );
-
-      return {
-        year: `${y}`,
-        Baseline: baseComposite,
-        "Simulated Path": simulatedComposite,
-        Forest: simulatedForest,
-        Water: simulatedWater,
-        AirQuality: simulatedAqiScore
-      };
-    });
-  }, [metrics, reforestRate, evShare, renewablesShare, recycleRate]);
-
-
-  if (states.length === 0 || districts.length === 0 || allRankings.length === 0 || Object.keys(allHistories).length === 0) {
+  if (states.length === 0 || districts.length === 0 || allRankings.length === 0 || Object.keys(allHistories).length === 0 || !analyticsData || !metrics) {
     return <div className="text-center py-20 text-slate-500">Loading analytics datasets...</div>;
   }
 
@@ -784,7 +632,7 @@ export default function AnalyticsPage() {
                 <div>
                   <span className="font-bold text-emerald-400 block mb-1">✓ Positives</span>
                   <div className="space-y-0.5">
-                    {aiInsights?.positives.slice(0, 2).map((p, i) => (
+                    {aiInsights?.positives.slice(0, 2).map((p: string, i: number) => (
                       <p key={i} className="text-slate-300">• {p}</p>
                     ))}
                   </div>
@@ -792,7 +640,7 @@ export default function AnalyticsPage() {
                 <div>
                   <span className="font-bold text-amber-500 block mb-1">⚠ Critical Factors</span>
                   <div className="space-y-0.5">
-                    {aiInsights?.negatives.slice(0, 2).map((n, i) => (
+                    {aiInsights?.negatives.slice(0, 2).map((n: string, i: number) => (
                       <p key={i} className="text-slate-300">• {n}</p>
                     ))}
                   </div>
@@ -1013,7 +861,7 @@ export default function AnalyticsPage() {
                       Enterprise Directives
                     </h4>
                     <div className="space-y-2">
-                      {aiInsights?.recommendations.slice(0, 3).map((tip, idx) => (
+                      {aiInsights?.recommendations.slice(0, 3).map((tip: string, idx: number) => (
                         <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-emerald-500/10 bg-emerald-400/5 text-[11px] text-slate-300 leading-normal">
                           <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400 mt-0.5" />
                           <span>{tip}</span>
@@ -1395,7 +1243,7 @@ export default function AnalyticsPage() {
               <div className="space-y-2">
                 <span className="font-bold text-emerald-400 block uppercase tracking-wider text-[10px]">Positive Indicators</span>
                 <div className="space-y-1.5">
-                  {aiInsights?.positives.map((p, i) => (
+                  {aiInsights?.positives.map((p: string, i: number) => (
                     <div key={i} className="flex gap-1.5 text-slate-300 leading-normal">
                       <span className="text-emerald-400 font-bold">•</span>
                       <span>{p}</span>
@@ -1407,7 +1255,7 @@ export default function AnalyticsPage() {
               <div className="space-y-2">
                 <span className="font-bold text-amber-500 block uppercase tracking-wider text-[10px]">Negative Indicators</span>
                 <div className="space-y-1.5">
-                  {aiInsights?.negatives.map((n, i) => (
+                  {aiInsights?.negatives.map((n: string, i: number) => (
                     <div key={i} className="flex gap-1.5 text-slate-300 leading-normal">
                       <span className="text-amber-500 font-bold">•</span>
                       <span>{n}</span>

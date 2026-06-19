@@ -139,4 +139,12 @@ export type SimulationResult = {
   economic_loss_m_inr?: number;
   infrastructure_risk?: number;
   environmental_impact_score?: number;
+  ai_analysis?: {
+    headline: string;
+    confidence: number;
+    drivers: string[];
+    vulnerableZones: string[];
+    recommendations: string[];
+    alertLevel: string;
+  };
 };
