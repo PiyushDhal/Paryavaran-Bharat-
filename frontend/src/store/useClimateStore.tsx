@@ -24,7 +24,7 @@ const ClimateContext = createContext<ClimateContextType | undefined>(undefined);
 
 export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [activeYear, setActiveYear] = useState<number>(2025);
-  const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>(101);
+  const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>(undefined);
   const [activeLayer, setActiveLayer] = useState<string>("composite");
   const [rankings, setRankings] = useState<Ranking[]>([]);
   const [timelineStep, setTimelineStep] = useState<string>("today");
