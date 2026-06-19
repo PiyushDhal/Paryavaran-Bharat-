@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 
 from app.services.risk_engine import risk_band
-from app.services.sample_data import clamp
+from app.core.utils import clamp
 
 
 class DisasterPredictionService:

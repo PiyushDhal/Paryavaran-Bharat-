@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.services.sample_data import clamp
+from app.core.utils import clamp
 
 
 def risk_band(score: float) -> str:

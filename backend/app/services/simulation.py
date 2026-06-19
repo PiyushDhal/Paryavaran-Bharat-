@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from app.services.risk_engine import ClimateRiskEngine
-from app.services.sample_data import clamp
+from app.core.utils import clamp
 
 
 class ScenarioSimulator:
