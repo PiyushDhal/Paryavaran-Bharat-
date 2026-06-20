@@ -241,18 +241,18 @@ function DataNodes() {
       {nodes.map((node) => (
         <div
           key={node.label}
-          className="absolute flex items-center gap-1.5 -translate-x-[6px] -translate-y-[6px]"
+          className="absolute flex items-center gap-2 -translate-x-[8px] -translate-y-[8px]"
           style={{ top: node.top, left: node.left }}
         >
-          <span className="relative flex h-3 w-3">
+          <span className="relative flex h-4 w-4">
             <span
-              className="absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"
+              className="absolute inline-flex h-full w-full rounded-full bg-brand-highlight opacity-85"
               style={{ animation: `ping 2s cubic-bezier(0, 0, 0.2, 1) ${node.delay} infinite` }}
             />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-blue shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+            <span className="relative inline-flex rounded-full h-4 w-4 bg-brand-highlight shadow-[0_0_12px_#74C7EC,0_0_24px_rgba(77,168,218,0.9)] border border-white/20" />
           </span>
           <span
-            className="text-[9px] font-mono text-brand-titanium/70 tracking-wider whitespace-nowrap bg-background/50 px-1 py-0.5 rounded backdrop-blur-sm"
+            className="text-[10.5px] font-bold text-white tracking-wide whitespace-nowrap bg-slate-950/95 border border-brand-blue/40 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(116,199,236,0.3)] backdrop-blur-md"
           >
             {node.label}
           </span>
