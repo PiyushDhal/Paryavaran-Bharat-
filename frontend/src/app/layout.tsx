@@ -10,7 +10,10 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 export const metadata: Metadata = {
   title: "Bharat Climate Twin — National Climate Digital Twin",
   description:
-    "AI-powered digital twin of India's climate system for prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks."
+    "AI-powered digital twin of India's climate system for prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks.",
+  icons: {
+    icon: "/favicon.jpg"
+  }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
