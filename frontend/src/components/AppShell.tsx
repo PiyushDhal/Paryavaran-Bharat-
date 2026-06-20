@@ -27,7 +27,9 @@ import {
   Scale,
   CalendarRange,
   LogOut,
-  UserCheck
+  UserCheck,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -71,11 +73,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("Dr. Amit Sharma");
   const [userRole, setUserRole] = useState("Director (Operations)");
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("bct_sidebar_collapsed", String(newState));
+    }
+  };
 
   const { activeYear, setActiveYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("bct_sidebar_collapsed");
+      if (stored) setIsCollapsed(stored === "true");
+
       const token = window.localStorage.getItem("bct_token");
       setIsLoggedIn(!!token);
       if (token) {
@@ -90,27 +104,47 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-radar-grid bg-[size:44px_44px]">
       {/* ── Desktop sidebar ────────────────────────────────────── */}
-      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-72 border-r border-cyan-300/15 bg-slate-950/82 px-4 py-5 backdrop-blur-2xl lg:flex lg:flex-col">
-        <Link href="/" className="flex items-center gap-3 px-2">
-          <span className="grid h-11 w-11 place-items-center rounded-md border border-cyan-300/30 bg-cyan-400/10">
-            <Orbit className="h-6 w-6 animate-spin-slow text-cyan-200" />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-cyan-200">
-              Bharat
+      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-cyan-300/15 bg-slate-950/82 py-5 backdrop-blur-2xl lg:flex lg:flex-col transition-all duration-300", isCollapsed ? "w-20 px-2" : "w-72 px-4")}>
+        <div className="flex items-center justify-between px-2">
+          <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-cyan-300/30 bg-cyan-400/10">
+              <Orbit className="h-6 w-6 animate-spin-slow text-cyan-200" />
             </span>
-            <span className="block text-lg font-semibold tracking-normal text-white">
-              Climate Twin
-            </span>
-          </span>
-        </Link>
+            {!isCollapsed && (
+              <span className="whitespace-nowrap overflow-hidden">
+                <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-cyan-200">
+                  Bharat
+                </span>
+                <span className="block text-lg font-semibold tracking-normal text-white">
+                  Climate Twin
+                </span>
+              </span>
+            )}
+          </Link>
+          {!isCollapsed && (
+            <button onClick={toggleSidebar} className="text-slate-400 hover:text-white transition ml-2">
+              <PanelLeftClose className="h-5 w-5" />
+            </button>
+          )}
+        </div>
+        {isCollapsed && (
+          <div className="mt-4 flex justify-center">
+            <button onClick={toggleSidebar} className="text-slate-400 hover:text-white transition">
+              <PanelLeftOpen className="h-5 w-5" />
+            </button>
+          </div>
+        )}
 
-        <nav className="mt-8 flex-1 overflow-y-auto">
+        <nav className="mt-8 flex-1 overflow-y-auto overflow-x-hidden">
           {navSections.map((section) => (
             <div key={section.label} className="mb-5">
-              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                {section.label}
-              </p>
+              {!isCollapsed ? (
+                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap overflow-hidden">
+                  {section.label}
+                </p>
+              ) : (
+                <div className="h-4 border-b border-white/5 mb-4 mx-2" />
+              )}
               <div className="grid gap-0.5">
                 {section.items.map((item) => {
                   const Icon = item.icon;
@@ -119,14 +153,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <Link
                       key={item.href}
                       href={item.href}
+                      title={isCollapsed ? item.label : undefined}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-slate-300 transition",
+                        "flex items-center gap-3 rounded-md py-2.5 text-sm font-medium text-slate-300 transition whitespace-nowrap overflow-hidden",
+                        isCollapsed ? "justify-center px-0" : "px-3",
                         active && "border-l-2 border-cyan-400 bg-cyan-400/12 text-white shadow-glow",
                         !active && "border-l-2 border-transparent hover:bg-white/6 hover:text-white"
                       )}
                     >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {!isCollapsed && <span>{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -135,10 +171,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="border-t border-cyan-300/10 pt-4 pb-2 text-center">
-          <p className="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-bold">
-            IMD & ISRO Connected
-          </p>
+        <div className="border-t border-cyan-300/10 pt-4 pb-2 text-center overflow-hidden">
+          {!isCollapsed ? (
+            <p className="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-bold whitespace-nowrap">
+              IMD & ISRO Connected
+            </p>
+          ) : (
+            <Orbit className="h-4 w-4 text-slate-500 mx-auto" />
+          )}
         </div>
       </aside>
 
@@ -188,7 +228,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ── Top header bar ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 border-b border-cyan-300/15 bg-slate-950/84 px-4 py-3 backdrop-blur-2xl lg:ml-72">
+      <header className={cn("sticky top-0 z-30 border-b border-cyan-300/15 bg-slate-950/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
@@ -268,7 +308,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="px-4 py-5 lg:ml-72 lg:px-8">{children}</main>
+      <main className={cn("px-4 py-5 lg:px-8 transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>{children}</main>
     </div>
   );
 }
