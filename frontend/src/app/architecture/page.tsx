@@ -54,12 +54,12 @@ export default function ArchitecturePage() {
     <div className="space-y-16">
       {/* Header */}
       <div className="max-w-4xl space-y-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-emerald-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-emerald backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-brand-amber/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-amber backdrop-blur-md">
           <Cpu className="w-4 h-4" />
           Core AI Architecture
         </div>
         <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
-          Climate Digital Twin <span className="text-brand-emerald">Workflow</span>
+          Climate Digital Twin <span className="text-brand-amber">Workflow</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
           The end-to-end technical pipeline integrating multi-source national observation datasets into a predictive &ldquo;What-If&rdquo; climate simulation engine.
@@ -79,7 +79,7 @@ export default function ArchitecturePage() {
             />
             <path
               d="M 120, 100 L 980, 100"
-              stroke="#10B981"
+              stroke="#F59E0B"
               strokeWidth="3"
               className="flow-line"
             />
@@ -91,7 +91,7 @@ export default function ArchitecturePage() {
             />
             <path
               d="M 980, 100 C 1100, 100 1100, 240 980, 240"
-              stroke="#10B981"
+              stroke="#F59E0B"
               strokeWidth="3"
               className="flow-line"
             />
@@ -103,7 +103,7 @@ export default function ArchitecturePage() {
             />
             <path
               d="M 980, 240 L 120, 240"
-              stroke="#10B981"
+              stroke="#F59E0B"
               strokeWidth="3"
               className="flow-line"
             />
@@ -123,13 +123,13 @@ export default function ArchitecturePage() {
               >
                 <div className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center border ${
                   isEmerald
-                    ? "bg-emerald-400/20 text-brand-emerald border-white/[0.08]"
-                    : "bg-emerald-400/20 text-brand-emerald border-white/[0.08]"
+                    ? "bg-brand-amber/10 text-brand-amber border-white/[0.08]"
+                    : "bg-brand-amber/10 text-brand-amber border-white/[0.08]"
                 }`}>
                   <Icon className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-lg ${isEmerald ? "text-brand-emerald" : "text-white"}`}>{step.title}</h3>
+                  <h3 className={`font-bold text-lg ${isEmerald ? "text-brand-amber" : "text-white"}`}>{step.title}</h3>
                   <p className="text-xs text-muted-foreground mt-2">{step.desc}</p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export default function ArchitecturePage() {
             const Icon = step.icon;
             return (
               <div key={step.title} className="glass-panel p-8 rounded-2xl text-center space-y-4 step-node shadow-glow">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-400/20 flex items-center justify-center text-brand-emerald border border-white/[0.08]">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-amber/10 flex items-center justify-center text-brand-amber border border-white/[0.08]">
                   <Icon className="w-7 h-7" />
                 </div>
                 <div>
@@ -165,9 +165,9 @@ export default function ArchitecturePage() {
             <div key={model.name} className={`glass-card rounded-2xl p-6 hover:border-${model.color}-400/30 transition-all`}>
               <div className="flex items-center justify-between mb-4">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                  model.color === "emerald" ? "bg-emerald-400/10 text-brand-emerald border-white/[0.08]" :
+                  model.color === "emerald" ? "bg-brand-amber/10 text-brand-amber border-white/[0.08]" :
                   model.color === "rose" ? "bg-rose-400/10 text-rose-400 border-rose-400/20" :
-                  "bg-emerald-400/10 text-brand-emerald border-white/[0.08]"
+                  "bg-brand-amber/10 text-brand-amber border-white/[0.08]"
                 }`}>
                   {model.badge}
                 </span>

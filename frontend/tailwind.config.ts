@@ -43,11 +43,11 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))"
         },
-        surface: "#10222D",
-        "surface-elevated": "#183240",
-        mint: "#A7F3D0",
-        "brand-emerald": "#34D399",
-        "brand-green": "#10B981"
+        surface: "#101B27",
+        "surface-elevated": "#162433",
+        "card-bg": "#1B2A3A",
+        "brand-amber": "#F59E0B",
+        "brand-steel": "#94A3B8"
       },
       borderRadius: {
         "2xl": "20px"

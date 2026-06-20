@@ -184,7 +184,7 @@ export default function ComparePage() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Layers3 className="h-5 w-5 text-brand-emerald" />
+              <Layers3 className="h-5 w-5 text-brand-amber" />
               Select Primary District (A)
             </CardTitle>
           </CardHeader>
@@ -221,7 +221,7 @@ export default function ComparePage() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Layers3 className="h-5 w-5 text-brand-emerald" />
+              <Layers3 className="h-5 w-5 text-brand-amber" />
               Select Comparison District (B)
             </CardTitle>
           </CardHeader>
@@ -278,7 +278,7 @@ export default function ComparePage() {
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                <Bar dataKey={districtA.name} fill="#10B981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={districtA.name} fill="#F59E0B" radius={[4, 4, 0, 0]} />
                 <Bar dataKey={districtB.name} fill="#10b981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -289,7 +289,7 @@ export default function ComparePage() {
         <Card className="glass-card flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <ArrowLeftRight className="h-5 w-5 text-mint" />
+              <ArrowLeftRight className="h-5 w-5 text-brand-steel" />
               AI Comparison Insights
             </CardTitle>
             <CardDescription>Automated risk assessment matrix analysis.</CardDescription>
@@ -297,8 +297,8 @@ export default function ComparePage() {
           <CardContent className="flex-1 space-y-4">
             <div className="space-y-3">
               {comparisonAdvisory.map((item, index) => (
-                <div key={index} className="flex gap-2.5 rounded-lg border border-white/[0.08] bg-emerald-400/5 p-3.5 text-xs leading-relaxed text-secondary-foreground">
-                  <span className="mt-0.5 shrink-0 text-brand-emerald">⚡</span>
+                <div key={index} className="flex gap-2.5 rounded-lg border border-white/[0.08] bg-brand-amber/10 p-3.5 text-xs leading-relaxed text-secondary-foreground">
+                  <span className="mt-0.5 shrink-0 text-brand-amber">⚡</span>
                   <p>{item}</p>
                 </div>
               ))}

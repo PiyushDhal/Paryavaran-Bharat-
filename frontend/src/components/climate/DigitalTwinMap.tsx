@@ -123,7 +123,7 @@ const layerMeta: Record<
     min: 0,
     max: 100,
     ranges: ["Dry (<40)", "Normal (40-70)", "Humid (>=70)"],
-    colors: ["#a8a29e", "#34D399", "#2563eb"],
+    colors: ["#a8a29e", "#F59E0B", "#2563eb"],
     thresholds: [40, 70],
   },
   soil_moisture: {
@@ -177,7 +177,7 @@ const layerMeta: Record<
     min: 0,
     max: 100,
     ranges: ["Critical (<40)", "Moderate (40-60)", "High (60-80)", "Lush (>=80)"],
-    colors: ["#ef4444", "#f59e0b", "#10B981", "#10b981"],
+    colors: ["#ef4444", "#f59e0b", "#F59E0B", "#10b981"],
     thresholds: [40, 60, 80],
   },
   green_cover: {
@@ -239,7 +239,7 @@ const layerMeta: Record<
 // ─── Color Scales ────────────────────────────────────────────────────
 function getLayerColor(layer: string, value: number): string {
   const meta = layerMeta[layer];
-  if (!meta) return "#34D399";
+  if (!meta) return "#F59E0B";
   for (let i = 0; i < meta.thresholds.length; i++) {
     if (value < meta.thresholds[i]) {
       return meta.colors[i];
@@ -250,7 +250,7 @@ function getLayerColor(layer: string, value: number): string {
 
 function getMapboxColorSteps(layer: string): any[] {
   const meta = layerMeta[layer];
-  if (!meta) return ["#34D399"];
+  if (!meta) return ["#F59E0B"];
   const steps: any[] = [meta.colors[0]];
   for (let i = 0; i < meta.thresholds.length; i++) {
     steps.push(meta.thresholds[i]);
@@ -646,7 +646,7 @@ function RegionSelectorModal({
 
         <div className="flex flex-1 overflow-hidden">
           <div className="hidden shrink-0 border-r border-white/[0.08] bg-background/60 p-4 md:block">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-mint/70">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-brand-steel/70">
               India District Map
             </p>
             <svg
@@ -784,14 +784,14 @@ function RegionSelectorModal({
                       cy={y}
                       r={isFiltered ? 10 : 7}
                       fill={isFiltered ? "rgba(34,211,238,0.22)" : "rgba(148,163,184,0.08)"}
-                      stroke={isFiltered ? "#34D399" : "rgba(148,163,184,0.2)"}
+                      stroke={isFiltered ? "#F59E0B" : "rgba(148,163,184,0.2)"}
                       strokeWidth={1.5}
                     />
                     <circle
                       cx={x}
                       cy={y}
                       r={isFiltered ? 4 : 3}
-                      fill={isFiltered ? "#34D399" : "rgba(148,163,184,0.35)"}
+                      fill={isFiltered ? "#F59E0B" : "rgba(148,163,184,0.35)"}
                     />
                   </g>
                 );
@@ -821,7 +821,7 @@ function RegionSelectorModal({
                 <div className="grid gap-4">
                   {stateGroups.map(([state, stateDistricts]) => (
                     <div key={state}>
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-mint/70">
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-brand-steel/70">
                         {state}
                       </p>
                       <div className="grid gap-1">
@@ -829,7 +829,7 @@ function RegionSelectorModal({
                           <button
                             key={d.id}
                             onClick={() => handleSelect(d)}
-                            className="flex items-center justify-between rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left text-sm text-secondary-foreground transition hover:border-white/[0.08] hover:bg-emerald-400/10 hover:text-white"
+                            className="flex items-center justify-between rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-left text-sm text-secondary-foreground transition hover:border-white/[0.08] hover:bg-brand-amber/10 hover:text-white"
                           >
                             <span className="font-medium">{d.name}</span>
                             <span className="text-xs text-muted-foreground">
@@ -1246,7 +1246,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       mapRef.current.setPaintProperty("state-line", "line-color", [
         "case",
         ["==", ["get", "name"], hoveredStateName || ""],
-        "#34D399", // Hover outline color
+        "#F59E0B", // Hover outline color
         "rgba(52, 211, 153, 0.15)" // Default outline color
       ]);
     }
@@ -1374,7 +1374,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           d={pathData}
                           fill={stateColor}
                           fillOpacity={hoveredStateName === state.name ? 0.65 : 0.25}
-                          stroke={hoveredStateName === state.name ? "#34D399" : "rgba(52, 211, 153, 0.12)"}
+                          stroke={hoveredStateName === state.name ? "#F59E0B" : "rgba(52, 211, 153, 0.12)"}
                           strokeWidth={hoveredStateName === state.name ? 1.5 : 0.6}
                           strokeLinejoin="round"
                           className="transition-all duration-300 cursor-pointer"
@@ -1496,7 +1496,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       cy={y}
                       r={isSelected ? 11 : 6.5}
                       fill={`${color}40`}
-                      stroke={isSelected ? "#34D399" : "rgba(255,255,255,0.15)"}
+                      stroke={isSelected ? "#F59E0B" : "rgba(255,255,255,0.15)"}
                       strokeWidth={isSelected ? 1.8 : 0.8}
                       className="transition-all duration-300"
                     />
@@ -1545,19 +1545,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               <div className="grid grid-cols-2 gap-2 text-[9px]">
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Temperature</span>
-                  <span className="font-mono font-bold text-mint mt-0.5">
+                  <span className="font-mono font-bold text-brand-steel mt-0.5">
                     {getStateMetricValue(clickedStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Rainfall</span>
-                  <span className="font-mono font-bold text-mint mt-0.5">
+                  <span className="font-mono font-bold text-brand-steel mt-0.5">
                     {getStateMetricValue(clickedStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">AQI</span>
-                  <span className="font-mono font-bold text-mint mt-0.5">
+                  <span className="font-mono font-bold text-brand-steel mt-0.5">
                     {getStateMetricValue(clickedStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
                   </span>
                 </div>
@@ -1594,9 +1594,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               size="sm" 
               variant="outline" 
               onClick={() => setShowSelector(true)}
-              className="border border-white/[0.08] bg-background/85 hover:bg-surface text-mint text-xs rounded-full flex items-center gap-1.5 px-4.5 py-1.5 shadow-lg shadow-none transition-all"
+              className="border border-white/[0.08] bg-background/85 hover:bg-surface text-brand-steel text-xs rounded-full flex items-center gap-1.5 px-4.5 py-1.5 shadow-lg shadow-none transition-all"
             >
-              <LocateFixed className="h-3.5 w-3.5 text-brand-emerald" />
+              <LocateFixed className="h-3.5 w-3.5 text-brand-amber" />
               <span>Select Region</span>
             </Button>
           </div>
@@ -1608,7 +1608,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             <div className="bg-background/85 backdrop-blur border border-white/[0.08] rounded-lg overflow-hidden shadow-lg">
               <button
                 onClick={() => setIsLayerPanelExpanded(!isLayerPanelExpanded)}
-                className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-mint hover:bg-surface-elevated border-b border-white/[0.08] transition"
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-brand-steel hover:bg-surface-elevated border-b border-white/[0.08] transition"
               >
                 <span>Thematic Feed</span>
                 <Layers className="h-3.5 w-3.5" />
@@ -1624,7 +1624,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           onClick={() => setActiveLayer(lyr)}
                           className={`w-full text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
-                              ? "bg-emerald-500/20 text-mint font-semibold"
+                              ? "bg-brand-amber/10 text-brand-steel font-semibold"
                               : "text-secondary-foreground hover:bg-white/5"
                           }`}
                         >
@@ -1643,7 +1643,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           onClick={() => setActiveLayer(lyr)}
                           className={`w-full text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
-                              ? "bg-emerald-500/20 text-mint font-semibold"
+                              ? "bg-brand-amber/10 text-brand-steel font-semibold"
                               : "text-secondary-foreground hover:bg-white/5"
                           }`}
                         >
@@ -1662,7 +1662,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           onClick={() => setActiveLayer(lyr)}
                           className={`w-full text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
-                              ? "bg-emerald-500/20 text-mint font-semibold"
+                              ? "bg-brand-amber/10 text-brand-steel font-semibold"
                               : "text-secondary-foreground hover:bg-white/5"
                           }`}
                         >
@@ -1691,7 +1691,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 onClick={() => setMapMode(mode.id)}
                 className={`px-3 py-1 rounded-full text-[9px] font-medium tracking-wide transition ${
                   mapMode === mode.id
-                    ? "bg-emerald-500 text-slate-950 font-bold"
+                    ? "bg-brand-amber text-slate-950 font-bold"
                     : "text-secondary-foreground hover:text-white"
                 }`}
               >
@@ -1704,7 +1704,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         {/* 4. Map Legend */}
         {!compact && (
           <div className="absolute bottom-4 left-4 z-20 p-3 bg-background/85 backdrop-blur border border-white/[0.08] rounded-lg max-w-[200px] shadow-lg pointer-events-auto">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-mint">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-brand-steel">
               {layerMeta[activeLayer]?.label || "Layer Details"}
             </p>
             <p className="text-[9px] text-muted-foreground mt-0.5">
@@ -1712,7 +1712,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             </p>
             <div className="mt-2 space-y-1">
               {layerMeta[activeLayer]?.ranges.map((range, idx) => {
-                const color = layerMeta[activeLayer]?.colors[idx] || "#34D399";
+                const color = layerMeta[activeLayer]?.colors[idx] || "#F59E0B";
 
                 return (
                   <div key={idx} className="flex items-center gap-1.5">
@@ -1728,25 +1728,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         {/* 5. Live Telemetry Status Card */}
         {!compact && (
           <div className="absolute bottom-4 right-4 z-20 p-2.5 bg-background/85 backdrop-blur border border-white/[0.08] rounded-lg text-[9px] shadow-lg max-w-[150px] pointer-events-auto">
-            <div className="flex items-center gap-1.5 font-bold uppercase text-mint">
+            <div className="flex items-center gap-1.5 font-bold uppercase text-brand-steel">
               <span className="relative flex h-1.5 w-1.5 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-amber opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-brand-amber"></span>
               </span>
               Live Status
             </div>
             <div className="mt-1.5 pt-1.5 border-t border-white/[0.08] space-y-1 text-secondary-foreground select-none">
               <div className="flex justify-between">
                 <span>Database:</span>
-                <span className="text-brand-emerald font-semibold">ONLINE</span>
+                <span className="text-brand-amber font-semibold">ONLINE</span>
               </div>
               <div className="flex justify-between">
                 <span>AI Core:</span>
-                <span className="text-brand-emerald font-semibold">ONLINE</span>
+                <span className="text-brand-amber font-semibold">ONLINE</span>
               </div>
               <div className="flex justify-between">
                 <span>IMD Feed:</span>
-                <span className="text-brand-emerald font-semibold">SYNCED</span>
+                <span className="text-brand-amber font-semibold">SYNCED</span>
               </div>
             </div>
           </div>
@@ -1755,13 +1755,13 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         {/* 6. Timeline Projection Slider */}
         {!compact && (
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 w-64 md:w-[360px] bg-background/85 backdrop-blur border border-white/[0.08] rounded-full px-4 py-2.5 shadow-lg flex items-center gap-3 select-none pointer-events-auto">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-mint whitespace-nowrap">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-brand-steel whitespace-nowrap">
               Timeline
             </div>
             <div className="flex-1 flex justify-between gap-1 items-center relative">
               <div className="absolute left-1.5 right-1.5 h-0.5 bg-surface-elevated" />
               <div
-                className="absolute left-1.5 h-0.5 bg-emerald-400"
+                className="absolute left-1.5 h-0.5 bg-brand-amber"
                 style={{
                   width: `${
                     timelineStep === "today" ? 0 :
@@ -1786,14 +1786,14 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   <span
                     className={`w-2.5 h-2.5 rounded-full border border-slate-700 transition ${
                       timelineStep === step.id
-                        ? "bg-emerald-400 scale-125 border-emerald-400 shadow-[0_0_8px_#34D399]"
+                        ? "bg-brand-amber scale-125 border-emerald-400 shadow-[0_0_8px_#F59E0B]"
                         : "bg-background group-hover:bg-surface-elevated"
                     }`}
                   />
                   <span
                     className={`absolute top-4 text-[8px] transition font-medium ${
                       timelineStep === step.id
-                        ? "text-mint font-bold scale-105"
+                        ? "text-brand-steel font-bold scale-105"
                         : "text-muted-foreground group-hover:text-secondary-foreground"
                     }`}
                   >
@@ -1817,7 +1817,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         {/* Panel Header */}
         <div className="flex items-center justify-between border-b border-white/[0.08] p-4 shrink-0">
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-emerald">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-amber">
               District Cockpit ({activeYear})
             </span>
             <h3 className="text-lg font-bold text-white mt-0.5">
@@ -1843,7 +1843,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               <div className="bg-white/[0.02] border border-white/[0.08] rounded-lg p-2.5">
                 <p className="text-[9px] text-muted-foreground font-semibold uppercase">Population</p>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Users className="h-3.5 w-3.5 text-brand-emerald" />
+                  <Users className="h-3.5 w-3.5 text-brand-amber" />
                   <span className="text-xs font-bold text-white font-mono">
                     {selectedDistrict?.population?.toLocaleString() || "N/A"}
                   </span>
@@ -1852,7 +1852,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               <div className="bg-white/[0.02] border border-white/[0.08] rounded-lg p-2.5">
                 <p className="text-[9px] text-muted-foreground font-semibold uppercase">Total Area</p>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <Compass className="h-3.5 w-3.5 text-brand-emerald" />
+                  <Compass className="h-3.5 w-3.5 text-brand-amber" />
                   <span className="text-xs font-bold text-white font-mono">
                     {selectedDistrict?.area_sq_km?.toLocaleString() || "N/A"} km²
                   </span>
@@ -1862,7 +1862,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
             {/* Risk Gauges */}
             <div className="space-y-2.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-mint">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-steel">
                 Risk Modeling Profiles
               </p>
               <div className="space-y-2 bg-white/[0.01] border border-white/[0.08] p-3 rounded-lg">
@@ -1901,19 +1901,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
             {/* Environmental Feeds Grid */}
             <div className="space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-mint">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-brand-steel">
                 Telemetry Observations
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { icon: Thermometer, label: "Temperature", val: selectedMetrics.temperature, unit: "°C", color: "text-amber-400", source: "IMD" },
                   { icon: Droplets, label: "Humidity", val: selectedMetrics.humidity, unit: "%", color: "text-blue-400", source: "IMD" },
-                  { icon: CloudRain, label: "Rainfall", val: selectedMetrics.rainfall, unit: " mm", color: "text-brand-emerald", source: "IMD" },
-                  { icon: Activity, label: "AQI Index", val: selectedMetrics.aqi, unit: "", color: "text-brand-emerald", source: "CPCB" },
+                  { icon: CloudRain, label: "Rainfall", val: selectedMetrics.rainfall, unit: " mm", color: "text-brand-amber", source: "IMD" },
+                  { icon: Activity, label: "AQI Index", val: selectedMetrics.aqi, unit: "", color: "text-brand-amber", source: "CPCB" },
                   { icon: Droplets, label: "Soil Moisture", val: selectedMetrics.soil_moisture, unit: "%", color: "text-lime-400", source: "NRSC" },
                   { icon: Sun, label: "Vegetation NDVI", val: selectedMetrics.ndvi, unit: "", color: "text-green-400", source: "NRSC" },
-                  { icon: Shield, label: "Reservoir Level", val: selectedMetrics.reservoir_level, unit: "%", color: "text-brand-green", source: "India-WRIS" },
-                  { icon: AlertTriangle, label: "River Discharge", val: selectedMetrics.river_level, unit: "m", color: "text-mint", source: "CWC" }
+                  { icon: Shield, label: "Reservoir Level", val: selectedMetrics.reservoir_level, unit: "%", color: "text-brand-amber", source: "India-WRIS" },
+                  { icon: AlertTriangle, label: "River Discharge", val: selectedMetrics.river_level, unit: "m", color: "text-brand-steel", source: "CWC" }
                 ].map((item, idx) => (
                   <div key={idx} className="bg-surface/60 border border-white/[0.08] rounded-lg p-2 flex flex-col justify-between">
                     <div className="flex items-center justify-between">
@@ -1941,13 +1941,13 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               </div>
             ) : aiAnalysis ? (
               <div className="space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-mint">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-steel">
                   AI Cognitive Insights
                 </p>
-                <div className="bg-emerald-500/[0.02] border border-white/[0.08] rounded-lg p-3 space-y-3">
+                <div className="bg-brand-amber/[0.02] border border-white/[0.08] rounded-lg p-3 space-y-3">
                   <div className="flex items-center justify-between text-[10px] font-medium">
                     <span className="text-muted-foreground">Confidence Score:</span>
-                    <span className="text-mint font-mono font-bold bg-surface-elevated px-1.5 py-0.5 rounded">
+                    <span className="text-brand-steel font-mono font-bold bg-surface-elevated px-1.5 py-0.5 rounded">
                       {aiAnalysis.confidence}%
                     </span>
                   </div>
@@ -1961,7 +1961,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           Increasing
                         </span>
                       ) : aiAnalysis.trend === "Decreasing" ? (
-                        <span className="flex items-center text-brand-emerald font-bold gap-0.5">
+                        <span className="flex items-center text-brand-amber font-bold gap-0.5">
                           <TrendingDown className="h-3 w-3" />
                           Decreasing
                         </span>
@@ -1976,11 +1976,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] font-bold text-brand-emerald/90 uppercase">Risk Drivers</span>
+                    <span className="text-[9px] font-bold text-brand-amber/90 uppercase">Risk Drivers</span>
                     <div className="space-y-0.5">
                       {aiAnalysis.drivers.map((drv, idx) => (
                         <div key={idx} className="text-[9.5px] text-secondary-foreground flex items-start gap-1">
-                          <span className="text-brand-green mt-0.5">•</span>
+                          <span className="text-brand-amber mt-0.5">•</span>
                           <span>{drv}</span>
                         </div>
                       ))}
@@ -1988,7 +1988,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   </div>
 
                   <div className="space-y-1 border-t border-white/[0.08] pt-2.5">
-                    <span className="text-[9px] font-bold text-brand-emerald/90 uppercase">Recommended Actions</span>
+                    <span className="text-[9px] font-bold text-brand-amber/90 uppercase">Recommended Actions</span>
                     <div className="space-y-1">
                       {aiAnalysis.actions.map((act, idx) => (
                         <div key={idx} className="text-[9.5px] text-secondary-foreground flex items-start gap-1">
@@ -2005,7 +2005,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             {/* Mini Analytics sparklines */}
             {districtHistory.length > 0 && (
               <div className="space-y-2 border-t border-white/[0.08] pt-3 select-none">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-mint">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-brand-steel">
                   Analytics & Trends (12 Months)
                 </p>
                 <div className="grid grid-cols-2 gap-3 pt-1">

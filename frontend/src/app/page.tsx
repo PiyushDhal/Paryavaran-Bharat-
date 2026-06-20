@@ -244,13 +244,13 @@ function DataNodes() {
         >
           <span className="relative flex h-3 w-3">
             <span
-              className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
+              className="absolute inline-flex h-full w-full rounded-full bg-brand-amber opacity-75"
               style={{ animation: `ping 2s cubic-bezier(0, 0, 0.2, 1) ${node.delay} infinite` }}
             />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-amber shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
           </span>
           <span
-            className="text-[9px] font-mono text-mint/70 tracking-wider whitespace-nowrap bg-background/50 px-1 py-0.5 rounded backdrop-blur-sm"
+            className="text-[9px] font-mono text-brand-steel/70 tracking-wider whitespace-nowrap bg-background/50 px-1 py-0.5 rounded backdrop-blur-sm"
           >
             {node.label}
           </span>
@@ -319,7 +319,7 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
       />
 
       <div className="relative z-10" style={{ transform: "translateZ(30px)" }}>
-        <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-brand-emerald border border-white/[0.08] group-hover:bg-emerald-400/20 group-hover:border-white/[0.08] group-hover:text-mint transition-all duration-300 shadow-glow" style={{ transform: "translateZ(15px)" }}>
+        <div className="w-12 h-12 rounded-lg bg-brand-amber/10 flex items-center justify-center text-brand-amber border border-white/[0.08] group-hover:bg-brand-amber/10 group-hover:border-white/[0.08] group-hover:text-brand-steel transition-all duration-300 shadow-glow" style={{ transform: "translateZ(15px)" }}>
           <Icon className="w-6 h-6" />
         </div>
         <h3 className="mt-6 text-lg font-semibold text-white group-hover:text-emerald-100 transition-colors" style={{ transform: "translateZ(20px)" }}>{title}</h3>
@@ -445,13 +445,13 @@ export default function LandingPage() {
         {/* Telemetry Digital Stream Overlay */}
         <div
           ref={telemetryRef}
-          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-mint/80 hidden xl:block z-10 leading-relaxed shadow-glow"
+          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-brand-steel/80 hidden xl:block z-10 leading-relaxed shadow-glow"
         >
-          <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 mb-2 font-bold text-mint">
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 mb-2 font-bold text-brand-steel">
             <span>TELEMETRY STREAM</span>
             <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-amber opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-amber"></span>
             </span>
           </div>
           <div className="space-y-1">
@@ -459,7 +459,7 @@ export default function LandingPage() {
             <div>&gt; IMD RAIN: OBS_INIT_0.25d</div>
             <div>&gt; SOIL_MOIST: SENSOR_98%</div>
             <div>&gt; HYDRO_LVL: 2026_SIM_LOAD</div>
-            <div className="text-brand-emerald animate-pulse">&gt; STATUS: SCANNING_OK</div>
+            <div className="text-brand-amber animate-pulse">&gt; STATUS: SCANNING_OK</div>
           </div>
         </div>
 
@@ -472,9 +472,9 @@ export default function LandingPage() {
             >
               <div
                 ref={badgeRef}
-                className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1.5 text-sm font-medium text-mint backdrop-blur-sm shadow-glow"
+                className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-amber/10 px-3 py-1.5 text-sm font-medium text-brand-steel backdrop-blur-sm shadow-glow"
               >
-                <ShieldAlert className="w-4 h-4 text-brand-emerald animate-pulse" />
+                <ShieldAlert className="w-4 h-4 text-brand-amber animate-pulse" />
                 Government-tech climate command layer
               </div>
 
@@ -489,7 +489,7 @@ export default function LandingPage() {
               <div className="pt-4 flex flex-wrap gap-4">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
+                  className="inline-flex items-center gap-2 bg-brand-amber hover:bg-brand-amber hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
                 >
                   Open Command Center
                   <ArrowRight className="w-5 h-5" />
@@ -520,7 +520,7 @@ export default function LandingPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center p-8 rounded-2xl border border-white/[0.08] bg-background/30">
-              <p className="text-4xl lg:text-5xl font-bold text-brand-emerald glow-emerald">{stat.value}</p>
+              <p className="text-4xl lg:text-5xl font-bold text-brand-amber glow-amber">{stat.value}</p>
               <p className="mt-2 text-sm text-muted-foreground font-medium">{stat.label}</p>
             </div>
           ))}
@@ -530,7 +530,7 @@ export default function LandingPage() {
       {/* ── National Climate Datasets ─────────────────────────── */}
       <section className="container mx-auto px-6 lg:px-16 py-24">
         <div className="max-w-4xl mb-16">
-          <div className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1 text-sm font-medium text-brand-emerald">
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-amber/10 px-3 py-1 text-sm font-medium text-brand-amber">
             <Database className="w-4 h-4" />
             National Climate Datasets
           </div>
@@ -546,10 +546,10 @@ export default function LandingPage() {
             return (
               <div key={ds.title} className="glass-card p-6 rounded-2xl">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-brand-emerald border border-white/[0.08]">
+                  <div className="w-12 h-12 rounded-lg bg-brand-amber/10 flex items-center justify-center text-brand-amber border border-white/[0.08]">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="px-2 py-1 rounded bg-emerald-400/10 text-brand-emerald text-xs font-medium border border-white/[0.08]">
+                  <span className="px-2 py-1 rounded bg-brand-amber/10 text-brand-amber text-xs font-medium border border-white/[0.08]">
                     {ds.resolution}
                   </span>
                 </div>
@@ -568,8 +568,8 @@ export default function LandingPage() {
               <div key={step} className="flex items-center gap-4">
                 <div className={`px-4 py-2 rounded-lg border text-sm ${
                   i === pipeline.length - 1
-                    ? "border-white/[0.08] bg-emerald-400/10 text-mint font-semibold"
-                    : "border-white/[0.08] bg-emerald-400/5 text-emerald-200"
+                    ? "border-white/[0.08] bg-brand-amber/10 text-brand-steel font-semibold"
+                    : "border-white/[0.08] bg-brand-amber/10 text-emerald-200"
                 }`}>
                   {step}
                 </div>
@@ -587,7 +587,7 @@ export default function LandingPage() {
             const Icon = card.icon;
             return (
               <div key={card.title} className="p-8 rounded-2xl border border-white/[0.08] bg-background/30 flex flex-col gap-4 hover:border-white/[0.08] transition-colors">
-                <Icon className="w-8 h-8 text-mint" />
+                <Icon className="w-8 h-8 text-brand-steel" />
                 <h4 className="text-xl font-bold text-white">{card.title}</h4>
                 <p className="text-muted-foreground text-sm">{card.desc}</p>
               </div>
@@ -602,8 +602,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-md bg-emerald-400/10 border border-white/[0.08]">
-                  <Satellite className="h-5 w-5 text-brand-emerald" />
+                <div className="grid h-10 w-10 place-items-center rounded-md bg-brand-amber/10 border border-white/[0.08]">
+                  <Satellite className="h-5 w-5 text-brand-amber" />
                 </div>
                 <span className="text-lg font-bold text-white">Bharat Climate Twin</span>
               </div>
@@ -615,7 +615,7 @@ export default function LandingPage() {
               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Platform</h4>
               <div className="grid gap-2">
                 {["Dashboard", "Digital Twin Map", "Risk Center", "Simulator", "AI Copilot"].map((item) => (
-                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-muted-foreground hover:text-mint transition-colors">
+                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-muted-foreground hover:text-brand-steel transition-colors">
                     {item}
                   </Link>
                 ))}

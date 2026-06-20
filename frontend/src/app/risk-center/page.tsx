@@ -99,13 +99,13 @@ export default function RiskCenterPage() {
 
             {/* Explainable AI Risk Drivers */}
             <div className="mt-4 w-full border-t border-white/[0.08] pt-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-mint flex items-center gap-1.5 mb-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-brand-steel flex items-center gap-1.5 mb-3">
                 <BrainCircuit className="h-3.5 w-3.5" />
                 Explainable AI (XAI) Attribution
               </h4>
               <div className="space-y-2 text-[11px] text-secondary-foreground">
                 {getXAIExplanation().map((driver, index) => (
-                  <div key={index} className="rounded border border-white/[0.08] bg-emerald-500/5 p-2 leading-relaxed">
+                  <div key={index} className="rounded border border-white/[0.08] bg-brand-amber/10 p-2 leading-relaxed">
                     {driver}
                   </div>
                 ))}

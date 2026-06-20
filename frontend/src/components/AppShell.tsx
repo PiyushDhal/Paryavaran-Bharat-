@@ -122,12 +122,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-white/5 bg-background py-5 lg:flex lg:flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)]", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
         <div className="flex items-center justify-between px-2 mb-6">
           <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-green shadow-[0_4px_14px_0_rgba(16,185,129,0.25)]">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-amber shadow-[0_4px_14px_0_rgba(245,158,11,0.25)]">
               <Orbit className="h-5 w-5 animate-spin-slow text-white" />
             </span>
             {!isCollapsed && (
               <span className="whitespace-nowrap overflow-hidden">
-                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-mint/80">
+                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-brand-steel">
                   Bharat
                 </span>
                 <span className="block text-base font-bold tracking-tight text-white leading-tight">
@@ -171,18 +171,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       title={isCollapsed ? item.label : undefined}
                       className={cn(
                         "flex items-center gap-4 text-sm transition-all duration-200 whitespace-nowrap overflow-hidden group p-2 rounded-[16px]",
-                        active ? "bg-brand-green shadow-sm" : "hover:bg-surface-elevated",
+                        active ? "bg-card-bg shadow-md border border-white/[0.04]" : "hover:bg-surface-elevated",
                         isCollapsed ? "justify-center" : "px-3"
                       )}
                     >
                       <div className={cn(
                         "flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] transition-all duration-300 relative overflow-hidden",
                         active 
-                          ? "bg-transparent text-white" 
-                          : "bg-surface text-mint group-hover:bg-surface-elevated group-hover:text-white shadow-sm"
+                          ? "bg-transparent text-brand-amber" 
+                          : "bg-surface text-brand-steel group-hover:bg-surface-elevated group-hover:text-brand-amber shadow-sm"
                       )}>
                         {active && (
-                          <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-white rounded-r-md opacity-60" />
+                          <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-brand-amber rounded-r-md opacity-80" />
                         )}
                         <Icon className="h-5 w-5" />
                       </div>
@@ -197,11 +197,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <div className="border-t border-white/5 pt-4 mt-2 text-center overflow-hidden">
           {!isCollapsed ? (
-            <p className="text-[10px] uppercase tracking-[0.15em] text-[#34D399]/50 font-bold whitespace-nowrap">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-brand-amber/50 font-bold whitespace-nowrap">
               IMD & ISRO Connected
             </p>
           ) : (
-            <Orbit className="h-4 w-4 text-[#34D399]/50 mx-auto" />
+            <Orbit className="h-4 w-4 text-brand-amber/50 mx-auto" />
           )}
         </div>
       </aside>
@@ -235,7 +235,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         onClick={() => setMobileOpen(false)}
                         className={cn(
                           "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-secondary-foreground transition",
-                          pathname === item.href && "bg-emerald-400/12 text-white",
+                          pathname === item.href && "bg-brand-amber/10 text-white",
                           pathname !== item.href && "hover:bg-white/6"
                         )}
                       >
@@ -289,8 +289,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="hidden rounded-md border border-white/[0.08] bg-brand-amber/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand-amber animate-pulse" />
               Live feeds active
             </div>
 
@@ -303,7 +303,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <p className="text-xs font-semibold text-white">{userName}</p>
                   <p className="text-[10px] text-muted-foreground">{userRole}</p>
                 </div>
-                <div className="grid h-9 w-9 place-items-center rounded-full border border-white/[0.08] bg-emerald-400/10 text-emerald-200" title={`${userName} (${userRole})`}>
+                <div className="grid h-9 w-9 place-items-center rounded-full border border-white/[0.08] bg-brand-amber/10 text-emerald-200" title={`${userName} (${userRole})`}>
                   <UserCheck className="h-4 w-4" />
                 </div>
                 <button
@@ -322,7 +322,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-400/20 transition-all shadow-glow"
+                className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-brand-amber/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-brand-amber/10 transition-all shadow-glow"
               >
                 <LockKeyhole className="h-3.5 w-3.5" />
                 Operator Sign In

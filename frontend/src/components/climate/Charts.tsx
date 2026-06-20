@@ -40,8 +40,8 @@ export function TrendAreaChart({
         <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
           contentStyle={{
-            background: "#10222D",
-            border: "1px solid rgba(167,243,208,0.15)",
+            background: "#101B27",
+            border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 8,
             color: "#F8FAFC"
           }}
@@ -68,8 +68,8 @@ export function RiskLineChart({ data }: { data: Array<Record<string, number | st
         <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
           contentStyle={{
-            background: "#10222D",
-            border: "1px solid rgba(167,243,208,0.15)",
+            background: "#101B27",
+            border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 8,
             color: "#F8FAFC"
           }}
@@ -78,10 +78,10 @@ export function RiskLineChart({ data }: { data: Array<Record<string, number | st
           wrapperStyle={{ paddingTop: 12, fontSize: 11, color: "#94a3b8" }}
           formatter={(value) => <span className="capitalize text-muted-foreground">{value.replace("_", " ")}</span>}
         />
-        <Line type="monotone" name="flood" dataKey="flood" stroke="#A7F3D0" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="flood" dataKey="flood" stroke="#94A3B8" strokeWidth={2} dot={false} />
         <Line type="monotone" name="drought" dataKey="drought" stroke="#CBD5E1" strokeWidth={2} dot={false} />
-        <Line type="monotone" name="heatwave" dataKey="heatwave" stroke="#10B981" strokeWidth={2} dot={false} />
-        <Line type="monotone" name="water_stress" dataKey="water_stress" stroke="#34D399" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="heatwave" dataKey="heatwave" stroke="#F59E0B" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="water_stress" dataKey="water_stress" stroke="#F59E0B" strokeWidth={2} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -96,13 +96,13 @@ export function RankingBarChart({ data }: { data: Array<{ district: string; risk
         <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
           contentStyle={{
-            background: "#10222D",
-            border: "1px solid rgba(167,243,208,0.15)",
+            background: "#101B27",
+            border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 8,
             color: "#F8FAFC"
           }}
         />
-        <Bar dataKey="risk" fill="#34D399" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="risk" fill="#F59E0B" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

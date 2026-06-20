@@ -262,7 +262,7 @@ const BASELINE_FALLBACK: SimulationResult = {
 function riskColor(v: number) {
   if (v >= 75) return "#f87171";
   if (v >= 50) return "#fbbf24";
-  if (v >= 35) return "#34D399";
+  if (v >= 35) return "#F59E0B";
   return "#34d399";
 }
 function riskLabel(v: number) {
@@ -464,7 +464,7 @@ export default function SimulatorPage() {
       {/* Toast */}
       {toastMsg && (
         <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-2xl border border-white/[0.08] bg-surface/95 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-2">
-          <Check className="w-4 h-4 text-brand-emerald" />
+          <Check className="w-4 h-4 text-brand-amber" />
           {toastMsg}
         </div>
       )}
@@ -533,14 +533,14 @@ export default function SimulatorPage() {
               onClick={() => applyPreset(p)}
               className={`group relative overflow-hidden rounded-2xl border px-3 py-2.5 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                 activePreset === p.id
-                  ? "border-white/[0.08] bg-emerald-400/10 shadow-lg shadow-none"
+                  ? "border-white/[0.08] bg-brand-amber/10 shadow-lg shadow-none"
                   : "border-white/8 bg-white/4 hover:border-white/15 hover:bg-white/8"
               }`}
             >
               <div className="text-xl leading-none">{p.icon}</div>
               <div className="mt-1 text-xs font-medium text-white">{p.label}</div>
               {activePreset === p.id && (
-                <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-brand-amber" />
               )}
             </button>
           ))}
@@ -581,7 +581,7 @@ export default function SimulatorPage() {
                         onClick={() => setActiveTab(t)}
                         className={`flex-1 rounded-md py-1.5 text-xs font-medium capitalize transition-all ${
                           activeTab === t
-                            ? "bg-emerald-400/20 text-mint shadow"
+                            ? "bg-brand-amber/10 text-brand-steel shadow"
                             : "text-muted-foreground hover:text-slate-200"
                         }`}
                       >
@@ -597,7 +597,7 @@ export default function SimulatorPage() {
                       const pct = ((val - slider.min) / (slider.max - slider.min)) * 100;
                       const isPositive = val > 0;
                       const isNegative = val < 0;
-                      const accentColor = isPositive ? "#34D399" : isNegative ? "#f87171" : "#64748b";
+                      const accentColor = isPositive ? "#F59E0B" : isNegative ? "#f87171" : "#64748b";
                       return (
                         <div key={slider.key} className="group">
                           <div className="mb-1.5 flex items-center justify-between">
@@ -660,7 +660,7 @@ export default function SimulatorPage() {
             <Card className="glass-card print:hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm">
-                  <FolderOpen className="w-4 h-4 text-brand-emerald" />
+                  <FolderOpen className="w-4 h-4 text-brand-amber" />
                   Saved Scenarios
                 </CardTitle>
               </CardHeader>
@@ -672,7 +672,7 @@ export default function SimulatorPage() {
                         <div className="font-medium text-white truncate">{s.name}</div>
                         <div className="text-muted-foreground text-[10px]">{s.savedAt} · Risk {s.result.composite_risk}%</div>
                       </div>
-                      <button onClick={() => loadScenario(s)} className="text-brand-emerald hover:text-mint transition-colors" title="Load">
+                      <button onClick={() => loadScenario(s)} className="text-brand-amber hover:text-brand-steel transition-colors" title="Load">
                         <FolderOpen className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={() => deleteScenario(s.id)} className="text-muted-foreground hover:text-red-400 transition-colors" title="Delete">
@@ -690,12 +690,12 @@ export default function SimulatorPage() {
         <div className="flex flex-col gap-4">
           {!result ? (
             <Card className="glass-card flex h-full min-h-[420px] flex-col items-center justify-center text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-emerald-400/8 text-brand-emerald">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.08] bg-brand-amber/10 text-brand-amber">
                 <BarChart3 className="w-7 h-7" />
               </div>
               <h3 className="font-semibold text-white">Ready to Simulate</h3>
               <p className="mt-2 max-w-xs text-sm text-muted-foreground">
-                Select a district and a preset, or adjust the sliders to define your scenario. Then click <strong className="text-brand-emerald">Run Simulation</strong>.
+                Select a district and a preset, or adjust the sliders to define your scenario. Then click <strong className="text-brand-amber">Run Simulation</strong>.
               </p>
             </Card>
           ) : (
@@ -726,7 +726,7 @@ export default function SimulatorPage() {
                     onClick={() => setViewTab(key)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all ${
                       viewTab === key
-                        ? "bg-emerald-400/20 text-mint shadow"
+                        ? "bg-brand-amber/10 text-brand-steel shadow"
                         : "text-muted-foreground hover:text-slate-200"
                     }`}
                   >
@@ -834,8 +834,8 @@ export default function SimulatorPage() {
                 <Card className="glass-card">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/15">
-                        <Zap className="w-3.5 h-3.5 text-brand-emerald" />
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-amber/10">
+                        <Zap className="w-3.5 h-3.5 text-brand-amber" />
                       </div>
                       <div>
                         <CardTitle>AI Climate Analysis</CardTitle>
@@ -863,7 +863,7 @@ export default function SimulatorPage() {
                         <ul className="grid gap-1.5">
                           {ai.drivers.map((d, i) => (
                             <li key={i} className="flex items-center gap-2 text-xs text-secondary-foreground">
-                              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-amber" />
                               {d}
                             </li>
                           ))}
@@ -888,7 +888,7 @@ export default function SimulatorPage() {
                       <ol className="grid gap-2">
                         {ai.recommendations.map((r, i) => (
                           <li key={i} className="flex items-start gap-3 rounded-lg border border-white/6 bg-white/4 px-3 py-2.5">
-                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-[10px] font-bold text-brand-emerald">{i + 1}</span>
+                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-amber/10 text-[10px] font-bold text-brand-amber">{i + 1}</span>
                             <span className="text-xs text-secondary-foreground leading-relaxed">{r}</span>
                           </li>
                         ))}

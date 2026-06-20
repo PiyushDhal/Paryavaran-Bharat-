@@ -26,14 +26,14 @@ export function MetricCard({
 }) {
   const toneMap = {
     emerald: {
-      text: "text-emerald-200 bg-emerald-400/10 border-white/[0.08]",
-      glow: "glow-emerald text-mint",
-      delta: "text-brand-emerald"
+      text: "text-emerald-200 bg-brand-amber/10 border-white/[0.08]",
+      glow: "glow-amber text-brand-steel",
+      delta: "text-brand-amber"
     },
     emerald: {
-      text: "text-emerald-200 bg-emerald-400/10 border-white/[0.08]",
-      glow: "glow-emerald text-mint",
-      delta: "text-brand-emerald"
+      text: "text-emerald-200 bg-brand-amber/10 border-white/[0.08]",
+      glow: "glow-amber text-brand-steel",
+      delta: "text-brand-amber"
     },
     amber: {
       text: "text-amber-200 bg-amber-400/10 border-amber-300/20",

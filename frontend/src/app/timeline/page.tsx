@@ -137,8 +137,8 @@ export default function TimelinePage() {
                 const yearStyle = isHist
                   ? "border-slate-500 bg-surface text-muted-foreground"
                   : isPred
-                  ? "border-emerald-400 bg-emerald-950/20 text-mint shadow-[0_0_8px_#34D39980]"
-                  : "border-emerald-400 bg-emerald-950/20 text-mint shadow-[0_0_8px_#34d39980]";
+                  ? "border-emerald-400 bg-brand-amber/10 text-brand-steel shadow-[0_0_8px_#F59E0B80]"
+                  : "border-emerald-400 bg-brand-amber/10 text-brand-steel shadow-[0_0_8px_#34d39980]";
 
                 return (
                   <div
@@ -161,7 +161,7 @@ export default function TimelinePage() {
                     {/* Description card snippet */}
                     <div className={`flex-1 rounded-2xl border p-4 transition-all duration-300 ${
                       isSelected
-                        ? "border-white/[0.08] bg-emerald-400/5 shadow-glow"
+                        ? "border-white/[0.08] bg-brand-amber/10 shadow-glow"
                         : "border-white/[0.08] bg-white/[0.01] hover:border-white/[0.08] hover:bg-white/[0.03]"
                     }`}>
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -186,7 +186,7 @@ export default function TimelinePage() {
         {/* Selected Year Detail Panel */}
         <Card className="glass-card flex flex-col justify-between scanline">
           <CardHeader className="border-b border-white/[0.08] pb-4">
-            <div className="flex items-center gap-2 text-mint">
+            <div className="flex items-center gap-2 text-brand-steel">
               <CalendarRange className="h-5 w-5 animate-pulse" />
               <CardTitle>Milestone: {activeEvent.year}</CardTitle>
             </div>
@@ -224,10 +224,10 @@ export default function TimelinePage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-white/[0.08] bg-emerald-400/5 p-4 text-xs leading-relaxed text-emerald-200 flex gap-2">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-brand-emerald" />
+            <div className="rounded-lg border border-white/[0.08] bg-brand-amber/10 p-4 text-xs leading-relaxed text-emerald-200 flex gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-brand-amber" />
               <div>
-                <span className="font-bold block uppercase tracking-wider text-[9px] text-mint">Hazard Warning</span>
+                <span className="font-bold block uppercase tracking-wider text-[9px] text-brand-steel">Hazard Warning</span>
                 <p className="mt-1">{activeEvent.alert} for district {district.name}.</p>
               </div>
             </div>
