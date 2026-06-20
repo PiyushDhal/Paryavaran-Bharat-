@@ -227,11 +227,13 @@ function RadarSweep() {
 // ── Pulsing Data Nodes Overlay ──────────────────────────────────
 function DataNodes() {
   const nodes = [
-    { label: "IMD Delhi", top: "15%", left: "32%", delay: "0s" },
-    { label: "NRSC Hyderabad", top: "97%", left: "37%", delay: "0.5s" },
-    { label: "ISRO Bengaluru", top: "115%", left: "33%", delay: "1s" },
-    { label: "IMD Mumbai", top: "85%", left: "15%", delay: "1.5s" },
-    { label: "IMD Guwahati", top: "34%", left: "88%", delay: "2s" },
+    { label: "IMD Delhi", top: "39.65%", left: "48.24%", delay: "0s" },
+    { label: "IMD Mumbai", top: "54.98%", left: "41.31%", delay: "1.5s" },
+    { label: "ISRO Bengaluru", top: "66.70%", left: "48.05%", delay: "1s" },
+    { label: "NRSC Hyderabad", top: "55.76%", left: "50.00%", delay: "0.5s" },
+    { label: "CWC Kolkata", top: "49.12%", left: "62.30%", delay: "0.8s" },
+    { label: "CPCB Chennai", top: "65.14%", left: "53.81%", delay: "1.2s" },
+    { label: "IMD Guwahati", top: "43.55%", left: "69.63%", delay: "2s" },
   ];
 
   return (
@@ -239,7 +241,7 @@ function DataNodes() {
       {nodes.map((node) => (
         <div
           key={node.label}
-          className="absolute flex items-center gap-1.5"
+          className="absolute flex items-center gap-1.5 -translate-x-[6px] -translate-y-[6px]"
           style={{ top: node.top, left: node.left }}
         >
           <span className="relative flex h-3 w-3">
@@ -259,6 +261,7 @@ function DataNodes() {
     </div>
   );
 }
+
 
 // ── Interactive 3D Tilt Card (Optimized using style Refs) ───────
 function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: string; detail: string; index: number }) {
@@ -410,16 +413,21 @@ export default function LandingPage() {
         {/* Cinematic Earth Background — full bleed with slow CSS drift */}
         <div
           ref={bgRef}
-          className="absolute inset-[-40px] select-none pointer-events-none z-[1] animate-[slowDrift_25s_ease-in-out_infinite]"
+          className="absolute inset-[-40px] select-none pointer-events-none z-[1] animate-[slowDrift_25s_ease-in-out_infinite] flex items-center justify-center"
         >
-          <Image
-            src="/earth-india-hero.png"
-            alt="Satellite view of India from space"
-            fill
-            className="object-cover object-center"
-            priority
-            quality={95}
-          />
+          {/* Square aspect ratio container that matches the image and maps percentages correctly */}
+          <div className="relative aspect-square w-[calc(max(100vw,92vh)+80px)] h-[calc(max(100vw,92vh)+80px)]">
+            <Image
+              src="/earth-india-hero.png"
+              alt="Satellite view of India from space"
+              fill
+              className="object-cover object-center"
+              priority
+              quality={95}
+            />
+            {/* Data node pings on India — placed here so they drift and scale with the background map */}
+            <DataNodes />
+          </div>
         </div>
 
         {/* Gradient overlays for text readability */}
@@ -438,9 +446,6 @@ export default function LandingPage() {
 
         {/* Radar sweep animation */}
         <RadarSweep />
-
-        {/* Data node pings on India */}
-        <DataNodes />
 
         {/* Telemetry Digital Stream Overlay */}
         <div
