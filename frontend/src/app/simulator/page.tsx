@@ -262,7 +262,7 @@ const BASELINE_FALLBACK: SimulationResult = {
 function riskColor(v: number) {
   if (v >= 75) return "#f87171";
   if (v >= 50) return "#fbbf24";
-  if (v >= 35) return "#22d3ee";
+  if (v >= 35) return "#34D399";
   return "#34d399";
 }
 function riskLabel(v: number) {
@@ -463,8 +463,8 @@ export default function SimulatorPage() {
     <div className="simulator-root grid gap-6 print:gap-4">
       {/* Toast */}
       {toastMsg && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-cyan-400/30 bg-slate-900/95 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-2">
-          <Check className="w-4 h-4 text-cyan-400" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-[#1F2937]/95 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-2">
+          <Check className="w-4 h-4 text-emerald-400" />
           {toastMsg}
         </div>
       )}
@@ -500,7 +500,7 @@ export default function SimulatorPage() {
       {/* Save Dialog */}
       {saveDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl">
+          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#1F2937] p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-semibold text-white">Save Scenario</h3>
               <button onClick={() => setSaveDialogOpen(false)} className="text-slate-400 hover:text-white">
@@ -508,7 +508,7 @@ export default function SimulatorPage() {
               </button>
             </div>
             <input
-              className="w-full rounded-lg border border-white/10 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-400"
+              className="w-full rounded-lg border border-white/10 bg-slate-800 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
               placeholder="Scenario name…"
               value={saveName}
               onChange={(e) => setSaveName(e.target.value)}
@@ -533,14 +533,14 @@ export default function SimulatorPage() {
               onClick={() => applyPreset(p)}
               className={`group relative overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                 activePreset === p.id
-                  ? "border-cyan-400/60 bg-cyan-400/10 shadow-lg shadow-cyan-500/20"
+                  ? "border-emerald-400/60 bg-emerald-400/10 shadow-lg shadow-emerald-500/20"
                   : "border-white/8 bg-white/4 hover:border-white/15 hover:bg-white/8"
               }`}
             >
               <div className="text-xl leading-none">{p.icon}</div>
               <div className="mt-1 text-xs font-medium text-white">{p.label}</div>
               {activePreset === p.id && (
-                <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-cyan-400" />
+                <div className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-emerald-400" />
               )}
             </button>
           ))}
@@ -581,7 +581,7 @@ export default function SimulatorPage() {
                         onClick={() => setActiveTab(t)}
                         className={`flex-1 rounded-md py-1.5 text-xs font-medium capitalize transition-all ${
                           activeTab === t
-                            ? "bg-cyan-400/20 text-cyan-300 shadow"
+                            ? "bg-emerald-400/20 text-emerald-300 shadow"
                             : "text-slate-400 hover:text-slate-200"
                         }`}
                       >
@@ -597,7 +597,7 @@ export default function SimulatorPage() {
                       const pct = ((val - slider.min) / (slider.max - slider.min)) * 100;
                       const isPositive = val > 0;
                       const isNegative = val < 0;
-                      const accentColor = isPositive ? "#22d3ee" : isNegative ? "#f87171" : "#64748b";
+                      const accentColor = isPositive ? "#34D399" : isNegative ? "#f87171" : "#64748b";
                       return (
                         <div key={slider.key} className="group">
                           <div className="mb-1.5 flex items-center justify-between">
@@ -660,7 +660,7 @@ export default function SimulatorPage() {
             <Card className="glass-card print:hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm">
-                  <FolderOpen className="w-4 h-4 text-cyan-400" />
+                  <FolderOpen className="w-4 h-4 text-emerald-400" />
                   Saved Scenarios
                 </CardTitle>
               </CardHeader>
@@ -672,7 +672,7 @@ export default function SimulatorPage() {
                         <div className="font-medium text-white truncate">{s.name}</div>
                         <div className="text-slate-500 text-[10px]">{s.savedAt} · Risk {s.result.composite_risk}%</div>
                       </div>
-                      <button onClick={() => loadScenario(s)} className="text-cyan-400 hover:text-cyan-300 transition-colors" title="Load">
+                      <button onClick={() => loadScenario(s)} className="text-emerald-400 hover:text-emerald-300 transition-colors" title="Load">
                         <FolderOpen className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={() => deleteScenario(s.id)} className="text-slate-500 hover:text-red-400 transition-colors" title="Delete">
@@ -690,12 +690,12 @@ export default function SimulatorPage() {
         <div className="flex flex-col gap-4">
           {!result ? (
             <Card className="glass-card flex h-full min-h-[420px] flex-col items-center justify-center text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/8 text-cyan-400">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-emerald-400/20 bg-emerald-400/8 text-emerald-400">
                 <BarChart3 className="w-7 h-7" />
               </div>
               <h3 className="font-semibold text-white">Ready to Simulate</h3>
               <p className="mt-2 max-w-xs text-sm text-slate-400">
-                Select a district and a preset, or adjust the sliders to define your scenario. Then click <strong className="text-cyan-400">Run Simulation</strong>.
+                Select a district and a preset, or adjust the sliders to define your scenario. Then click <strong className="text-emerald-400">Run Simulation</strong>.
               </p>
             </Card>
           ) : (
@@ -726,7 +726,7 @@ export default function SimulatorPage() {
                     onClick={() => setViewTab(key)}
                     className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all ${
                       viewTab === key
-                        ? "bg-cyan-400/20 text-cyan-300 shadow"
+                        ? "bg-emerald-400/20 text-emerald-300 shadow"
                         : "text-slate-400 hover:text-slate-200"
                     }`}
                   >
@@ -758,7 +758,7 @@ export default function SimulatorPage() {
                           const v = Number(result[key] ?? 0);
                           const fill = riskColor(v);
                           return (
-                            <div key={key} className="rounded-xl border border-cyan-300/10 bg-slate-900/30 p-3 hover:border-cyan-300/25 transition-colors">
+                            <div key={key} className="rounded-xl border border-emerald-300/10 bg-[#1F2937]/30 p-3 hover:border-emerald-300/25 transition-colors">
                               <div className="mb-1.5 flex justify-between text-xs">
                                 <span className="font-medium text-slate-300">{label}</span>
                                 <span className="font-mono font-bold text-white">{v}<span className="text-slate-500">%</span></span>
@@ -834,8 +834,8 @@ export default function SimulatorPage() {
                 <Card className="glass-card">
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-cyan-400/15">
-                        <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/15">
+                        <Zap className="w-3.5 h-3.5 text-emerald-400" />
                       </div>
                       <div>
                         <CardTitle>AI Climate Analysis</CardTitle>
@@ -863,7 +863,7 @@ export default function SimulatorPage() {
                         <ul className="grid gap-1.5">
                           {ai.drivers.map((d, i) => (
                             <li key={i} className="flex items-center gap-2 text-xs text-slate-300">
-                              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-cyan-400" />
+                              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
                               {d}
                             </li>
                           ))}
@@ -888,7 +888,7 @@ export default function SimulatorPage() {
                       <ol className="grid gap-2">
                         {ai.recommendations.map((r, i) => (
                           <li key={i} className="flex items-start gap-3 rounded-lg border border-white/6 bg-white/4 px-3 py-2.5">
-                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-[10px] font-bold text-cyan-400">{i + 1}</span>
+                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-[10px] font-bold text-emerald-400">{i + 1}</span>
                             <span className="text-xs text-slate-300 leading-relaxed">{r}</span>
                           </li>
                         ))}

@@ -19,7 +19,7 @@ export function RiskGauge({
   const getSeverity = (val: number) => {
     if (val >= 75) return { text: "CRITICAL", class: "text-rose-400 glow-rose" };
     if (val >= 50) return { text: "HIGH", class: "text-amber-400 glow-amber" };
-    if (val >= 35) return { text: "MODERATE", class: "text-cyan-400 glow-cyan" };
+    if (val >= 35) return { text: "MODERATE", class: "text-emerald-400 glow-emerald" };
     return { text: "LOW", class: "text-emerald-400 glow-emerald" };
   };
   const severity = getSeverity(value);

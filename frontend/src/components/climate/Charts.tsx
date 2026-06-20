@@ -102,7 +102,7 @@ export function RankingBarChart({ data }: { data: Array<{ district: string; risk
             color: "#e0f2fe"
           }}
         />
-        <Bar dataKey="risk" fill="#22d3ee" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="risk" fill="#34D399" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

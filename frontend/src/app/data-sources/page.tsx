@@ -14,7 +14,7 @@ const sources = [
     status: "Operational",
     description: "Primary agency for meteorological observations, weather forecasting and seismology. Provides foundational gridded datasets for all atmospheric risk indicators.",
     icon: CloudRain,
-    color: "cyan"
+    color: "emerald"
   },
   {
     id: "nrsc",
@@ -92,7 +92,7 @@ export default function DataSourcesPage() {
         {sources.map((source) => {
           const Icon = source.icon;
           return (
-            <div key={source.id} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/50 p-6 backdrop-blur-xl shadow-glow">
+            <div key={source.id} className="overflow-hidden rounded-xl border border-slate-800 bg-[#1F2937]/50 p-6 backdrop-blur-xl shadow-glow">
               <div className="flex flex-col md:flex-row gap-6 md:items-start">
                 <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-xl border border-${source.color}-400/30 bg-${source.color}-400/10 text-${source.color}-300`}>
                   <Icon className="h-8 w-8" />

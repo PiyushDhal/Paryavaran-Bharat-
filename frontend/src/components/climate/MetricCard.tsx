@@ -8,7 +8,7 @@ export function MetricCard({
   value,
   detail,
   icon: Icon,
-  tone = "cyan",
+  tone = "emerald",
   delta,
   source
 }: {
@@ -16,7 +16,7 @@ export function MetricCard({
   value: string;
   detail: string;
   icon: LucideIcon;
-  tone?: "cyan" | "emerald" | "amber" | "red";
+  tone?: "emerald" | "emerald" | "amber" | "red";
   delta?: {
     value: string;
     isPositive?: boolean;
@@ -25,10 +25,10 @@ export function MetricCard({
   source?: string;
 }) {
   const toneMap = {
-    cyan: {
-      text: "text-cyan-200 bg-cyan-400/10 border-cyan-300/20",
-      glow: "glow-cyan text-cyan-300",
-      delta: "text-cyan-400"
+    emerald: {
+      text: "text-emerald-200 bg-emerald-400/10 border-emerald-300/20",
+      glow: "glow-emerald text-emerald-300",
+      delta: "text-emerald-400"
     },
     emerald: {
       text: "text-emerald-200 bg-emerald-400/10 border-emerald-300/20",

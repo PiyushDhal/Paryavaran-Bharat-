@@ -106,7 +106,7 @@ export default function TimelinePage() {
           <select
             value={districtId}
             onChange={(e) => setDistrictId(Number(e.target.value))}
-            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-cyan-400/50 transition-all text-sm"
+            className="w-full bg-[#1F2937]/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-emerald-400/50 transition-all text-sm"
           >
             {districts.map((d) => (
               <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
@@ -135,9 +135,9 @@ export default function TimelinePage() {
 
                 // Year indicator classes
                 const yearStyle = isHist
-                  ? "border-slate-500 bg-slate-900 text-slate-400"
+                  ? "border-slate-500 bg-[#1F2937] text-slate-400"
                   : isPred
-                  ? "border-cyan-400 bg-cyan-950/20 text-cyan-300 shadow-[0_0_8px_#22d3ee80]"
+                  ? "border-emerald-400 bg-emerald-950/20 text-emerald-300 shadow-[0_0_8px_#34D39980]"
                   : "border-emerald-400 bg-emerald-950/20 text-emerald-300 shadow-[0_0_8px_#34d39980]";
 
                 return (
@@ -161,8 +161,8 @@ export default function TimelinePage() {
                     {/* Description card snippet */}
                     <div className={`flex-1 rounded-xl border p-4 transition-all duration-300 ${
                       isSelected
-                        ? "border-cyan-400/30 bg-cyan-400/5 shadow-glow"
-                        : "border-cyan-300/10 bg-white/[0.01] hover:border-cyan-300/20 hover:bg-white/[0.03]"
+                        ? "border-emerald-400/30 bg-emerald-400/5 shadow-glow"
+                        : "border-emerald-300/10 bg-white/[0.01] hover:border-emerald-300/20 hover:bg-white/[0.03]"
                     }`}>
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <h3 className={`font-bold text-sm md:text-base ${
@@ -185,8 +185,8 @@ export default function TimelinePage() {
 
         {/* Selected Year Detail Panel */}
         <Card className="glass-card flex flex-col justify-between scanline">
-          <CardHeader className="border-b border-cyan-300/10 pb-4">
-            <div className="flex items-center gap-2 text-cyan-300">
+          <CardHeader className="border-b border-emerald-300/10 pb-4">
+            <div className="flex items-center gap-2 text-emerald-300">
               <CalendarRange className="h-5 w-5 animate-pulse" />
               <CardTitle>Milestone: {activeEvent.year}</CardTitle>
             </div>
@@ -194,7 +194,7 @@ export default function TimelinePage() {
           </CardHeader>
           <CardContent className="pt-6 space-y-6 flex-1">
             <div className="space-y-4">
-              <div className="rounded-xl border border-white/5 bg-slate-900/40 p-4">
+              <div className="rounded-xl border border-white/5 bg-[#1F2937]/40 p-4">
                 <span className="text-[10px] text-slate-500 uppercase font-semibold block">Meteorological Baseline</span>
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <div>
@@ -208,7 +208,7 @@ export default function TimelinePage() {
                 </div>
               </div>
 
-              <div className="rounded-xl border border-white/5 bg-slate-900/40 p-4">
+              <div className="rounded-xl border border-white/5 bg-[#1F2937]/40 p-4">
                 <span className="text-[10px] text-slate-500 uppercase font-semibold block">Composite Risk Vector</span>
                 <div className="flex items-center gap-3 mt-2">
                   <span className={`text-4xl font-black font-mono ${riskColor(activeEvent.riskScore)}`}>
@@ -224,10 +224,10 @@ export default function TimelinePage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-cyan-500/20 bg-cyan-400/5 p-4 text-xs leading-relaxed text-cyan-200 flex gap-2">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-cyan-400" />
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-400/5 p-4 text-xs leading-relaxed text-emerald-200 flex gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-emerald-400" />
               <div>
-                <span className="font-bold block uppercase tracking-wider text-[9px] text-cyan-300">Hazard Warning</span>
+                <span className="font-bold block uppercase tracking-wider text-[9px] text-emerald-300">Hazard Warning</span>
                 <p className="mt-1">{activeEvent.alert} for district {district.name}.</p>
               </div>
             </div>

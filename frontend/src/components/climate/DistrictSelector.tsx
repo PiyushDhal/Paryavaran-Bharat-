@@ -27,7 +27,7 @@ export function DistrictSelector({
         const val = event.target.value;
         onChange(val === "" ? undefined : Number(val));
       }}
-      className="h-10 w-full rounded-md border border-input bg-slate-950/70 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-300"
+      className="h-10 w-full rounded-md border border-input bg-[#0B1220]/70 px-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
     >
       <option value="">National / All Districts</option>
       {districts.map((district) => (

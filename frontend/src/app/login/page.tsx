@@ -36,8 +36,8 @@ export default function LoginPage() {
     <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-md items-center">
       <Card className="w-full">
         <CardHeader>
-          <div className="mb-3 grid h-12 w-12 place-items-center rounded-md border border-cyan-300/25 bg-cyan-400/10">
-            <LockKeyhole className="h-5 w-5 text-cyan-100" />
+          <div className="mb-3 grid h-12 w-12 place-items-center rounded-md border border-emerald-300/25 bg-emerald-400/10">
+            <LockKeyhole className="h-5 w-5 text-emerald-100" />
           </div>
           <CardTitle>Secure Mission Login</CardTitle>
           <CardDescription>Use the seeded analyst account or register a new operator profile.</CardDescription>

@@ -40,7 +40,7 @@ export default function AdminPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard title="Users" value={`${overview?.users ?? "--"}`} detail="JWT accounts" icon={LockKeyhole} />
         <MetricCard title="Districts" value={`${overview?.districts ?? "--"}`} detail="PostGIS entities" icon={Database} tone="emerald" />
-        <MetricCard title="Risk Scores" value={`${overview?.risk_scores ?? "--"}`} detail="Historical scores" icon={ServerCog} tone="cyan" />
+        <MetricCard title="Risk Scores" value={`${overview?.risk_scores ?? "--"}`} detail="Historical scores" icon={ServerCog} tone="emerald" />
         <MetricCard title="Simulations" value={`${overview?.simulations ?? "--"}`} detail="Scenario runs" icon={ServerCog} tone="amber" />
       </div>
 
@@ -51,7 +51,7 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {overview?.integrations.map((integration) => (
-            <div key={integration.name} className="rounded-md border border-cyan-300/15 bg-white/[0.03] p-4">
+            <div key={integration.name} className="rounded-md border border-emerald-300/15 bg-white/[0.03] p-4">
               <h3 className="text-sm font-semibold text-white">{integration.name}</h3>
               <Badge className="mt-3">{integration.status}</Badge>
             </div>

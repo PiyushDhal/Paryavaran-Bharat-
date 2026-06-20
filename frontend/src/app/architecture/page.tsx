@@ -3,16 +3,16 @@
 import { BrainCircuit, Cpu, Database, Globe, Layers, Radio, Satellite, Target } from "lucide-react";
 
 const pipelineSteps = [
-  { icon: Target, title: "Problem Definition", desc: "Pilot Region & Variable Selection", color: "cyan" },
-  { icon: Database, title: "Data Collection", desc: "IMD Gridded & INSAT Products", color: "cyan" },
-  { icon: Layers, title: "Data Processing", desc: "Feature Engineering & QC", color: "cyan" },
+  { icon: Target, title: "Problem Definition", desc: "Pilot Region & Variable Selection", color: "emerald" },
+  { icon: Database, title: "Data Collection", desc: "IMD Gridded & INSAT Products", color: "emerald" },
+  { icon: Layers, title: "Data Processing", desc: "Feature Engineering & QC", color: "emerald" },
   { icon: BrainCircuit, title: "Model Development", desc: "Training (LSTM/Transformer)", color: "emerald" }
 ];
 
 const pipelineSteps2 = [
-  { icon: Globe, title: "Deployment", desc: "FastAPI + PostGIS Infrastructure", color: "cyan" },
-  { icon: Radio, title: "Monitoring", desc: "Continuous drift & retraining", color: "cyan" },
-  { icon: Satellite, title: "Validation", desc: "IMD Ground Truth Comparison", color: "cyan" }
+  { icon: Globe, title: "Deployment", desc: "FastAPI + PostGIS Infrastructure", color: "emerald" },
+  { icon: Radio, title: "Monitoring", desc: "Continuous drift & retraining", color: "emerald" },
+  { icon: Satellite, title: "Validation", desc: "IMD Ground Truth Comparison", color: "emerald" }
 ];
 
 const models = [
@@ -22,7 +22,7 @@ const models = [
     desc: "Sequential deep-learning architecture processing temporal climate sequences with attention mechanisms for multi-district rainfall prediction.",
     specs: ["Input: 36-month sliding window", "Output: 7-day district forecast", "Accuracy: 94.2% (R² = 0.92)"],
     badge: "Primary",
-    color: "cyan"
+    color: "emerald"
   },
   {
     name: "CNN-LSTM Fusion",
@@ -54,12 +54,12 @@ export default function ArchitecturePage() {
     <div className="space-y-16">
       {/* Header */}
       <div className="max-w-4xl space-y-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-cyan-400 backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-400 backdrop-blur-md">
           <Cpu className="w-4 h-4" />
           Core AI Architecture
         </div>
         <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
-          Climate Digital Twin <span className="text-cyan-400">Workflow</span>
+          Climate Digital Twin <span className="text-emerald-400">Workflow</span>
         </h1>
         <p className="text-xl text-slate-400 max-w-2xl leading-relaxed">
           The end-to-end technical pipeline integrating multi-source national observation datasets into a predictive &ldquo;What-If&rdquo; climate simulation engine.
@@ -74,36 +74,36 @@ export default function ArchitecturePage() {
             {/* Row 1 horizontal connector */}
             <path
               d="M 120, 100 L 980, 100"
-              stroke="rgba(6, 182, 212, 0.12)"
+              stroke="rgba(16, 185, 129, 0.12)"
               strokeWidth="3"
             />
             <path
               d="M 120, 100 L 980, 100"
-              stroke="#06b6d4"
+              stroke="#10B981"
               strokeWidth="3"
               className="flow-line"
             />
             {/* Loop connecting Row 1 to Row 2 */}
             <path
               d="M 980, 100 C 1100, 100 1100, 240 980, 240"
-              stroke="rgba(6, 182, 212, 0.12)"
+              stroke="rgba(16, 185, 129, 0.12)"
               strokeWidth="3"
             />
             <path
               d="M 980, 100 C 1100, 100 1100, 240 980, 240"
-              stroke="#06b6d4"
+              stroke="#10B981"
               strokeWidth="3"
               className="flow-line"
             />
             {/* Row 2 horizontal connector */}
             <path
               d="M 980, 240 L 120, 240"
-              stroke="rgba(6, 182, 212, 0.12)"
+              stroke="rgba(16, 185, 129, 0.12)"
               strokeWidth="3"
             />
             <path
               d="M 980, 240 L 120, 240"
-              stroke="#06b6d4"
+              stroke="#10B981"
               strokeWidth="3"
               className="flow-line"
             />
@@ -124,7 +124,7 @@ export default function ArchitecturePage() {
                 <div className={`w-14 h-14 mx-auto rounded-xl flex items-center justify-center border ${
                   isEmerald
                     ? "bg-emerald-400/20 text-emerald-400 border-emerald-400/40"
-                    : "bg-cyan-400/20 text-cyan-400 border-cyan-400/40"
+                    : "bg-emerald-400/20 text-emerald-400 border-emerald-400/40"
                 }`}>
                   <Icon className="w-7 h-7" />
                 </div>
@@ -143,7 +143,7 @@ export default function ArchitecturePage() {
             const Icon = step.icon;
             return (
               <div key={step.title} className="glass-panel p-8 rounded-2xl text-center space-y-4 step-node shadow-glow">
-                <div className="w-14 h-14 mx-auto rounded-xl bg-cyan-400/20 flex items-center justify-center text-cyan-400 border border-cyan-400/40">
+                <div className="w-14 h-14 mx-auto rounded-xl bg-emerald-400/20 flex items-center justify-center text-emerald-400 border border-emerald-400/40">
                   <Icon className="w-7 h-7" />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function ArchitecturePage() {
             <div key={model.name} className={`glass-card rounded-2xl p-6 hover:border-${model.color}-400/30 transition-all`}>
               <div className="flex items-center justify-between mb-4">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                  model.color === "cyan" ? "bg-cyan-400/10 text-cyan-400 border-cyan-400/20" :
+                  model.color === "emerald" ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20" :
                   model.color === "rose" ? "bg-rose-400/10 text-rose-400 border-rose-400/20" :
                   "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
                 }`}>
@@ -193,7 +193,7 @@ export default function ArchitecturePage() {
         <p className="text-slate-400 mb-8 text-sm">National data providers and deployment infrastructure.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {techAssets.map((asset) => (
-            <div key={asset.name} className="p-5 rounded-xl bg-slate-900/40 border border-white/5 hover:border-cyan-400/20 transition-all">
+            <div key={asset.name} className="p-5 rounded-xl bg-[#1F2937]/40 border border-white/5 hover:border-emerald-400/20 transition-all">
               <h4 className="text-sm font-bold text-white mb-2">{asset.name}</h4>
               <p className="text-xs text-slate-400 leading-relaxed">{asset.desc}</p>
             </div>

@@ -88,7 +88,7 @@ export default function RiskCenterPage() {
                  ["Heatwave", risk?.heatwave_risk ?? 0],
                  ["Water Stress", risk?.water_stress_risk ?? 0]
                ].map(([label, value]) => (
-                <div key={label as string} className="rounded-md border border-cyan-300/15 bg-slate-900/30 p-3 hover:border-cyan-300/35 transition-colors">
+                <div key={label as string} className="rounded-md border border-emerald-300/15 bg-[#1F2937]/30 p-3 hover:border-emerald-300/35 transition-colors">
                    <p className="text-xs text-muted-foreground">{label as string}</p>
                    <p className={`mt-1 text-2xl font-bold ${riskColor(value as number)}`}>
                      {Math.round(value as number)}
@@ -98,14 +98,14 @@ export default function RiskCenterPage() {
             </div>
 
             {/* Explainable AI Risk Drivers */}
-            <div className="mt-4 w-full border-t border-cyan-300/10 pt-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5 mb-3">
+            <div className="mt-4 w-full border-t border-emerald-300/10 pt-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5 mb-3">
                 <BrainCircuit className="h-3.5 w-3.5" />
                 Explainable AI (XAI) Attribution
               </h4>
               <div className="space-y-2 text-[11px] text-slate-300">
                 {getXAIExplanation().map((driver, index) => (
-                  <div key={index} className="rounded border border-cyan-500/15 bg-cyan-500/5 p-2 leading-relaxed">
+                  <div key={index} className="rounded border border-emerald-500/15 bg-emerald-500/5 p-2 leading-relaxed">
                     {driver}
                   </div>
                 ))}
@@ -142,7 +142,7 @@ export default function RiskCenterPage() {
         <CardContent className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-sm">
             <thead className="text-left text-slate-400">
-              <tr className="border-b border-cyan-300/15">
+              <tr className="border-b border-emerald-300/15">
                 <th className="py-3">District</th>
                 <th>State</th>
                 <th>Composite</th>
@@ -154,7 +154,7 @@ export default function RiskCenterPage() {
             </thead>
             <tbody>
               {rankings.map((row) => (
-                <tr key={row.district_id} className="border-b border-cyan-300/10 hover:bg-white/[0.02] transition-colors">
+                <tr key={row.district_id} className="border-b border-emerald-300/10 hover:bg-white/[0.02] transition-colors">
                   <td className="py-3 font-medium text-white">{row.district_name}</td>
                   <td>{row.state_name}</td>
                   <td className={`font-bold ${riskColor(row.composite_risk)}`}>{row.composite_risk}</td>

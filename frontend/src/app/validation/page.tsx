@@ -30,7 +30,7 @@ const scoreCards = [
 ];
 
 const models = [
-  { name: "LSTM-Transformer (Rainfall)", badge: "ACTIVE", badgeColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20", rmse: "4.12", mae: "2.84", r2: "0.92", r2Color: "text-emerald-400" },
+  { name: "LSTM-Transformer (Rainfall)", badge: "ACTIVE", badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", rmse: "4.12", mae: "2.84", r2: "0.92", r2Color: "text-emerald-400" },
   { name: "CNN-LSTM (Temperature)", badge: "Production", badgeColor: "bg-slate-700 text-slate-400 border-slate-600", rmse: "0.85", mae: "0.62", r2: "0.96", r2Color: "text-emerald-400" },
   { name: "Baseline Random Forest", badge: "Comparison", badgeColor: "bg-slate-800 text-slate-500 border-slate-700", rmse: "6.24", mae: "4.15", r2: "0.78", r2Color: "text-white", opacity: true }
 ];
@@ -50,7 +50,7 @@ export default function ValidationPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs font-semibold tracking-wider uppercase mb-4">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-semibold tracking-wider uppercase mb-4">
           <ShieldCheck className="w-3.5 h-3.5" />
           Production Validation Layer v1.0.4
         </div>
@@ -99,14 +99,14 @@ export default function ValidationPage() {
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <CloudRain className="w-5 h-5 text-cyan-400" />
+                  <CloudRain className="w-5 h-5 text-emerald-400" />
                   Rainfall: Actual vs Predicted
                 </h3>
                 <p className="text-sm text-slate-500 mt-1">IMD Gridded (0.25° x 0.25°) vs LSTM-Transformer Hybrid</p>
               </div>
               <div className="flex gap-4">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
-                  <span className="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.5)]" /> Actual
+                  <span className="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(6,182,212,0.5)]" /> Actual
                 </div>
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
                   <span className="w-3 h-3 rounded-full border border-slate-500 border-dashed" /> Predicted
@@ -117,15 +117,15 @@ export default function ValidationPage() {
               <AreaChart data={rainfallData}>
                 <defs>
                   <linearGradient id="rain-grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
                 <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                 <YAxis stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Area type="monotone" dataKey="actual" stroke="#06b6d4" fill="url(#rain-grad)" strokeWidth={3} />
+                <Area type="monotone" dataKey="actual" stroke="#10B981" fill="url(#rain-grad)" strokeWidth={3} />
                 <Line type="monotone" dataKey="predicted" stroke="rgba(148,163,184,0.5)" strokeDasharray="5 5" strokeWidth={2} dot={false} />
               </AreaChart>
             </ResponsiveContainer>
@@ -185,7 +185,7 @@ export default function ValidationPage() {
                       { label: "MAE", value: model.mae },
                       { label: "R²", value: model.r2, color: model.r2Color }
                     ].map((m) => (
-                      <div key={m.label} className="bg-slate-900/50 border border-slate-800 p-3 rounded-lg text-center">
+                      <div key={m.label} className="bg-[#1F2937]/50 border border-slate-800 p-3 rounded-lg text-center">
                         <div className="text-[10px] text-slate-500 font-bold uppercase mb-1">{m.label}</div>
                         <div className={`text-sm font-bold ${m.color || "text-white"}`}>{m.value}</div>
                       </div>
@@ -199,7 +199,7 @@ export default function ValidationPage() {
           {/* Training Metadata */}
           <div className="glass-card rounded-2xl p-6">
             <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
-              <Binary className="w-5 h-5 text-cyan-400" />
+              <Binary className="w-5 h-5 text-emerald-400" />
               Training Metadata
             </h3>
             <div className="space-y-4">

@@ -188,8 +188,8 @@ export default function CopilotPage() {
     <div className="grid gap-5 min-h-[85vh] grid-rows-[auto_1fr]">
       {/* Toast Alert Header */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 animate-bounce flex items-center gap-2.5 rounded-lg border border-cyan-400/30 bg-slate-950/90 px-4 py-3 text-xs font-semibold text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] backdrop-blur-md">
-          <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
+        <div className="fixed top-20 right-6 z-50 animate-bounce flex items-center gap-2.5 rounded-lg border border-emerald-400/30 bg-[#0B1220]/90 px-4 py-3 text-xs font-semibold text-emerald-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] backdrop-blur-md">
+          <Sparkles className="h-4 w-4 text-emerald-400 animate-pulse" />
           {toastMessage}
         </div>
       )}
@@ -222,10 +222,10 @@ export default function CopilotPage() {
       {/* Main chat window layout */}
       <div className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr] h-full items-stretch">
         {/* Left Side: Message Stream */}
-        <Card className="glass-card flex flex-col justify-between h-[65vh] xl:h-[72vh] border-cyan-400/10">
-          <CardHeader className="border-b border-cyan-300/10 py-3.5">
+        <Card className="glass-card flex flex-col justify-between h-[65vh] xl:h-[72vh] border-emerald-400/10">
+          <CardHeader className="border-b border-emerald-300/10 py-3.5">
             <CardTitle className="flex items-center gap-2 text-white text-base">
-              <Bot className="h-5 w-5 text-cyan-300 animate-pulse" />
+              <Bot className="h-5 w-5 text-emerald-300 animate-pulse" />
               Operational Command Channel
             </CardTitle>
           </CardHeader>
@@ -243,7 +243,7 @@ export default function CopilotPage() {
                     <button
                       key={ex}
                       onClick={() => handleSend(ex)}
-                      className="rounded-lg border border-cyan-300/10 bg-slate-900/40 px-3 py-2 text-left text-xs text-slate-300 hover:border-cyan-300/30 hover:bg-cyan-400/10 hover:text-white transition-all duration-200"
+                      className="rounded-lg border border-emerald-300/10 bg-[#1F2937]/40 px-3 py-2 text-left text-xs text-slate-300 hover:border-emerald-300/30 hover:bg-emerald-400/10 hover:text-white transition-all duration-200"
                     >
                       {ex}
                     </button>
@@ -256,22 +256,22 @@ export default function CopilotPage() {
                 return (
                   <div key={msg.id} className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"} animate-fade-in`}>
                     {!isUser && (
-                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
                         <Bot className="h-4 w-4" />
                       </div>
                     )}
                     
                     <div className={`max-w-[85%] rounded-xl p-4 border text-sm leading-relaxed ${
                       isUser 
-                        ? "border-slate-800 bg-slate-900/60 text-slate-200 rounded-tr-none" 
-                        : "border-cyan-300/10 bg-slate-950/50 text-slate-300 rounded-tl-none space-y-4"
+                        ? "border-slate-800 bg-[#1F2937]/60 text-slate-200 rounded-tr-none" 
+                        : "border-emerald-300/10 bg-[#0B1220]/50 text-slate-300 rounded-tl-none space-y-4"
                     }`}>
                       {/* Message content */}
                       <p>{msg.text}</p>
 
                       {/* Bot response details */}
                       {!isUser && msg.data && (
-                        <div className="space-y-4 pt-2 border-t border-cyan-300/5">
+                        <div className="space-y-4 pt-2 border-t border-emerald-300/5">
                           {/* Explainable AI breakdown details */}
                           {msg.data.explainable_risk && (
                             <div className="rounded-lg border border-amber-500/20 bg-amber-400/5 p-3.5 space-y-2">
@@ -304,7 +304,7 @@ export default function CopilotPage() {
                           {/* Risk summary text */}
                           {msg.data.risk_analysis && (
                             <div>
-                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-1">Risk Analysis Matrix</h4>
+                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Risk Analysis Matrix</h4>
                               <p className="text-xs text-slate-400">{msg.data.risk_analysis}</p>
                             </div>
                           )}
@@ -312,18 +312,18 @@ export default function CopilotPage() {
                           {/* Action advice cards */}
                           {msg.data.recommended_actions && msg.data.recommended_actions.length > 0 && (
                             <div>
-                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-2">Government Action Protocol</h4>
+                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-2">Government Action Protocol</h4>
                               <div className="grid gap-2 sm:grid-cols-2">
                                 {msg.data.recommended_actions.map((action, idx) => {
                                   const isHydro = idx % 2 === 0;
                                   return (
                                     <div key={action} className={`p-3 rounded-lg border text-xs ${
                                       isHydro 
-                                        ? "border-cyan-500/10 bg-cyan-400/5 text-cyan-200" 
+                                        ? "border-emerald-500/10 bg-emerald-400/5 text-emerald-200" 
                                         : "border-emerald-500/10 bg-emerald-400/5 text-emerald-200"
                                     }`}>
                                       <div className="flex items-center gap-1.5 mb-1.5">
-                                        {isHydro ? <Waves className="h-3.5 w-3.5 text-cyan-400" /> : <Leaf className="h-3.5 w-3.5 text-emerald-400" />}
+                                        {isHydro ? <Waves className="h-3.5 w-3.5 text-emerald-400" /> : <Leaf className="h-3.5 w-3.5 text-emerald-400" />}
                                         <span className="text-[9px] font-bold uppercase tracking-wider">
                                           {isHydro ? "Hydrological Alert" : "Agricultural Action"}
                                         </span>
@@ -338,16 +338,16 @@ export default function CopilotPage() {
 
                           {/* Chart visual representation */}
                           {msg.data.chart && msg.data.chart.data && msg.data.chart.data.length > 0 && (
-                            <div className="pt-2 border-t border-cyan-300/5">
-                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 mb-3">Vulnerability Rankings Spectrum</h4>
-                              <div className="bg-slate-950/40 p-2.5 rounded-lg border border-cyan-400/5">
+                            <div className="pt-2 border-t border-emerald-300/5">
+                              <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 mb-3">Vulnerability Rankings Spectrum</h4>
+                              <div className="bg-[#0B1220]/40 p-2.5 rounded-lg border border-emerald-400/5">
                                 <RankingBarChart data={msg.data.chart.data} />
                               </div>
                             </div>
                           )}
 
                           {/* Bot Message Control Actions */}
-                          <div className="flex items-center justify-between border-t border-cyan-300/5 pt-2.5 mt-2">
+                          <div className="flex items-center justify-between border-t border-emerald-300/5 pt-2.5 mt-2">
                             <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">
                               Confidence Scale: High
                             </div>
@@ -356,7 +356,7 @@ export default function CopilotPage() {
                                 <Clipboard className="h-3.5 w-3.5" />
                               </Button>
                               {msg.data.action && (
-                                <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-cyan-300" onClick={() => executeAction(msg.data?.action)} title="Trigger Action">
+                                <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-500 hover:text-emerald-300" onClick={() => executeAction(msg.data?.action)} title="Trigger Action">
                                   <Sparkles className="h-3.5 w-3.5" />
                                 </Button>
                               )}
@@ -370,7 +370,7 @@ export default function CopilotPage() {
                                 <button
                                   key={sug}
                                   onClick={() => handleSend(sug)}
-                                  className="rounded bg-slate-900 hover:bg-cyan-500/10 hover:text-cyan-200 border border-cyan-400/5 text-[10px] px-2.5 py-1 text-slate-400 transition"
+                                  className="rounded bg-[#1F2937] hover:bg-emerald-500/10 hover:text-emerald-200 border border-emerald-400/5 text-[10px] px-2.5 py-1 text-slate-400 transition"
                                 >
                                   {sug}
                                 </button>
@@ -388,13 +388,13 @@ export default function CopilotPage() {
             {/* Chat Typing Loading Indicator */}
             {loading && (
               <div className="flex gap-3 justify-start animate-fade-in">
-                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-cyan-400/20 bg-cyan-400/10 text-cyan-300">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
                   <Bot className="h-4 w-4" />
                 </div>
-                <div className="rounded-xl p-4 border border-cyan-300/10 bg-slate-950/50 text-slate-500 text-xs flex items-center gap-2">
+                <div className="rounded-xl p-4 border border-emerald-300/10 bg-[#0B1220]/50 text-slate-500 text-xs flex items-center gap-2">
                   <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </span>
                   AI Climate Analyst is generating advisory...
                 </div>
@@ -404,25 +404,25 @@ export default function CopilotPage() {
           </CardContent>
 
           {/* Form input bottom row */}
-          <form onSubmit={onSubmit} className="p-4 border-t border-cyan-300/10 flex gap-2 bg-slate-950/20">
+          <form onSubmit={onSubmit} className="p-4 border-t border-emerald-300/10 flex gap-2 bg-[#0B1220]/20">
             <Input
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Ask for unsafe states, flood risk, Jodhpur drivers, show layers, or run simulation..."
-              className="bg-slate-950/70 border-cyan-300/20 text-white placeholder:text-slate-500 text-sm focus-visible:ring-cyan-500"
+              className="bg-[#0B1220]/70 border-emerald-300/20 text-white placeholder:text-slate-500 text-sm focus-visible:ring-emerald-500"
               disabled={loading}
             />
-            <Button type="submit" disabled={loading || !prompt.trim()} className="bg-cyan-500 hover:bg-cyan-600 text-slate-950">
+            <Button type="submit" disabled={loading || !prompt.trim()} className="bg-emerald-500 hover:bg-emerald-600 text-slate-950">
               <Send className="h-4 w-4" />
             </Button>
           </form>
         </Card>
 
         {/* Right Side: Copilot Context Status Panel */}
-        <Card className="glass-card border-cyan-400/10 flex flex-col justify-between">
-          <CardHeader className="border-b border-cyan-300/10 py-3.5">
+        <Card className="glass-card border-emerald-400/10 flex flex-col justify-between">
+          <CardHeader className="border-b border-emerald-300/10 py-3.5">
             <CardTitle className="text-white text-base flex items-center gap-2">
-              <Activity className="h-5 w-5 text-cyan-400" />
+              <Activity className="h-5 w-5 text-emerald-400" />
               Active System Context
             </CardTitle>
             <CardDescription className="text-slate-400 text-xs">
@@ -441,9 +441,9 @@ export default function CopilotPage() {
               ].map((ctx) => {
                 const Icon = ctx.icon;
                 return (
-                  <div key={ctx.label} className="rounded-xl border border-cyan-300/15 bg-slate-900/30 p-3.5">
+                  <div key={ctx.label} className="rounded-xl border border-emerald-300/15 bg-[#1F2937]/30 p-3.5">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <Icon className="h-4 w-4 text-cyan-400" />
+                      <Icon className="h-4 w-4 text-emerald-400" />
                       <span className="text-[10px] text-slate-500 uppercase font-bold">{ctx.label}</span>
                     </div>
                     <p className="font-mono text-sm font-bold text-white">{ctx.value}</p>
@@ -452,8 +452,8 @@ export default function CopilotPage() {
               })}
             </div>
 
-            <div className="rounded-xl border border-cyan-500/15 bg-cyan-400/5 p-4 text-xs leading-relaxed text-slate-400">
-              <p className="font-semibold text-cyan-300 mb-1">💡 Pro Tip</p>
+            <div className="rounded-xl border border-emerald-500/15 bg-emerald-400/5 p-4 text-xs leading-relaxed text-slate-400">
+              <p className="font-semibold text-emerald-300 mb-1">💡 Pro Tip</p>
               When analyzing districts like Jodhpur, try command phrases:
               <ul className="list-disc pl-4 mt-1 space-y-0.5 font-mono text-[10px] text-slate-300">
                 <li>"Zoom to Mumbai"</li>

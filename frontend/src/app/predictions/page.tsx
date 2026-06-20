@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import type { District, Prediction } from "@/lib/types";
 
 const hazardTypes = [
-  { key: "flood" as const, label: "Flood", icon: Droplets, color: "cyan" },
+  { key: "flood" as const, label: "Flood", icon: Droplets, color: "emerald" },
   { key: "drought" as const, label: "Drought", icon: AlertTriangle, color: "amber" },
   { key: "heatwave" as const, label: "Heatwave", icon: Flame, color: "rose" }
 ];
@@ -15,7 +15,7 @@ function ProbabilityGauge({ value, color }: { value: number; color: string }) {
   const pct = Math.round(value * 100);
   const circumference = 2 * Math.PI * 42;
   const offset = circumference * (1 - value);
-  const strokeColor = color === "cyan" ? "#06b6d4" : color === "amber" ? "#f59e0b" : "#f43f5e";
+  const strokeColor = color === "emerald" ? "#10B981" : color === "amber" ? "#f59e0b" : "#f43f5e";
 
   return (
     <div className="relative w-48 h-48 flex items-center justify-center mx-auto">
@@ -80,7 +80,7 @@ export default function PredictionsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-md border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-200 mb-4">
+          <div className="inline-flex items-center gap-2 rounded-md border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200 mb-4">
             <TrendingUp className="w-4 h-4" />
             AI Prediction Engine
           </div>
@@ -94,7 +94,7 @@ export default function PredictionsPage() {
           <select
             value={districtId || ""}
             onChange={(e) => setDistrictId(Number(e.target.value))}
-            className="w-full bg-slate-900/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-cyan-400/50 transition-all text-sm"
+            className="w-full bg-[#1F2937]/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-emerald-400/50 transition-all text-sm"
           >
             {districts.map((d) => (
               <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
@@ -117,7 +117,7 @@ export default function PredictionsPage() {
               <div key={hazard.key} className="glass-card rounded-2xl overflow-hidden">
                 <div className={`p-6 border-b border-white/5 flex items-center gap-3`}>
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
-                    hazard.color === "cyan" ? "bg-cyan-400/10 text-cyan-400 border-cyan-400/20" :
+                    hazard.color === "emerald" ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20" :
                     hazard.color === "amber" ? "bg-amber-400/10 text-amber-400 border-amber-400/20" :
                     "bg-rose-400/10 text-rose-400 border-rose-400/20"
                   }`}>
@@ -133,20 +133,20 @@ export default function PredictionsPage() {
                   <ProbabilityGauge value={pred.probability} color={hazard.color} />
 
                   <div className="mt-6 grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-lg bg-slate-900/40 border border-white/5">
+                    <div className="p-3 rounded-lg bg-[#1F2937]/40 border border-white/5">
                       <span className="text-[10px] text-slate-500 uppercase">Risk Zone</span>
                       <p className={`text-sm font-bold ${
                         pred.risk_zone === "High" ? "text-rose-400" :
                         pred.risk_zone === "Moderate" ? "text-amber-400" : "text-emerald-400"
                       }`}>{pred.risk_zone}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-slate-900/40 border border-white/5">
+                    <div className="p-3 rounded-lg bg-[#1F2937]/40 border border-white/5">
                       <span className="text-[10px] text-slate-500 uppercase">Valid For</span>
                       <p className="text-sm font-bold text-white">{pred.valid_for}</p>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-lg border border-cyan-300/10 bg-cyan-400/5 p-4">
+                  <div className="mt-4 rounded-lg border border-emerald-300/10 bg-emerald-400/5 p-4">
                     <p className="text-xs text-slate-300 leading-relaxed">{pred.explanation}</p>
                   </div>
 

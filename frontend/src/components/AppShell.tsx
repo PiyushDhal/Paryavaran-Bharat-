@@ -208,11 +208,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Mobile drawer overlay ──────────────────────────────── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-72 border-r border-cyan-300/15 bg-slate-950 px-4 py-5 overflow-y-auto">
+          <div className="absolute inset-0 bg-[#0B1220]/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 h-full w-72 border-r border-emerald-300/15 bg-[#0B1220] px-4 py-5 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <Link href="/" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-                <Orbit className="h-6 w-6 text-cyan-200" />
+                <Orbit className="h-6 w-6 text-emerald-200" />
                 <span className="font-semibold text-white">Bharat Climate Twin</span>
               </Link>
               <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-white">
@@ -234,7 +234,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         onClick={() => setMobileOpen(false)}
                         className={cn(
                           "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-slate-300 transition",
-                          pathname === item.href && "bg-cyan-400/12 text-white",
+                          pathname === item.href && "bg-emerald-400/12 text-white",
                           pathname !== item.href && "hover:bg-white/6"
                         )}
                       >
@@ -251,18 +251,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ── Top header bar ─────────────────────────────────────── */}
-      <header className={cn("sticky top-0 z-30 border-b border-cyan-300/15 bg-slate-950/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
+      <header className={cn("sticky top-0 z-30 border-b border-emerald-300/15 bg-[#0B1220]/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={() => setMobileOpen(true)}
-              className="grid h-10 w-10 place-items-center rounded-md border border-cyan-300/20 bg-white/5 text-cyan-100 lg:hidden shrink-0"
+              className="grid h-10 w-10 place-items-center rounded-md border border-emerald-300/20 bg-white/5 text-emerald-100 lg:hidden shrink-0"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
             </button>
             <Link href="/" className="flex items-center gap-2 lg:hidden shrink-0">
-              <Orbit className="h-5 w-5 text-cyan-200" />
+              <Orbit className="h-5 w-5 text-emerald-200" />
               <span className="font-semibold text-sm">Bharat Climate Twin</span>
             </Link>
             
@@ -278,7 +278,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <select
                   value={activeYear}
                   onChange={(e) => setActiveYear(Number(e.target.value))}
-                  className="h-10 w-full rounded-md border border-cyan-500/20 bg-slate-950/70 px-3 text-sm font-medium text-cyan-100 focus:outline-none focus:ring-2 focus:ring-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
+                  className="h-10 w-full rounded-md border border-emerald-500/20 bg-[#0B1220]/70 px-3 text-sm font-medium text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
                 >
                   <option value={2025}>2025 (Current)</option>
                   <option value={2030}>2030 (Projected)</option>
@@ -302,7 +302,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <p className="text-xs font-semibold text-white">{userName}</p>
                   <p className="text-[10px] text-slate-400">{userRole}</p>
                 </div>
-                <div className="grid h-9 w-9 place-items-center rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-200" title={`${userName} (${userRole})`}>
+                <div className="grid h-9 w-9 place-items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-200" title={`${userName} (${userRole})`}>
                   <UserCheck className="h-4 w-4" />
                 </div>
                 <button
@@ -321,7 +321,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 rounded-md border border-cyan-300/20 bg-cyan-400/10 px-3 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-400/20 transition-all shadow-glow"
+                className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-400/20 transition-all shadow-glow"
               >
                 <LockKeyhole className="h-3.5 w-3.5" />
                 Operator Sign In

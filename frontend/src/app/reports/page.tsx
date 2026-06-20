@@ -687,8 +687,8 @@ export default function ReportsPage() {
       
       {/* ─── TOAST NOTIFICATION ────────────────────────────────────────── */}
       {toastMsg && (
-        <div className="fixed top-20 right-6 z-50 animate-bounce flex items-center gap-2.5 rounded-lg border border-cyan-400/30 bg-slate-950/90 px-4 py-3 text-xs font-semibold text-cyan-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] backdrop-blur-md">
-          <Sparkles className="h-4 w-4 text-cyan-400 animate-pulse" />
+        <div className="fixed top-20 right-6 z-50 animate-bounce flex items-center gap-2.5 rounded-lg border border-emerald-400/30 bg-[#0B1220]/90 px-4 py-3 text-xs font-semibold text-emerald-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] backdrop-blur-md">
+          <Sparkles className="h-4 w-4 text-emerald-400 animate-pulse" />
           {toastMsg}
         </div>
       )}
@@ -696,7 +696,7 @@ export default function ReportsPage() {
       {/* ─── HEADER SECTION ──────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
         <div>
-          <Badge className="bg-cyan-500/10 text-cyan-300 border border-cyan-400/20 px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
+          <Badge className="bg-emerald-500/10 text-emerald-300 border border-emerald-400/20 px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             Strategic Decision Cockpit
           </Badge>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
@@ -713,12 +713,12 @@ export default function ReportsPage() {
         
         {/* LEFT COLUMN: Report history library */}
         <div className="grid gap-5">
-          <Card className="glass-card border-white/5 bg-slate-900/20 p-4 flex flex-col gap-4">
+          <Card className="glass-card border-white/5 bg-[#1F2937]/20 p-4 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white uppercase flex items-center gap-1.5">
-                <History className="w-3.5 h-3.5 text-cyan-400" /> Report Library
+                <History className="w-3.5 h-3.5 text-emerald-400" /> Report Library
               </span>
-              <Badge className="bg-cyan-500/10 border-cyan-400/20 text-cyan-300 text-[9px] font-bold">
+              <Badge className="bg-emerald-500/10 border-emerald-400/20 text-emerald-300 text-[9px] font-bold">
                 {history.length} Saved Memos
               </Badge>
             </div>
@@ -731,7 +731,7 @@ export default function ReportsPage() {
                 placeholder="Search memos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-8 pl-8 text-xs bg-slate-950/60 border-slate-800 text-white placeholder:text-slate-500"
+                className="h-8 pl-8 text-xs bg-[#0B1220]/60 border-slate-800 text-white placeholder:text-slate-500"
               />
             </div>
             
@@ -751,8 +751,8 @@ export default function ReportsPage() {
                       key={rep.id} 
                       className={`group rounded-lg border p-2.5 transition-all cursor-pointer ${
                         isActive 
-                          ? "border-cyan-500/30 bg-cyan-950/20" 
-                          : "border-slate-800 bg-slate-900/35 hover:border-slate-700"
+                          ? "border-emerald-500/30 bg-emerald-950/20" 
+                          : "border-slate-800 bg-[#1F2937]/35 hover:border-slate-700"
                       }`}
                       onClick={() => !isRenaming && handleLoadReport(rep)}
                     >
@@ -763,18 +763,18 @@ export default function ReportsPage() {
                               <Input
                                 value={renameValue}
                                 onChange={(e) => setRenameValue(e.target.value)}
-                                className="h-7 text-xs px-2 py-0 bg-slate-950 text-white"
+                                className="h-7 text-xs px-2 py-0 bg-[#0B1220] text-white"
                                 autoFocus
                               />
-                              <Button size="sm" onClick={handleSaveRename} className="h-7 px-2 bg-cyan-500 text-slate-950 font-bold text-xs">Save</Button>
+                              <Button size="sm" onClick={handleSaveRename} className="h-7 px-2 bg-emerald-500 text-slate-950 font-bold text-xs">Save</Button>
                             </div>
                           ) : (
-                            <p className="text-xs font-semibold text-white truncate group-hover:text-cyan-300 transition-colors">
+                            <p className="text-xs font-semibold text-white truncate group-hover:text-emerald-300 transition-colors">
                               {rep.name}
                             </p>
                           )}
                           <div className="mt-1 flex items-center gap-1.5 text-[9px] text-slate-400">
-                            <span className="font-mono text-cyan-400">{rep.refNo.split("-")[2]} AD</span>
+                            <span className="font-mono text-emerald-400">{rep.refNo.split("-")[2]} AD</span>
                             <span>·</span>
                             <span>{rep.dateCompiled}</span>
                           </div>
@@ -785,13 +785,13 @@ export default function ReportsPage() {
                       <div className="mt-2 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                         <button 
                           onClick={() => handleStartRename(rep)}
-                          className="p-1 text-[9px] text-slate-400 hover:text-cyan-300 bg-white/5 rounded border border-white/5"
+                          className="p-1 text-[9px] text-slate-400 hover:text-emerald-300 bg-white/5 rounded border border-white/5"
                         >
                           Rename
                         </button>
                         <button 
                           onClick={() => handleDuplicateReport(rep)}
-                          className="p-1 text-[9px] text-slate-400 hover:text-cyan-300 bg-white/5 rounded border border-white/5"
+                          className="p-1 text-[9px] text-slate-400 hover:text-emerald-300 bg-white/5 rounded border border-white/5"
                           title="Duplicate"
                         >
                           <Copy className="w-2.5 h-2.5" />
@@ -819,7 +819,7 @@ export default function ReportsPage() {
           <Card className="glass-card border-white/5">
             <CardHeader className="pb-3 border-b border-white/5">
               <CardTitle className="text-base text-white flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-cyan-400" /> Configure Climate Memorandum Parameters
+                <SlidersHorizontal className="w-4 h-4 text-emerald-400" /> Configure Climate Memorandum Parameters
               </CardTitle>
               <CardDescription className="text-slate-400 text-xs">
                 Select target districts, timeframe ranges, and scenario metrics to initiate AI synthesis.
@@ -832,7 +832,7 @@ export default function ReportsPage() {
                 <select
                   value={reportType}
                   onChange={(e) => setReportType(e.target.value)}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   <option value="district_climate">District Climate Report</option>
                   <option value="state_climate">State Climate Report</option>
@@ -853,7 +853,7 @@ export default function ReportsPage() {
                 <select
                   value={selectedStateId}
                   onChange={(e) => setSelectedStateId(e.target.value)}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   <option value="all">All States</option>
                   {states.map((s) => (
@@ -868,7 +868,7 @@ export default function ReportsPage() {
                 <select
                   value={districtId}
                   onChange={(e) => setDistrictId(Number(e.target.value))}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   {filteredDistricts.map((d) => (
                     <option key={d.id} value={d.id}>{d.name} ({d.state_name})</option>
@@ -882,7 +882,7 @@ export default function ReportsPage() {
                 <select
                   value={year}
                   onChange={(e) => setYear(Number(e.target.value))}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   {[2020, 2025, 2030, 2040, 2050].map((y) => (
                     <option key={y} value={y}>{y} AD Horizon</option>
@@ -896,7 +896,7 @@ export default function ReportsPage() {
                 <select
                   value={climateParameter}
                   onChange={(e) => setClimateParameter(e.target.value)}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   <option value="all">All Parameters</option>
                   <option value="temperature">Temperature Trends</option>
@@ -917,7 +917,7 @@ export default function ReportsPage() {
                 <select
                   value={disasterType}
                   onChange={(e) => setDisasterType(e.target.value)}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   <option value="all">All Hazards (Combo)</option>
                   <option value="flood">Flood Inundation</option>
@@ -933,7 +933,7 @@ export default function ReportsPage() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="h-8.5 bg-slate-950/70 border-slate-800 text-xs text-white"
+                  className="h-8.5 bg-[#0B1220]/70 border-slate-800 text-xs text-white"
                 />
               </div>
 
@@ -943,7 +943,7 @@ export default function ReportsPage() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="h-8.5 bg-slate-950/70 border-slate-800 text-xs text-white"
+                  className="h-8.5 bg-[#0B1220]/70 border-slate-800 text-xs text-white"
                 />
               </div>
 
@@ -953,7 +953,7 @@ export default function ReportsPage() {
                 <select
                   value={riskLevelFilter}
                   onChange={(e) => setRiskLevelFilter(e.target.value)}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   <option value="all">All Thresholds</option>
                   <option value="safe">Safe Only (&lt;35)</option>
@@ -969,7 +969,7 @@ export default function ReportsPage() {
                 <select
                   value={sector}
                   onChange={(e) => setSector(e.target.value)}
-                  className="w-full bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                  className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
                   <option value="water">Water Resources & Storage</option>
                   <option value="agriculture">Agricultural Crops & Drought</option>
@@ -980,13 +980,13 @@ export default function ReportsPage() {
 
               {/* COMPARATIVE TOGGLE */}
               <div className="flex flex-col justify-end gap-1.5">
-                <div className="flex items-center gap-2.5 rounded-lg border border-slate-800 bg-slate-950/40 p-2 text-xs">
+                <div className="flex items-center gap-2.5 rounded-lg border border-slate-800 bg-[#0B1220]/40 p-2 text-xs">
                   <input
                     type="checkbox"
                     id="compare-check"
                     checked={isComparison}
                     onChange={(e) => setIsComparison(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded text-cyan-500 focus:ring-cyan-400 bg-slate-950 border-slate-800"
+                    className="w-3.5 h-3.5 rounded text-emerald-500 focus:ring-emerald-400 bg-[#0B1220] border-slate-800"
                   />
                   <label htmlFor="compare-check" className="font-semibold text-slate-300 cursor-pointer">
                     Enable Location Comparison
@@ -996,14 +996,14 @@ export default function ReportsPage() {
 
               {/* COMPARATIVE SELECTOR (Visible only if toggle active) */}
               {isComparison && (
-                <div className="grid gap-1.5 md:col-span-3 border-t border-cyan-500/10 pt-4 mt-1 animate-fade-in">
+                <div className="grid gap-1.5 md:col-span-3 border-t border-emerald-500/10 pt-4 mt-1 animate-fade-in">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="grid gap-1.5">
-                      <label className="text-[10px] font-bold uppercase text-cyan-400">Bilateral Comparison State</label>
+                      <label className="text-[10px] font-bold uppercase text-emerald-400">Bilateral Comparison State</label>
                       <select
                         value={compareStateId}
                         onChange={(e) => setCompareStateId(e.target.value)}
-                        className="w-full bg-slate-950/70 border border-cyan-500/25 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-[#0B1220]/70 border border-emerald-500/25 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                       >
                         <option value="all">All States</option>
                         {states.map((s) => (
@@ -1012,11 +1012,11 @@ export default function ReportsPage() {
                       </select>
                     </div>
                     <div className="grid gap-1.5">
-                      <label className="text-[10px] font-bold uppercase text-cyan-400">Bilateral Comparison Location</label>
+                      <label className="text-[10px] font-bold uppercase text-emerald-400">Bilateral Comparison Location</label>
                       <select
                         value={compareDistrictId}
                         onChange={(e) => setCompareDistrictId(Number(e.target.value))}
-                        className="w-full bg-slate-950/70 border border-cyan-500/25 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
+                        className="w-full bg-[#0B1220]/70 border border-emerald-500/25 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-emerald-400"
                       >
                         {filteredCompareDistricts.map((d) => (
                           <option key={d.id} value={d.id}>{d.name} ({d.state_name})</option>
@@ -1025,7 +1025,7 @@ export default function ReportsPage() {
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-slate-400 leading-normal">
-                    Comparing <span className="text-white font-semibold">{district.name} ({district.state_name})</span> side-by-side with <span className="text-cyan-300 font-semibold">{compareDistrict.name} ({compareDistrict.state_name})</span>.
+                    Comparing <span className="text-white font-semibold">{district.name} ({district.state_name})</span> side-by-side with <span className="text-emerald-300 font-semibold">{compareDistrict.name} ({compareDistrict.state_name})</span>.
                   </div>
                 </div>
               )}
@@ -1035,7 +1035,7 @@ export default function ReportsPage() {
                 <Button 
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold px-6 py-2 gap-2 shadow-[0_0_15px_rgba(6,182,212,0.25)] rounded-full text-xs"
+                  className="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-6 py-2 gap-2 shadow-[0_0_15px_rgba(6,182,212,0.25)] rounded-full text-xs"
                 >
                   {generating ? (
                     <>
@@ -1053,7 +1053,7 @@ export default function ReportsPage() {
 
           {/* EMPTY STATE */}
           {!generatedReport && !generating && (
-            <div className="grid min-h-[360px] place-items-center rounded-xl border border-dashed border-cyan-300/15 text-center text-sm text-slate-500 bg-slate-950/10">
+            <div className="grid min-h-[360px] place-items-center rounded-xl border border-dashed border-emerald-300/15 text-center text-sm text-slate-500 bg-[#0B1220]/10">
               <div>
                 <FileText className="h-10 w-10 mx-auto text-slate-700 mb-3" />
                 <p className="font-semibold text-slate-400">Decision Intelligence Center Idle</p>
@@ -1066,9 +1066,9 @@ export default function ReportsPage() {
 
           {/* LOADING GENERATION STATE */}
           {generating && (
-            <div className="grid min-h-[360px] place-items-center rounded-xl border border-cyan-300/20 text-center text-sm text-slate-300 bg-slate-950/20 animate-pulse">
+            <div className="grid min-h-[360px] place-items-center rounded-xl border border-emerald-300/20 text-center text-sm text-slate-300 bg-[#0B1220]/20 animate-pulse">
               <div>
-                <Bot className="h-10 w-10 mx-auto text-cyan-400 mb-4 animate-bounce" />
+                <Bot className="h-10 w-10 mx-auto text-emerald-400 mb-4 animate-bounce" />
                 <p className="font-bold text-white uppercase tracking-wider text-xs">Consulting Neural Forecasting Engine</p>
                 <p className="max-w-md mt-1 text-[11px] text-slate-500 leading-normal">
                   Fusing satellite rainfall grids with IMD daily temperature datasets, computing population multipliers, and establishing adaptation contingencies...
@@ -1079,10 +1079,10 @@ export default function ReportsPage() {
 
           {/* GENERATED MEMORANDUM DOCUMENT PREVIEW */}
           {generatedReport && !generating && (
-            <Card className="glass-card overflow-hidden animate-fade-in border-cyan-500/20 shadow-[0_0_40px_rgba(6,182,212,0.05)]">
+            <Card className="glass-card overflow-hidden animate-fade-in border-emerald-500/20 shadow-[0_0_40px_rgba(6,182,212,0.05)]">
               
               {/* Document Actions bar */}
-              <CardHeader className="flex flex-row items-center justify-between border-b border-cyan-300/10 pb-4 no-print flex-wrap gap-3">
+              <CardHeader className="flex flex-row items-center justify-between border-b border-emerald-300/10 pb-4 no-print flex-wrap gap-3">
                 <div>
                   <CardTitle className="text-white text-base">Decision Advisory Preview</CardTitle>
                   <CardDescription className="text-slate-400 text-xs">Government-grade climate security advisory ready for export.</CardDescription>
@@ -1098,20 +1098,20 @@ export default function ReportsPage() {
               </CardHeader>
 
               <CardContent className="pt-6 select-text">
-                <div id="print-area" className="border border-cyan-500/10 rounded-xl p-8 bg-slate-900/10 text-slate-300 font-serif leading-relaxed relative overflow-hidden shadow-2xl">
+                <div id="print-area" className="border border-emerald-500/10 rounded-xl p-8 bg-[#1F2937]/10 text-slate-300 font-serif leading-relaxed relative overflow-hidden shadow-2xl">
                   
                   {/* Decorative background grid and emblem for print styling */}
                   <div className="absolute inset-0 bg-radar-grid bg-[size:40px_40px] opacity-[0.03] pointer-events-none" />
                   
                   {/* MEMORANDUM HEADER */}
                   <div className="border-b-2 border-slate-700 pb-6 text-center flex flex-col items-center relative z-10">
-                    <div className="w-10 h-10 rounded bg-cyan-400/10 border border-cyan-400/35 grid place-items-center text-cyan-400 mb-2">
+                    <div className="w-10 h-10 rounded bg-emerald-400/10 border border-emerald-400/35 grid place-items-center text-emerald-400 mb-2">
                       <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h2 className="text-base font-extrabold tracking-[0.15em] text-white uppercase font-sans">
                       Government of India — Climate Twin Command
                     </h2>
-                    <p className="text-[9px] tracking-widest text-cyan-300 font-sans font-bold mt-1.5 uppercase">
+                    <p className="text-[9px] tracking-widest text-emerald-300 font-sans font-bold mt-1.5 uppercase">
                       National Security Advisory & Mitigation Memorandum
                     </p>
                   </div>
@@ -1131,13 +1131,13 @@ export default function ReportsPage() {
                       <span className="text-white font-semibold">
                         {generatedReport.districtName} District, {generatedReport.stateName}
                         {generatedReport.isComparison && (
-                          <span className="text-cyan-300 font-bold"> vs {generatedReport.compareDistrictName} ({generatedReport.compareStateName})</span>
+                          <span className="text-emerald-300 font-bold"> vs {generatedReport.compareDistrictName} ({generatedReport.compareStateName})</span>
                         )}
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="font-bold block text-slate-500 text-[10px] tracking-wider">SCENARIO TARGET:</span>
-                      <span className="text-cyan-300 font-bold tracking-wider">{generatedReport.year} AD Climate Model</span>
+                      <span className="text-emerald-300 font-bold tracking-wider">{generatedReport.year} AD Climate Model</span>
                     </div>
                   </div>
 
@@ -1145,36 +1145,36 @@ export default function ReportsPage() {
                   <div className="py-6 space-y-6 text-sm font-serif text-slate-300 relative z-10">
                     
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-2.5 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <FileText className="w-3.5 h-3.5 text-cyan-400" /> I. Executive Summary
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-2.5 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <FileText className="w-3.5 h-3.5 text-emerald-400" /> I. Executive Summary
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.summary}</p>
                     </div>
 
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-2.5 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <Activity className="w-3.5 h-3.5 text-cyan-400" /> II. Telemetry & Current Conditions
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-2.5 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <Activity className="w-3.5 h-3.5 text-emerald-400" /> II. Telemetry & Current Conditions
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.condition}</p>
                     </div>
                     {/* SPATIAL INTELLIGENCE MAPS */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-4 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <Globe2 className="w-3.5 h-3.5 text-cyan-400" /> III. Spatial Intelligence & Multi-Hazard Mapping
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-4 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <Globe2 className="w-3.5 h-3.5 text-emerald-400" /> III. Spatial Intelligence & Multi-Hazard Mapping
                       </h4>
                       <div className="grid gap-4 md:grid-cols-3 no-print mb-6">
                         
                         {/* Map 1: District boundary */}
-                        <div className="relative group flex flex-col justify-between bg-slate-950/40 p-3 rounded-lg border border-slate-800 select-none">
+                        <div className="relative group flex flex-col justify-between bg-[#0B1220]/40 p-3 rounded-lg border border-slate-800 select-none">
                           <div>
                             <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
                               <span>District Boundaries Grid</span>
-                              <span className="text-[9px] text-cyan-400 font-mono">Interactive Talukas</span>
+                              <span className="text-[9px] text-emerald-400 font-mono">Interactive Talukas</span>
                             </p>
                             <p className="text-[9px] text-slate-500 mb-2 leading-tight">Hover zones for telemetry forecast details.</p>
                           </div>
                           <div className="relative overflow-visible">
-                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg">
+                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-[#0B1220]/60 border border-slate-900 rounded-lg">
                               <line x1="20" y1="0" x2="20" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
                               <line x1="60" y1="0" x2="60" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
                               <line x1="100" y1="0" x2="100" y2="150" stroke="rgba(6,182,212,0.08)" strokeDasharray="2" />
@@ -1188,7 +1188,7 @@ export default function ReportsPage() {
                               <polygon 
                                 points="45,35 100,28 100,70 45,70" 
                                 fill={hoveredDistrictZone === "North Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "North Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "North Taluka" ? "#34D399" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "North Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("North Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
@@ -1197,7 +1197,7 @@ export default function ReportsPage() {
                               <polygon 
                                 points="100,28 125,25 165,55 100,70" 
                                 fill={hoveredDistrictZone === "East Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "East Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "East Taluka" ? "#34D399" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "East Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("East Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
@@ -1206,7 +1206,7 @@ export default function ReportsPage() {
                               <polygon 
                                 points="100,70 145,115 75,125 100,70" 
                                 fill={hoveredDistrictZone === "South Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "South Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "South Taluka" ? "#34D399" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "South Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("South Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
@@ -1215,24 +1215,24 @@ export default function ReportsPage() {
                               <polygon 
                                 points="45,35 100,70 75,125 35,85" 
                                 fill={hoveredDistrictZone === "West Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "West Taluka" ? "#22d3ee" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "West Taluka" ? "#34D399" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "West Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("West Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
                                 className="cursor-pointer transition-all duration-200" 
                               />
                               
-                              <circle cx="100" cy="70" r="3.5" fill="#22d3ee" className="pointer-events-none" />
-                              <text x="105" y="73" fill="#22d3ee" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">{generatedReport.districtName}</text>
+                              <circle cx="100" cy="70" r="3.5" fill="#34D399" className="pointer-events-none" />
+                              <text x="105" y="73" fill="#34D399" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">{generatedReport.districtName}</text>
                               <text x="10" y="142" fill="#64748b" fontSize="7" fontFamily="monospace" className="pointer-events-none">MODEL ACC: SSP5-8.5</text>
                             </svg>
 
                             {/* Floating Telemetry Box for District Zone */}
                             {hoveredDistrictZone && districtZoneForecasts[hoveredDistrictZone] && (
-                              <div className="absolute z-30 p-2.5 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
-                                <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
+                              <div className="absolute z-30 p-2.5 rounded-lg border border-emerald-400/40 bg-[#0B1220]/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
+                                <p className="font-bold text-emerald-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
                                   <span>{hoveredDistrictZone}</span>
-                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">Risk: {districtZoneForecasts[hoveredDistrictZone].risk}%</span>
+                                  <span className="text-[7.5px] px-1 bg-emerald-950 text-emerald-300 rounded uppercase font-mono">Risk: {districtZoneForecasts[hoveredDistrictZone].risk}%</span>
                                 </p>
                                 <p className="mt-1 font-semibold text-white font-mono">Temp: {districtZoneForecasts[hoveredDistrictZone].temp}°C | Precip: {districtZoneForecasts[hoveredDistrictZone].rainfall}mm</p>
                                 <p className="text-slate-400 mt-0.5 leading-tight text-[8px]">Soil: {districtZoneForecasts[hoveredDistrictZone].soil}</p>
@@ -1243,16 +1243,16 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Map 2: State positioning (Interactive India Map) */}
-                        <div className="relative group flex flex-col justify-between bg-slate-950/40 p-3 rounded-lg border border-slate-800 select-none">
+                        <div className="relative group flex flex-col justify-between bg-[#0B1220]/40 p-3 rounded-lg border border-slate-800 select-none">
                           <div>
                             <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
                               <span>National Climate Threat Map</span>
-                              <span className="text-[9px] text-cyan-400 font-mono">Click to Select State</span>
+                              <span className="text-[9px] text-emerald-400 font-mono">Click to Select State</span>
                             </p>
                             <p className="text-[9px] text-slate-500 mb-2 leading-tight">Hover states for weather alerts & forecasts.</p>
                           </div>
                           <div className="relative overflow-visible">
-                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg">
+                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-[#0B1220]/60 border border-slate-900 rounded-lg">
                               {/* India major state outline polygons */}
                               {/* Rajasthan */}
                               <polygon 
@@ -1354,8 +1354,8 @@ export default function ReportsPage() {
                               {/* Dynamic glowing target indicator for currently selected district's state */}
                               {district && (
                                 <>
-                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="3" fill="#22d3ee" className="pointer-events-none" />
-                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="8" fill="none" stroke="#22d3ee" strokeWidth="1" className="animate-ping pointer-events-none" />
+                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="3" fill="#34D399" className="pointer-events-none" />
+                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="8" fill="none" stroke="#34D399" strokeWidth="1" className="animate-ping pointer-events-none" />
                                 </>
                               )}
 
@@ -1372,10 +1372,10 @@ export default function ReportsPage() {
 
                             {/* Floating Telemetry Box for State */}
                             {hoveredStateName && stateForecasts[hoveredStateName] && (
-                              <div className="absolute z-30 p-2.5 rounded-lg border border-cyan-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
-                                <p className="font-bold text-cyan-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
+                              <div className="absolute z-30 p-2.5 rounded-lg border border-emerald-400/40 bg-[#0B1220]/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
+                                <p className="font-bold text-emerald-300 border-b border-white/5 pb-0.5 flex items-center justify-between">
                                   <span>{hoveredStateName}</span>
-                                  <span className="text-[7.5px] px-1 bg-cyan-950 text-cyan-300 rounded uppercase font-mono">{stateForecasts[hoveredStateName].alert}</span>
+                                  <span className="text-[7.5px] px-1 bg-emerald-950 text-emerald-300 rounded uppercase font-mono">{stateForecasts[hoveredStateName].alert}</span>
                                 </p>
                                 <p className="mt-1 font-semibold text-white font-mono">Temp: {stateForecasts[hoveredStateName].temp}°C | Risk: {stateForecasts[hoveredStateName].risk}%</p>
                                 <p className="text-slate-400 mt-0.5 leading-tight">{stateForecasts[hoveredStateName].forecast}</p>
@@ -1385,7 +1385,7 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Map 3: Risk Heatmap */}
-                        <div className="relative group flex flex-col justify-between bg-slate-950/40 p-3 rounded-lg border border-slate-800 select-none">
+                        <div className="relative group flex flex-col justify-between bg-[#0B1220]/40 p-3 rounded-lg border border-slate-800 select-none">
                           <div>
                             <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 mb-1 flex items-center justify-between">
                               <span>Multi-Hazard Risk Heatmap</span>
@@ -1394,7 +1394,7 @@ export default function ReportsPage() {
                             <p className="text-[9px] text-slate-500 mb-2 leading-tight">Hover hotspots for specific telemetry summaries.</p>
                           </div>
                           <div className="relative overflow-visible">
-                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-slate-950/60 border border-slate-900 rounded-lg relative overflow-hidden">
+                            <svg viewBox="0 0 200 150" className="w-full h-36 bg-[#0B1220]/60 border border-slate-900 rounded-lg relative overflow-hidden">
                               <defs>
                                 <radialGradient id="heat-glow-rep" cx="50%" cy="50%" r="50%">
                                   <stop offset="0%" stopColor={ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.4" />
@@ -1453,7 +1453,7 @@ export default function ReportsPage() {
 
                             {/* Floating Telemetry Box for Heatspot */}
                             {hoveredHeatspot && heatmapHotspotForecasts[hoveredHeatspot] && (
-                              <div className="absolute z-30 p-2.5 rounded-lg border border-rose-400/40 bg-slate-950/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
+                              <div className="absolute z-30 p-2.5 rounded-lg border border-rose-400/40 bg-[#0B1220]/95 shadow-2xl text-[9px] text-slate-300 w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-rose-400 border-b border-white/5 pb-0.5">
                                   {heatmapHotspotForecasts[hoveredHeatspot].title}
                                 </p>
@@ -1469,13 +1469,13 @@ export default function ReportsPage() {
 
                     {/* CHARTS CONTAINER (Publication-ready visuals) */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-4 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <TrendingUp className="w-3.5 h-3.5 text-cyan-400" /> IV. Climate Charts & Analytical Trends
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-4 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <TrendingUp className="w-3.5 h-3.5 text-emerald-400" /> IV. Climate Charts & Analytical Trends
                       </h4>
                       
                       <div className="grid gap-4 md:grid-cols-2 mb-6 no-print">
                         {/* Chart 1: Rainfall trend */}
-                        <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+                        <div className="bg-[#0B1220]/50 p-3 rounded-lg border border-slate-800">
                           <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 text-center mb-3">
                             Rainfall Trends (Monsoon Precipitation mm)
                           </p>
@@ -1497,7 +1497,7 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Chart 2: Temperature & Heatwave */}
-                        <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+                        <div className="bg-[#0B1220]/50 p-3 rounded-lg border border-slate-800">
                           <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 text-center mb-3">
                             Temperature Curve & Heatwave Index
                           </p>
@@ -1514,7 +1514,7 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Chart 3: AQI Trends */}
-                        <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+                        <div className="bg-[#0B1220]/50 p-3 rounded-lg border border-slate-800">
                           <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 text-center mb-3">
                             AQI Indices & Risk Levels
                           </p>
@@ -1530,7 +1530,7 @@ export default function ReportsPage() {
                         </div>
 
                         {/* Chart 4: Drought & Water Stress Indices */}
-                        <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+                        <div className="bg-[#0B1220]/50 p-3 rounded-lg border border-slate-800">
                           <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-slate-400 text-center mb-3">
                             Water Stress & Drought Indices
                           </p>
@@ -1559,7 +1559,7 @@ export default function ReportsPage() {
                                 <YAxis stroke="#64748b" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
                                 <Tooltip contentStyle={{ background: "#091220", border: "1px solid rgba(103,232,249,0.2)", fontSize: 10 }} />
                                 <Area type="monotone" dataKey="droughtRisk" name="Drought Index" stroke="#fb923c" fill="rgba(251,146,60,0.1)" strokeWidth={1} />
-                                <Area type="monotone" dataKey="floodRisk" name="Flood Index" stroke="#67e8f9" fill="rgba(103,232,249,0.1)" strokeWidth={1} />
+                                <Area type="monotone" dataKey="floodRisk" name="Flood Index" stroke="#6EE7B7" fill="rgba(103,232,249,0.1)" strokeWidth={1} />
                               </AreaChart>
                             </ResponsiveContainer>
                           )}
@@ -1569,19 +1569,19 @@ export default function ReportsPage() {
 
                     {/* RISK & EXPOSURE METRICS (GRID) */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-3 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <Layers className="w-3.5 h-3.5 text-cyan-400" /> V. Socio-Economic Exposure & Impact Index
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-3 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <Layers className="w-3.5 h-3.5 text-emerald-400" /> V. Socio-Economic Exposure & Impact Index
                       </h4>
                       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 font-sans text-center">
-                        <div className="p-3 border border-slate-800 bg-slate-950/20 rounded-lg flex flex-col justify-between items-center">
-                          <Users className="w-4 h-4 text-cyan-400 mb-1" />
+                        <div className="p-3 border border-slate-800 bg-[#0B1220]/20 rounded-lg flex flex-col justify-between items-center">
+                          <Users className="w-4 h-4 text-emerald-400 mb-1" />
                           <span className="text-[8.5px] text-slate-500 font-bold uppercase">Pop. Exposure</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">{Math.round(ranking.composite_risk * 1.8)}k citizens</span>
                           <div className="w-full bg-slate-800 h-1 rounded-full mt-2 overflow-hidden">
-                            <div className="bg-cyan-500 h-full rounded-full" style={{ width: `${Math.min(ranking.composite_risk * 1.2, 100)}%` }} />
+                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${Math.min(ranking.composite_risk * 1.2, 100)}%` }} />
                           </div>
                         </div>
-                        <div className="p-3 border border-slate-800 bg-slate-950/20 rounded-lg flex flex-col justify-between items-center">
+                        <div className="p-3 border border-slate-800 bg-[#0B1220]/20 rounded-lg flex flex-col justify-between items-center">
                           <Building className="w-4 h-4 text-rose-400 mb-1" />
                           <span className="text-[8.5px] text-slate-500 font-bold uppercase">Infrastructure Risk</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">{ranking.flood_risk}% Threat</span>
@@ -1589,7 +1589,7 @@ export default function ReportsPage() {
                             <div className="bg-rose-500 h-full rounded-full" style={{ width: `${ranking.flood_risk}%` }} />
                           </div>
                         </div>
-                        <div className="p-3 border border-slate-800 bg-slate-950/20 rounded-lg flex flex-col justify-between items-center">
+                        <div className="p-3 border border-slate-800 bg-[#0B1220]/20 rounded-lg flex flex-col justify-between items-center">
                           <Leaf className="w-4 h-4 text-emerald-400 mb-1" />
                           <span className="text-[8.5px] text-slate-500 font-bold uppercase">Agricultural Stress</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">{ranking.drought_risk}% Stress</span>
@@ -1597,7 +1597,7 @@ export default function ReportsPage() {
                             <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${ranking.drought_risk}%` }} />
                           </div>
                         </div>
-                        <div className="p-3 border border-slate-800 bg-slate-950/20 rounded-lg flex flex-col justify-between items-center">
+                        <div className="p-3 border border-slate-800 bg-[#0B1220]/20 rounded-lg flex flex-col justify-between items-center">
                           <Scale className="w-4 h-4 text-amber-400 mb-1" />
                           <span className="text-[8.5px] text-slate-500 font-bold uppercase">Economic Index</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">x{((ranking.composite_risk / 100) * 2.5 + 1).toFixed(1)} Multiplier</span>
@@ -1609,28 +1609,28 @@ export default function ReportsPage() {
                     </div>
 
                     {/* AI RECOMMENDATION / COGNITIVE ADVISORY */}
-                    <div className="border-l-2 border-cyan-400 pl-4 bg-cyan-400/5 py-4.5 rounded-r">
-                      <div className="flex items-center gap-1.5 text-cyan-300 font-bold font-sans text-xs mb-1.5">
-                        <Bot className="w-4 h-4 text-cyan-400" /> AI CLIMATE COGNITIVE BRIEF
+                    <div className="border-l-2 border-emerald-400 pl-4 bg-emerald-400/5 py-4.5 rounded-r">
+                      <div className="flex items-center gap-1.5 text-emerald-300 font-bold font-sans text-xs mb-1.5">
+                        <Bot className="w-4 h-4 text-emerald-400" /> AI CLIMATE COGNITIVE BRIEF
                       </div>
-                      <p className="italic text-cyan-200 text-justify font-serif text-sm leading-relaxed">{reportNarrative?.aiBrief}</p>
+                      <p className="italic text-emerald-200 text-justify font-serif text-sm leading-relaxed">{reportNarrative?.aiBrief}</p>
                     </div>
 
                     {/* DECISION INTELLIGENCE BLOCK */}
                     <div className="space-y-4">
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-2.5 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> VI. Decision Intelligence Advisories
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-2.5 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> VI. Decision Intelligence Advisories
                       </h4>
                       
                       <div className="space-y-3 font-sans text-xs">
-                        <div className="p-3.5 border border-slate-800 bg-slate-950/20 rounded-lg">
+                        <div className="p-3.5 border border-slate-800 bg-[#0B1220]/20 rounded-lg">
                           <p className="font-bold text-white text-[11px] mb-1.5 uppercase flex items-center gap-1">
                             🚨 Highest Priority Zones
                           </p>
                           <p className="text-slate-400 font-serif leading-relaxed text-sm">{reportNarrative?.highRiskZones}</p>
                         </div>
 
-                        <div className="p-3.5 border border-slate-800 bg-slate-950/20 rounded-lg">
+                        <div className="p-3.5 border border-slate-800 bg-[#0B1220]/20 rounded-lg">
                           <p className="font-bold text-rose-400 text-[11px] mb-1.5 uppercase flex items-center gap-1">
                             ⚠️ Immediate Government Protocols
                           </p>
@@ -1641,7 +1641,7 @@ export default function ReportsPage() {
                           </ul>
                         </div>
 
-                        <div className="p-3.5 border border-slate-800 bg-slate-950/20 rounded-lg">
+                        <div className="p-3.5 border border-slate-800 bg-[#0B1220]/20 rounded-lg">
                           <p className="font-bold text-amber-400 text-[11px] mb-1.5 uppercase flex items-center gap-1">
                             📋 Short-Term Planning Recommendations (Next 90 Days)
                           </p>
@@ -1652,8 +1652,8 @@ export default function ReportsPage() {
                           </ul>
                         </div>
 
-                        <div className="p-3.5 border border-slate-800 bg-slate-950/20 rounded-lg">
-                          <p className="font-bold text-cyan-400 text-[11px] mb-1.5 uppercase flex items-center gap-1">
+                        <div className="p-3.5 border border-slate-800 bg-[#0B1220]/20 rounded-lg">
+                          <p className="font-bold text-emerald-400 text-[11px] mb-1.5 uppercase flex items-center gap-1">
                             🌱 Long-Term Infrastructure & Resource Adaptation
                           </p>
                           <ul className="space-y-1.5 text-slate-300 list-disc pl-4 font-serif text-sm">
@@ -1667,13 +1667,13 @@ export default function ReportsPage() {
 
                     {/* KEY FINDINGS */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-cyan-300 mb-2 flex items-center gap-1.5 border-b border-cyan-500/10 pb-1">
-                        <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> VII. Key Findings & Confidence Levels
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-emerald-300 mb-2 flex items-center gap-1.5 border-b border-emerald-500/10 pb-1">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> VII. Key Findings & Confidence Levels
                       </h4>
                       <div className="grid gap-2 font-sans text-xs">
                         {reportNarrative?.keyFindings.map((finding, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-slate-300 bg-slate-950/10 p-2 rounded border border-slate-800/40">
-                            <span className="text-cyan-400 font-bold mt-0.5">•</span>
+                          <div key={idx} className="flex items-start gap-2 text-slate-300 bg-[#0B1220]/10 p-2 rounded border border-slate-800/40">
+                            <span className="text-emerald-400 font-bold mt-0.5">•</span>
                             <span className="font-serif text-[13px]">{finding}</span>
                           </div>
                         ))}
@@ -1685,7 +1685,7 @@ export default function ReportsPage() {
                   {/* SIGNATURE / CERTIFICATION BLOCK */}
                   <div className="border-t border-slate-800 pt-6 mt-6 flex justify-between items-center text-[10px] font-sans text-slate-500 relative z-10">
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                       Certified by Bharat Climate Twin AI Forecaster Layer v2.1.0
                     </span>
                     <span className="italic">Authorized digital signature — Command operations center</span>
@@ -1708,17 +1708,17 @@ export default function ReportsPage() {
                         setActiveLayer(disasterType === "flood" ? "flood_risk" : disasterType === "drought" ? "drought_risk" : "composite_risk");
                       }}
                     >
-                      <Link href={`/map?district_id=${districtId}`} className="flex items-center justify-between border border-cyan-500/15 bg-cyan-500/5 hover:bg-cyan-500/10 p-3.5 rounded-xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
+                      <Link href={`/map?district_id=${districtId}`} className="flex items-center justify-between border border-emerald-500/15 bg-emerald-500/5 hover:bg-emerald-500/10 p-3.5 rounded-xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-8 w-8 rounded-lg bg-cyan-400/10 grid place-items-center text-cyan-400">
+                          <div className="h-8 w-8 rounded-lg bg-emerald-400/10 grid place-items-center text-emerald-400">
                             <Globe2 className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-cyan-200">Open Digital Twin Map</p>
+                            <p className="text-xs font-bold text-emerald-200">Open Digital Twin Map</p>
                             <p className="text-[9px] text-slate-500">Visualize layer context</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+                        <ArrowRight className="w-3.5 h-3.5 text-emerald-400" />
                       </Link>
                     </div>
 

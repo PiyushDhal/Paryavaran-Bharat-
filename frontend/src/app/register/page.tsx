@@ -66,7 +66,7 @@ export default function RegisterPage() {
                 id="role"
                 value={form.role}
                 onChange={(event) => setForm({ ...form, role: event.target.value })}
-                className="h-10 rounded-md border border-input bg-slate-950/70 px-3 text-sm text-white"
+                className="h-10 rounded-md border border-input bg-[#0B1220]/70 px-3 text-sm text-white"
               >
                 <option value="analyst">Analyst</option>
                 <option value="planner">Planner</option>

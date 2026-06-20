@@ -128,7 +128,7 @@ function FloatingParticles() {
         const alpha = p.alpha * pulse;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
+        ctx.fillStyle = `rgba(52, 211, 153, ${alpha})`;
         ctx.fill();
       });
 
@@ -144,7 +144,7 @@ function FloatingParticles() {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(34, 211, 238, ${lineAlpha})`;
+            ctx.strokeStyle = `rgba(52, 211, 153, ${lineAlpha})`;
             ctx.lineWidth = 0.4;
             ctx.stroke();
           }
@@ -180,7 +180,7 @@ function RadarSweep() {
       <div
         className="absolute left-0 right-0 h-[1px]"
         style={{
-          background: "linear-gradient(to right, transparent, rgba(34, 211, 238, 0.4), transparent)",
+          background: "linear-gradient(to right, transparent, rgba(52, 211, 153, 0.4), transparent)",
           animation: "scanLineV 8s linear infinite"
         }}
       />
@@ -192,7 +192,7 @@ function RadarSweep() {
           width: "300px",
           height: "300px",
           borderRadius: "50%",
-          border: "1px solid rgba(34, 211, 238, 0.15)",
+          border: "1px solid rgba(52, 211, 153, 0.15)",
           animation: "radarPulse 4s ease-out infinite"
         }}
       />
@@ -204,7 +204,7 @@ function RadarSweep() {
           width: "300px",
           height: "300px",
           borderRadius: "50%",
-          border: "1px solid rgba(34, 211, 238, 0.12)",
+          border: "1px solid rgba(52, 211, 153, 0.12)",
           animation: "radarPulse 4s ease-out 1.3s infinite"
         }}
       />
@@ -216,7 +216,7 @@ function RadarSweep() {
           width: "300px",
           height: "300px",
           borderRadius: "50%",
-          border: "1px solid rgba(34, 211, 238, 0.08)",
+          border: "1px solid rgba(52, 211, 153, 0.08)",
           animation: "radarPulse 4s ease-out 2.6s infinite"
         }}
       />
@@ -244,13 +244,13 @@ function DataNodes() {
         >
           <span className="relative flex h-3 w-3">
             <span
-              className="absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"
+              className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"
               style={{ animation: `ping 2s cubic-bezier(0, 0, 0.2, 1) ${node.delay} infinite` }}
             />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
           </span>
           <span
-            className="text-[9px] font-mono text-cyan-300/70 tracking-wider whitespace-nowrap bg-slate-950/50 px-1 py-0.5 rounded backdrop-blur-sm"
+            className="text-[9px] font-mono text-emerald-300/70 tracking-wider whitespace-nowrap bg-[#0B1220]/50 px-1 py-0.5 rounded backdrop-blur-sm"
           >
             {node.label}
           </span>
@@ -286,7 +286,7 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
     if (shine) {
       const sX = ((e.clientX - rect.left) / width) * 100;
       const sY = ((e.clientY - rect.top) / height) * 100;
-      shine.style.background = `radial-gradient(circle at ${sX.toFixed(0)}% ${sY.toFixed(0)}%, rgba(34, 211, 238, 0.15) 0%, transparent 60%)`;
+      shine.style.background = `radial-gradient(circle at ${sX.toFixed(0)}% ${sY.toFixed(0)}%, rgba(52, 211, 153, 0.15) 0%, transparent 60%)`;
       shine.style.opacity = "1";
     }
   };
@@ -308,7 +308,7 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`glass-card p-6 rounded-xl hover:border-cyan-400/40 group animate-fade-in-up stagger-${index + 1} perspective-1000 relative overflow-hidden`}
+      className={`glass-card p-6 rounded-xl hover:border-emerald-400/40 group animate-fade-in-up stagger-${index + 1} perspective-1000 relative overflow-hidden`}
       style={{
         transformStyle: "preserve-3d"
       }}
@@ -319,10 +319,10 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
       />
 
       <div className="relative z-10" style={{ transform: "translateZ(30px)" }}>
-        <div className="w-12 h-12 rounded-lg bg-cyan-400/10 flex items-center justify-center text-cyan-400 border border-cyan-400/20 group-hover:bg-cyan-400/20 group-hover:border-cyan-400/40 group-hover:text-cyan-300 transition-all duration-300 shadow-glow" style={{ transform: "translateZ(15px)" }}>
+        <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-emerald-400 border border-emerald-400/20 group-hover:bg-emerald-400/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300 transition-all duration-300 shadow-glow" style={{ transform: "translateZ(15px)" }}>
           <Icon className="w-6 h-6" />
         </div>
-        <h3 className="mt-6 text-lg font-semibold text-white group-hover:text-cyan-100 transition-colors" style={{ transform: "translateZ(20px)" }}>{title}</h3>
+        <h3 className="mt-6 text-lg font-semibold text-white group-hover:text-emerald-100 transition-colors" style={{ transform: "translateZ(20px)" }}>{title}</h3>
         <p className="mt-3 text-sm text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors" style={{ transform: "translateZ(10px)" }}>{detail}</p>
       </div>
     </div>
@@ -445,9 +445,9 @@ export default function LandingPage() {
         {/* Telemetry Digital Stream Overlay */}
         <div
           ref={telemetryRef}
-          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-cyan-400/10 bg-slate-950/75 backdrop-blur-md font-mono text-[11px] text-cyan-300/80 hidden xl:block z-10 leading-relaxed shadow-glow"
+          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-emerald-400/10 bg-[#0B1220]/75 backdrop-blur-md font-mono text-[11px] text-emerald-300/80 hidden xl:block z-10 leading-relaxed shadow-glow"
         >
-          <div className="flex items-center justify-between border-b border-cyan-400/20 pb-1.5 mb-2 font-bold text-cyan-300">
+          <div className="flex items-center justify-between border-b border-emerald-400/20 pb-1.5 mb-2 font-bold text-emerald-300">
             <span>TELEMETRY STREAM</span>
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -472,9 +472,9 @@ export default function LandingPage() {
             >
               <div
                 ref={badgeRef}
-                className="inline-flex items-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-3 py-1.5 text-sm font-medium text-cyan-300 backdrop-blur-sm shadow-glow"
+                className="inline-flex items-center gap-2 rounded-md border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-sm font-medium text-emerald-300 backdrop-blur-sm shadow-glow"
               >
-                <ShieldAlert className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <ShieldAlert className="w-4 h-4 text-emerald-400 animate-pulse" />
                 Government-tech climate command layer
               </div>
 
@@ -489,7 +489,7 @@ export default function LandingPage() {
               <div className="pt-4 flex flex-wrap gap-4">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-600 hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
+                  className="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
                 >
                   Open Command Center
                   <ArrowRight className="w-5 h-5" />
@@ -519,8 +519,8 @@ export default function LandingPage() {
       <section className="container mx-auto px-6 lg:px-16 mb-24">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
-            <div key={stat.label} className="text-center p-8 rounded-2xl border border-cyan-400/10 bg-slate-950/30">
-              <p className="text-4xl lg:text-5xl font-bold text-cyan-400 glow-cyan">{stat.value}</p>
+            <div key={stat.label} className="text-center p-8 rounded-2xl border border-emerald-400/10 bg-[#0B1220]/30">
+              <p className="text-4xl lg:text-5xl font-bold text-emerald-400 glow-emerald">{stat.value}</p>
               <p className="mt-2 text-sm text-slate-400 font-medium">{stat.label}</p>
             </div>
           ))}
@@ -530,7 +530,7 @@ export default function LandingPage() {
       {/* ── National Climate Datasets ─────────────────────────── */}
       <section className="container mx-auto px-6 lg:px-16 py-24">
         <div className="max-w-4xl mb-16">
-          <div className="inline-flex items-center gap-2 rounded-md border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-sm font-medium text-cyan-400">
+          <div className="inline-flex items-center gap-2 rounded-md border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-sm font-medium text-emerald-400">
             <Database className="w-4 h-4" />
             National Climate Datasets
           </div>
@@ -546,7 +546,7 @@ export default function LandingPage() {
             return (
               <div key={ds.title} className="glass-card p-6 rounded-xl">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-cyan-400/10 flex items-center justify-center text-cyan-400 border border-cyan-400/20">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-emerald-400 border border-emerald-400/20">
                     <Icon className="w-6 h-6" />
                   </div>
                   <span className="px-2 py-1 rounded bg-emerald-400/10 text-emerald-400 text-xs font-medium border border-emerald-400/20">
@@ -561,7 +561,7 @@ export default function LandingPage() {
         </div>
 
         {/* Pipeline visualization */}
-        <div className="mt-12 glass-card p-8 rounded-2xl bg-slate-950/20">
+        <div className="mt-12 glass-card p-8 rounded-2xl bg-[#0B1220]/20">
           <h3 className="text-xl font-semibold text-white mb-8">Climate Data Fusion Pipeline</h3>
           <div className="flex flex-wrap items-center gap-4">
             {pipeline.map((step, i) => (
@@ -569,7 +569,7 @@ export default function LandingPage() {
                 <div className={`px-4 py-2 rounded-lg border text-sm ${
                   i === pipeline.length - 1
                     ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 font-semibold"
-                    : "border-cyan-400/20 bg-cyan-400/5 text-cyan-200"
+                    : "border-emerald-400/20 bg-emerald-400/5 text-emerald-200"
                 }`}>
                   {step}
                 </div>
@@ -586,7 +586,7 @@ export default function LandingPage() {
           {riskCards.map((card) => {
             const Icon = card.icon;
             return (
-              <div key={card.title} className="p-8 rounded-2xl border border-cyan-400/10 bg-slate-950/30 flex flex-col gap-4 hover:border-cyan-400/25 transition-colors">
+              <div key={card.title} className="p-8 rounded-2xl border border-emerald-400/10 bg-[#0B1220]/30 flex flex-col gap-4 hover:border-emerald-400/25 transition-colors">
                 <Icon className="w-8 h-8 text-emerald-300" />
                 <h4 className="text-xl font-bold text-white">{card.title}</h4>
                 <p className="text-slate-400 text-sm">{card.desc}</p>
@@ -597,13 +597,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="border-t border-cyan-400/10 bg-slate-950/80 backdrop-blur-md">
+      <footer className="border-t border-emerald-400/10 bg-[#0B1220]/80 backdrop-blur-md">
         <div className="container mx-auto px-6 lg:px-16 py-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-md bg-cyan-400/10 border border-cyan-400/20">
-                  <Satellite className="h-5 w-5 text-cyan-400" />
+                <div className="grid h-10 w-10 place-items-center rounded-md bg-emerald-400/10 border border-emerald-400/20">
+                  <Satellite className="h-5 w-5 text-emerald-400" />
                 </div>
                 <span className="text-lg font-bold text-white">Bharat Climate Twin</span>
               </div>
@@ -615,7 +615,7 @@ export default function LandingPage() {
               <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Platform</h4>
               <div className="grid gap-2">
                 {["Dashboard", "Digital Twin Map", "Risk Center", "Simulator", "AI Copilot"].map((item) => (
-                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-slate-400 hover:text-cyan-300 transition-colors">
+                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-slate-400 hover:text-emerald-300 transition-colors">
                     {item}
                   </Link>
                 ))}
