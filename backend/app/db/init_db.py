@@ -82,7 +82,7 @@ def init_db(db: Session) -> None:
         districts[row["district_code"]] = district
 
         risk_engine = ClimateRiskEngine()
-        for obs in generate_observations(row["district_code"], row["profile"], [2010, 2015, 2020, 2025, 2030, 2040, 2050]):
+        for obs in generate_observations(row["district_code"], row["profile"], [2010, 2015, 2020, 2026, 2030, 2040, 2050]):
             weather = WeatherData(
                 district_id=district.id,
                 observed_on=obs["observed_on"],

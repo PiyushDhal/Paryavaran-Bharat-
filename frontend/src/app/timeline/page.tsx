@@ -24,12 +24,12 @@ type TimelineEvent = {
 export default function TimelinePage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<number>(0);
-  const [activeEventIndex, setActiveEventIndex] = useState<number>(3); // 2025 selected by default (index 3 of [2010, 2015, 2020, 2025, 2030, 2040, 2050])
+  const [activeEventIndex, setActiveEventIndex] = useState<number>(3); // 2026 selected by default (index 3 of [2010, 2015, 2020, 2026, 2030, 2040, 2050])
   const [timelineEvents, setTimelineEvents] = useState<any[]>([
     { year: 2010, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
     { year: 2015, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
     { year: 2020, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
-    { year: 2025, label: "Loading...", type: "current", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
+    { year: 2026, label: "Loading...", type: "current", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
     { year: 2030, label: "Loading...", type: "predicted", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
     { year: 2040, label: "Loading...", type: "predicted", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
     { year: 2050, label: "Loading...", type: "predicted", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
@@ -76,7 +76,7 @@ export default function TimelinePage() {
 
   const district = districts.find((d) => d.id === districtId);
   const activeEvent = timelineData[activeEventIndex] || {
-    year: 2025,
+    year: 2026,
     label: "Baseline Transition Year",
     type: "current",
     description: "Stabilized monsoon indicators with localized temperature rises.",

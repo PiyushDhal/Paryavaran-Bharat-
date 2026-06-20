@@ -239,11 +239,11 @@ def get_analytics_metrics(
 
 @router.post("/analytics/sustainability/simulate")
 def simulate_sustainability(payload: SustainabilitySimRequest):
-    years = [2025, 2030, 2040, 2050]
+    years = [2026, 2030, 2040, 2050]
     simulated_data = []
 
     for y in years:
-        time_factor = max(0.0, (y - 2025) / 25.0)
+        time_factor = max(0.0, (y - 2026) / 25.0)
 
         base_forest = max(10.0, payload.forest_health - time_factor * 8.0)
         base_aqi_score = max(10.0, payload.air_quality_score - time_factor * 12.0)

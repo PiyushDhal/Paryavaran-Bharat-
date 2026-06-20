@@ -889,7 +889,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const selectedDistrictId = climateContext?.selectedDistrictId;
   const setSelectedDistrictId = climateContext?.setSelectedDistrictId ?? (() => undefined);
   const rankings = climateContext?.rankings ?? [];
-  const activeYear = climateContext?.activeYear ?? 2025;
+  const activeYear = climateContext?.activeYear ?? 2026;
   const timelineStep = climateContext?.timelineStep ?? "today";
   const setTimelineStep = climateContext?.setTimelineStep ?? (() => undefined);
   const mapMode = climateContext?.mapMode ?? "streets";

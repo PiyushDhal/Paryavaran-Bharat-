@@ -287,7 +287,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   onChange={(e) => setActiveYear(Number(e.target.value))}
                   className="h-10 w-full rounded-md border border-white/[0.08] bg-background/70 px-3 text-sm font-medium text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
                 >
-                  <option value={2025}>2025 (Current)</option>
+                  <option value={2026}>2026 (Current)</option>
                   <option value={2030}>2030 (Projected)</option>
                 </select>
               </div>

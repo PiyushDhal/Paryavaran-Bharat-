@@ -633,7 +633,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-white/5 text-center text-xs text-muted-foreground">
-            © 2025 Bharat Climate Twin. Government-tech climate resilience platform.
+            © 2026 Bharat Climate Twin. Government-tech climate resilience platform.
           </div>
         </div>
       </footer>

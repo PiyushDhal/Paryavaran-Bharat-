@@ -12,7 +12,7 @@ def get_timeline(district_id: int, db: Session = Depends(get_db)):
     if not district:
         raise HTTPException(status_code=404, detail="District not found")
         
-    years = [2010, 2015, 2020, 2025, 2030, 2040, 2050]
+    years = [2010, 2015, 2020, 2026, 2030, 2040, 2050]
     timeline_data = []
     
     for y in years:
@@ -39,8 +39,8 @@ def get_timeline(district_id: int, db: Session = Depends(get_db)):
         if risk_row:
             risk_score = int(risk_row.composite_risk)
             
-        is_hist = y < 2025
-        type_str = "historical" if is_hist else ("current" if y == 2025 else "predicted")
+        is_hist = y < 2026
+        type_str = "historical" if is_hist else ("current" if y == 2026 else "predicted")
         
         label = "Baseline Transition Year"
         description = "Stabilized monsoon indicators with localized temperature rises. Current ground telemetry aligns with long-term climate baselines."

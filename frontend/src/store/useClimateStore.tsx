@@ -23,7 +23,7 @@ type ClimateContextType = {
 const ClimateContext = createContext<ClimateContextType | undefined>(undefined);
 
 export function ClimateProvider({ children }: { children: React.ReactNode }) {
-  const [activeYear, setActiveYear] = useState<number>(2025);
+  const [activeYear, setActiveYear] = useState<number>(2026);
   const [selectedDistrictId, setSelectedDistrictId] = useState<number | undefined>(undefined);
   const [activeLayer, setActiveLayer] = useState<string>("composite");
   const [rankings, setRankings] = useState<Ranking[]>([]);
@@ -35,7 +35,7 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
     if (timelineStep === "2030") {
       setActiveYear(2030);
     } else {
-      setActiveYear(2025);
+      setActiveYear(2026);
     }
   }, [timelineStep]);
 

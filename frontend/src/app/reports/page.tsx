@@ -94,7 +94,7 @@ export default function ReportsPage() {
   const [compareStateId, setCompareStateId] = useState<string>("all");
   
   const [districtId, setDistrictId] = useState<number>(101);
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number>(2026);
   const [sector, setSector] = useState<string>("water");
   const [reportType, setReportType] = useState<string>("district_climate");
   const [disasterType, setDisasterType] = useState<string>("all");
@@ -341,12 +341,12 @@ export default function ReportsPage() {
             reportType: "flood_assessment",
             stateName: "Assam",
             districtName: "Cachar",
-            year: 2025,
+            year: 2026,
             sector: "infrastructure",
             disasterType: "flood",
             riskLevelFilter: "critical",
             dateCompiled: "10 June 2026",
-            refNo: "BCT-REP-CAC-2025",
+            refNo: "BCT-REP-CAC-2026",
             isComparison: false
           }
         ];
@@ -884,7 +884,7 @@ export default function ReportsPage() {
                   onChange={(e) => setYear(Number(e.target.value))}
                   className="w-full bg-background/70 border border-slate-800 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-400"
                 >
-                  {[2020, 2025, 2030, 2040, 2050].map((y) => (
+                  {[2020, 2026, 2030, 2040, 2050].map((y) => (
                     <option key={y} value={y}>{y} AD Horizon</option>
                   ))}
                 </select>

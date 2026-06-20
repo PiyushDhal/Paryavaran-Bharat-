@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
   // ─── Filter States ──────────────────────────────────────────────────
   const [stateId, setStateId] = useState<number | "">("");
   const [selectedDistId, setSelectedDistId] = useState<number | "">("");
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number>(2026);
   const [climateZone, setClimateZone] = useState<string>("");
   const [riskCategory, setRiskCategory] = useState<string>("");
 
@@ -438,7 +438,7 @@ export default function AnalyticsPage() {
               onChange={(e) => setYear(Number(e.target.value))}
               className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
             >
-              {[2020, 2025, 2030, 2040, 2050].map((y) => (
+              {[2020, 2026, 2030, 2040, 2050].map((y) => (
                 <option key={y} value={y}>{y} AD</option>
               ))}
             </select>

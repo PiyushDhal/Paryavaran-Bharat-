@@ -16,7 +16,7 @@ export default function ComparePage() {
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtIdA, setDistrictIdA] = useState<number | undefined>(undefined);
   const [districtIdB, setDistrictIdB] = useState<number | undefined>(undefined);
-  const [year, setYear] = useState<number>(2025);
+  const [year, setYear] = useState<number>(2026);
 
   // Sync year state with activeYear from context
   useEffect(() => {
@@ -172,7 +172,7 @@ export default function ComparePage() {
             onChange={(e) => setYear(Number(e.target.value))}
             className="bg-background border border-slate-700 rounded px-2.5 py-1 text-xs text-emerald-200 focus:outline-none"
           >
-            {[2010, 2015, 2020, 2025, 2030, 2040, 2050].map((y) => (
+            {[2010, 2015, 2020, 2026, 2030, 2040, 2050].map((y) => (
               <option key={y} value={y}>{y} AD</option>
             ))}
           </select>

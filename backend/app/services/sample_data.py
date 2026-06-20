@@ -176,7 +176,7 @@ def generate_observations(district_code: str, profile: str, years: int | list[in
             temp_rise = -0.25
         elif year == 2020:
             temp_rise = 0.0
-        elif year == 2025:
+        elif year == 2026:
             temp_rise = 0.4
         elif year == 2030:
             temp_rise = 0.8
