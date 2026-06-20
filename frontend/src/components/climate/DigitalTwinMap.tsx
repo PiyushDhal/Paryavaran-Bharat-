@@ -1913,7 +1913,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   { icon: Droplets, label: "Soil Moisture", val: selectedMetrics.soil_moisture, unit: "%", color: "text-lime-400", source: "NRSC" },
                   { icon: Sun, label: "Vegetation NDVI", val: selectedMetrics.ndvi, unit: "", color: "text-green-400", source: "NRSC" },
                   { icon: Shield, label: "Reservoir Level", val: selectedMetrics.reservoir_level, unit: "%", color: "text-brand-green", source: "India-WRIS" },
-                  { icon: AlertTriangle, label: "River Discharge", val: selectedMetrics.river_level, unit: "m", color: "text-sky-400", source: "CWC" }
+                  { icon: AlertTriangle, label: "River Discharge", val: selectedMetrics.river_level, unit: "m", color: "text-mint", source: "CWC" }
                 ].map((item, idx) => (
                   <div key={idx} className="bg-surface/60 border border-white/[0.08] rounded-lg p-2 flex flex-col justify-between">
                     <div className="flex items-center justify-between">

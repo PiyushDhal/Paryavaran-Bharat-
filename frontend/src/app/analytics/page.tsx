@@ -699,7 +699,7 @@ export default function AnalyticsPage() {
               { label: "Flood Inundation Risk", val: metrics.avgFlood, color: "text-brand-emerald" },
               { label: "Extreme Heatwaves Risk", val: metrics.avgHeat, color: "text-red-400" },
               { label: "Agricultural Drought Risk", val: metrics.avgDrought, color: "text-amber-400" },
-              { label: "Hydrologic Water Stress", val: metrics.avgWater, color: "text-sky-400" }
+              { label: "Hydrologic Water Stress", val: metrics.avgWater, color: "text-mint" }
             ].map((r, i) => (
               <Card key={i} className="glass-card bg-background/50 p-4">
                 <span className="text-[8.5px] font-bold text-muted-foreground uppercase block">{r.label}</span>
@@ -955,7 +955,7 @@ export default function AnalyticsPage() {
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs font-medium">
                       <span className="text-secondary-foreground">Hydrologic Recycling & Basin Recovery</span>
-                      <span className="text-sky-300 font-mono font-bold">{recycleRate}%</span>
+                      <span className="text-mint font-mono font-bold">{recycleRate}%</span>
                     </div>
                     <input
                       type="range"
@@ -963,7 +963,7 @@ export default function AnalyticsPage() {
                       max="100"
                       value={recycleRate}
                       onChange={(e) => setRecycleRate(Number(e.target.value))}
-                      className="w-full accent-sky-400 bg-surface rounded-lg cursor-pointer h-1.5"
+                      className="w-full accent-mint bg-surface rounded-lg cursor-pointer h-1.5"
                     />
                     <p className="text-[9.5px] text-muted-foreground">Preserves localized surface reservoir capacities, hedging drought anomalies.</p>
                   </div>
