@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
@@ -16,7 +17,6 @@ import {
   LockKeyhole,
   Map,
   Menu,
-  Orbit,
   Settings,
   ShieldCheck,
   SlidersHorizontal,
@@ -122,8 +122,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-white/5 bg-background py-5 lg:flex lg:flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)]", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
         <div className="flex items-center justify-between px-2 mb-6">
           <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-blue shadow-[0_4px_14px_0_rgba(77,168,218,0.25)]">
-              <Orbit className="h-5 w-5 animate-spin-slow text-white" />
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-blue shadow-[0_4px_14px_0_rgba(77,168,218,0.25)] overflow-hidden">
+              <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover" />
             </span>
             {!isCollapsed && (
               <span className="whitespace-nowrap overflow-hidden">
@@ -201,7 +201,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               IMD & ISRO Connected
             </p>
           ) : (
-            <Orbit className="h-4 w-4 text-brand-blue/50 mx-auto" />
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] overflow-hidden mx-auto opacity-50">
+              <Image src="/logo.jpg" alt="Logo" width={20} height={20} className="object-cover grayscale" />
+            </span>
           )}
         </div>
       </aside>
@@ -213,7 +215,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <aside className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.08] bg-background px-4 py-5 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <Link href="/" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-                <Orbit className="h-6 w-6 text-emerald-200" />
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 border border-brand-blue/20 overflow-hidden">
+                  <Image src="/logo.jpg" alt="Logo" width={48} height={48} className="object-cover" />
+                </span>
                 <span className="font-semibold text-white">Bharat Climate Twin</span>
               </Link>
               <button onClick={() => setMobileOpen(false)} className="text-muted-foreground hover:text-white">
@@ -263,7 +267,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5" />
             </button>
             <Link href="/" className="flex items-center gap-2 lg:hidden shrink-0">
-              <Orbit className="h-5 w-5 text-emerald-200" />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 border border-brand-blue/20 overflow-hidden">
+                <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover" />
+              </span>
               <span className="font-semibold text-sm">Bharat Climate Twin</span>
             </Link>
             
