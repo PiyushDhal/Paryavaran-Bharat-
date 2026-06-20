@@ -227,11 +227,11 @@ function RadarSweep() {
 // ── Pulsing Data Nodes Overlay ──────────────────────────────────
 function DataNodes() {
   const nodes = [
-    { label: "IMD Delhi", top: "20%", left: "45%", delay: "0s" },
-    { label: "NRSC Hyderabad", top: "65%", left: "47%", delay: "0.5s" },
-    { label: "ISRO Bengaluru", top: "83%", left: "46%", delay: "1s" },
-    { label: "IMD Mumbai", top: "59%", left: "36%", delay: "1.5s" },
-    { label: "IMD Guwahati", top: "30%", left: "74%", delay: "2s" },
+    { label: "IMD Delhi", top: "15%", left: "32%", delay: "0s" },
+    { label: "NRSC Hyderabad", top: "97%", left: "37%", delay: "0.5s" },
+    { label: "ISRO Bengaluru", top: "115%", left: "33%", delay: "1s" },
+    { label: "IMD Mumbai", top: "85%", left: "15%", delay: "1.5s" },
+    { label: "IMD Guwahati", top: "34%", left: "88%", delay: "2s" },
   ];
 
   return (
