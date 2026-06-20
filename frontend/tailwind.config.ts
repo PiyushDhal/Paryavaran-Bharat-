@@ -45,11 +45,11 @@ const config: Config = {
         }
       },
       boxShadow: {
-        glow: "0 0 40px rgba(34, 211, 238, 0.18)"
+        glow: "0 0 40px rgba(52, 211, 153, 0.18)"
       },
       backgroundImage: {
         "radar-grid":
-          "linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px)"
+          "linear-gradient(rgba(52, 211, 153, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(52, 211, 153, 0.08) 1px, transparent 1px)"
       },
       animation: {
         "spin-slow": "spin 8s linear infinite"
