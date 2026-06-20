@@ -29,7 +29,7 @@ class BaseConnector:
     def run(self, db: Session, **kwargs) -> int:
         """Execute the full ingestion pipeline."""
         logger.info(f"Starting ingestion pipeline for {self.name}")
-        raw_data = self.fetch(**kwargs)
+        raw_data = self.fetch(db=db, **kwargs)
         validated = self.validate(raw_data)
         normalized = self.normalize(validated)
         records_saved = self.save(db, normalized)

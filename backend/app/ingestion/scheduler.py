@@ -1,6 +1,13 @@
 import logging
+import sys
+import os
+
+# Ensure project root is in python search path
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
+from app.models.user import User # Resolve User mapper dependency
 
 from app.ingestion.imd import IMDConnector
 from app.ingestion.nrsc import NRSCConnector
