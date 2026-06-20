@@ -39,8 +39,8 @@ export default function AdminPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard title="Users" value={`${overview?.users ?? "--"}`} detail="JWT accounts" icon={LockKeyhole} />
-        <MetricCard title="Districts" value={`${overview?.districts ?? "--"}`} detail="PostGIS entities" icon={Database} tone="emerald" />
-        <MetricCard title="Risk Scores" value={`${overview?.risk_scores ?? "--"}`} detail="Historical scores" icon={ServerCog} tone="emerald" />
+        <MetricCard title="Districts" value={`${overview?.districts ?? "--"}`} detail="PostGIS entities" icon={Database} tone="steel" />
+        <MetricCard title="Risk Scores" value={`${overview?.risk_scores ?? "--"}`} detail="Historical scores" icon={ServerCog} tone="steel" />
         <MetricCard title="Simulations" value={`${overview?.simulations ?? "--"}`} detail="Scenario runs" icon={ServerCog} tone="amber" />
       </div>
 
