@@ -5,7 +5,10 @@ from geoalchemy2 import Geometry
 from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.config import get_settings
 from app.models.base import Base, TimestampMixin
+
+settings = get_settings()
 
 
 class State(Base, TimestampMixin):
@@ -36,7 +39,10 @@ class District(Base, TimestampMixin):
     area_sq_km: Mapped[float] = mapped_column(Float, default=0, nullable=False)
     centroid_lat: Mapped[float] = mapped_column(Float, nullable=False)
     centroid_lon: Mapped[float] = mapped_column(Float, nullable=False)
-    geom = mapped_column(Geometry(geometry_type="MULTIPOLYGON", srid=4326), nullable=True)
+    if "sqlite" in settings.database_url:
+        geom = mapped_column(Text, nullable=True)
+    else:
+        geom = mapped_column(Geometry(geometry_type="MULTIPOLYGON", srid=4326), nullable=True)
     boundary_geojson: Mapped[dict[str, Any] | None] = mapped_column(JSON)
 
     state = relationship("State", back_populates="districts")

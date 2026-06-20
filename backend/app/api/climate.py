@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, extract
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -60,7 +60,7 @@ def district_history(
         .filter(WeatherData.district_id == district_id)
     )
     if year:
-        query = query.filter(func.extract("year", WeatherData.observed_on) == year)
+        query = query.filter(extract("year", WeatherData.observed_on) == year)
     rows = query.order_by(WeatherData.observed_on).all()
     return [
         ClimateObservation(
@@ -83,7 +83,7 @@ def district_history(
 def map_layers(year: int | None = None, db: Session = Depends(get_db)) -> dict:
     latest_subquery = db.query(RiskScore.district_id, func.max(RiskScore.valid_on).label("valid_on"))
     if year:
-        latest_subquery = latest_subquery.filter(func.extract("year", RiskScore.valid_on) == year)
+        latest_subquery = latest_subquery.filter(extract("year", RiskScore.valid_on) == year)
     latest_subquery = latest_subquery.group_by(RiskScore.district_id).subquery()
     rows = (
         db.query(District, State, RiskScore)
@@ -130,7 +130,7 @@ def map_layers(year: int | None = None, db: Session = Depends(get_db)) -> dict:
 def rankings(year: int | None = None, limit: int = 10, db: Session = Depends(get_db)) -> list[dict]:
     query_latest = db.query(RiskScore.district_id, func.max(RiskScore.valid_on).label("valid_on"))
     if year:
-        query_latest = query_latest.filter(func.extract("year", RiskScore.valid_on) == year)
+        query_latest = query_latest.filter(extract("year", RiskScore.valid_on) == year)
     latest = query_latest.group_by(RiskScore.district_id).subquery()
     rows = (
         db.query(District, State, RiskScore)
@@ -174,7 +174,7 @@ def analytics(year: int | None = None, db: Session = Depends(get_db)) -> dict:
         )
     )
     if year:
-        query = query.filter(func.extract("year", WeatherData.observed_on) == year)
+        query = query.filter(extract("year", WeatherData.observed_on) == year)
     rows = query.group_by(WeatherData.observed_on).order_by(WeatherData.observed_on).all()
     latest = rows[-1] if rows else None
     return {

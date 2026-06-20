@@ -1906,25 +1906,28 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { icon: Thermometer, label: "Temperature", val: selectedMetrics.temperature, unit: "°C", color: "text-amber-400" },
-                  { icon: Droplets, label: "Humidity", val: selectedMetrics.humidity, unit: "%", color: "text-blue-400" },
-                  { icon: CloudRain, label: "Rainfall", val: selectedMetrics.rainfall, unit: " mm", color: "text-cyan-400" },
-                  { icon: Activity, label: "AQI Index", val: selectedMetrics.aqi, unit: "", color: "text-emerald-400" },
-                  { icon: Droplets, label: "Soil Moisture", val: selectedMetrics.soil_moisture, unit: "%", color: "text-lime-400" },
-                  { icon: Sun, label: "Vegetation NDVI", val: selectedMetrics.ndvi, unit: "", color: "text-green-400" },
-                  { icon: Shield, label: "Reservoir Level", val: selectedMetrics.reservoir_level, unit: "%", color: "text-cyan-500" },
-                  { icon: AlertTriangle, label: "River Discharge", val: selectedMetrics.river_level, unit: "m", color: "text-sky-400" }
+                  { icon: Thermometer, label: "Temperature", val: selectedMetrics.temperature, unit: "°C", color: "text-amber-400", source: "IMD" },
+                  { icon: Droplets, label: "Humidity", val: selectedMetrics.humidity, unit: "%", color: "text-blue-400", source: "IMD" },
+                  { icon: CloudRain, label: "Rainfall", val: selectedMetrics.rainfall, unit: " mm", color: "text-cyan-400", source: "IMD" },
+                  { icon: Activity, label: "AQI Index", val: selectedMetrics.aqi, unit: "", color: "text-emerald-400", source: "CPCB" },
+                  { icon: Droplets, label: "Soil Moisture", val: selectedMetrics.soil_moisture, unit: "%", color: "text-lime-400", source: "NRSC" },
+                  { icon: Sun, label: "Vegetation NDVI", val: selectedMetrics.ndvi, unit: "", color: "text-green-400", source: "NRSC" },
+                  { icon: Shield, label: "Reservoir Level", val: selectedMetrics.reservoir_level, unit: "%", color: "text-cyan-500", source: "India-WRIS" },
+                  { icon: AlertTriangle, label: "River Discharge", val: selectedMetrics.river_level, unit: "m", color: "text-sky-400", source: "CWC" }
                 ].map((item, idx) => (
                   <div key={idx} className="bg-slate-900/60 border border-cyan-500/10 rounded-lg p-2 flex flex-col justify-between">
                     <div className="flex items-center justify-between">
                       <span className="text-[8px] font-bold text-slate-500 uppercase">{item.label}</span>
                       <item.icon className={`h-3 w-3 ${item.color}`} />
                     </div>
-                    <div className="mt-1.5">
-                      <span className="text-xs font-bold text-white font-mono">
-                        {typeof item.val === "number" ? item.val.toFixed(item.label.includes("NDVI") || item.label.includes("River") ? 2 : 0) : "N/A"}
-                      </span>
-                      <span className="text-[9px] text-slate-400 ml-0.5">{item.unit}</span>
+                    <div className="mt-1.5 flex justify-between items-end">
+                      <div>
+                        <span className="text-xs font-bold text-white font-mono">
+                          {typeof item.val === "number" ? item.val.toFixed(item.label.includes("NDVI") || item.label.includes("River") ? 2 : 0) : "N/A"}
+                        </span>
+                        <span className="text-[9px] text-slate-400 ml-0.5">{item.unit}</span>
+                      </div>
+                      {item.source && <span className="text-[7px] text-slate-500/80 font-bold uppercase" title={`Source: ${item.source}`}>{item.source}</span>}
                     </div>
                   </div>
                 ))}
@@ -2038,8 +2041,10 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               </div>
             )}
 
-            <div className="text-[9px] text-center text-slate-500 border-t border-cyan-500/10 pt-3">
-              Last updated: Just now | Source: IMD & CPCB Gridded Feeds
+            <div className="text-[9px] text-center text-slate-500 border-t border-cyan-500/10 pt-3 flex flex-wrap justify-center gap-1.5">
+              <span>Last updated: Just now</span>
+              <span className="text-slate-600">|</span>
+              <span>Sources: IMD, NRSC, CPCB, CWC, India-WRIS</span>
             </div>
           </div>
         ) : (

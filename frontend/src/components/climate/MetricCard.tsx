@@ -9,7 +9,8 @@ export function MetricCard({
   detail,
   icon: Icon,
   tone = "cyan",
-  delta
+  delta,
+  source
 }: {
   title: string;
   value: string;
@@ -21,6 +22,7 @@ export function MetricCard({
     isPositive?: boolean;
     label?: string;
   };
+  source?: string;
 }) {
   const toneMap = {
     cyan: {
@@ -65,6 +67,9 @@ export function MetricCard({
               </span>
             )}
             <span className="text-xs text-slate-500">{detail}</span>
+            {source && (
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-600 bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700/50">Source: {source}</span>
+            )}
           </div>
         </div>
         <div className={cn("grid h-12 w-12 shrink-0 place-items-center rounded-lg border backdrop-blur-sm transition-transform duration-300 group-hover:scale-105", toneMap[tone].text)}>

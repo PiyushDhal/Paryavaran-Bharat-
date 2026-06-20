@@ -6,11 +6,14 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import MultiPolygon, shape
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.security import get_password_hash
 from app.models.climate import ClimateAlert, District, RiskScore, SatelliteData, State, WeatherData, SimulationResult
 from app.models.user import User
 from app.services.risk_engine import ClimateRiskEngine
 from app.services.sample_data import DISTRICTS, generate_observations, sample_alerts, synthetic_boundary
+
+settings = get_settings()
 
 
 def init_db(db: Session) -> None:
@@ -57,6 +60,12 @@ def init_db(db: Session) -> None:
 
         boundary = synthetic_boundary(row["lat"], row["lon"])
         polygon = shape(boundary["geometry"])
+        
+        if "sqlite" in settings.database_url:
+            geom_val = MultiPolygon([polygon]).wkt
+        else:
+            geom_val = from_shape(MultiPolygon([polygon]), srid=4326)
+
         district = District(
             state_id=state.id,
             name=row["district"],
@@ -66,7 +75,7 @@ def init_db(db: Session) -> None:
             centroid_lat=row["lat"],
             centroid_lon=row["lon"],
             boundary_geojson=boundary,
-            geom=from_shape(MultiPolygon([polygon]), srid=4326),
+            geom=geom_val,
         )
         db.add(district)
         db.flush()

@@ -57,6 +57,7 @@ const navSections = [
   {
     label: "System",
     items: [
+      { href: "/data-sources", label: "Data Sources", icon: Layers3 },
       { href: "/admin", label: "Admin Panel", icon: Settings },
       { href: "/register", label: "Register Operator", icon: UserPlus }
     ]

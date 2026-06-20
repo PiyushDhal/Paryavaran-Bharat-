@@ -28,8 +28,9 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup() -> None:
     if settings.seed_database:
-        with engine.begin() as connection:
-            connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+        if "sqlite" not in settings.database_url:
+            with engine.begin() as connection:
+                connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
         Base.metadata.create_all(bind=engine)
         db = SessionLocal()
         try:

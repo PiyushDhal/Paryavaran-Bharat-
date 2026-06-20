@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
     database_url: str = Field(
-        default="postgresql+psycopg2://climate:climate@db:5432/bharat_climate"
+        default="sqlite:///./bharat_climate.db"
     )
     jwt_secret_key: str = Field(default="change-me-in-production")
     jwt_algorithm: str = "HS256"

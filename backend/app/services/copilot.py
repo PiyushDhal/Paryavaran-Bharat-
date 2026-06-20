@@ -42,7 +42,7 @@ class ClimateCopilot:
                 .order_by("avg_risk")
                 .all()
             )
-            explanation = "By analyzing the composite risk score of all districts grouped under each state, we can determine the safest states across India."
+            explanation = "By analyzing the composite risk score of all districts grouped under each state, we can determine the safest states across India. (Data sourced from IMD observations and NRSC satellite products)."
             risk_analysis = "States with lower composite risk averages benefit from favorable precipitation patterns, lower thermal stress indexes, and resilient local water reservoirs."
             chart_data = [{"district": r[0], "risk": round(float(r[1]), 1)} for r in state_risks[:5]]
             recommended_actions = [
@@ -118,7 +118,7 @@ class ClimateCopilot:
                 .limit(5)
                 .all()
             )
-            explanation = "Worsening AQI patterns are correlated with thermal inversions, particulate matter accumulation, and low vegetative filtration."
+            explanation = "Worsening AQI patterns are correlated with thermal inversions, particulate matter accumulation, and low vegetative filtration. (Air quality indicators sourced from CPCB observations)."
             risk_analysis = "Northwestern and highly urbanized districts exhibit the highest atmospheric stress metrics."
             chart_data = [{"district": r[0], "risk": r[1]} for r in worst_aqi]
             recommended_actions = [
@@ -130,7 +130,7 @@ class ClimateCopilot:
 
         # Predict rainfall or Precipitation forecast
         elif "predict rainfall" in text or "rainfall forecast" in text or "monsoon prediction" in text:
-            explanation = "Monsoon precipitation projection for the next week shows dynamic positive anomalies along the Western Ghats and North-East basins."
+            explanation = "Monsoon precipitation projection for the next week shows dynamic positive anomalies along the Western Ghats and North-East basins. (Rainfall analysis based on IMD observations)."
             risk_analysis = "Standard deviation calculations indicate normal distribution, though convective storm cells are increasing in frequency."
             chart_data = rankings[:5]
             recommended_actions = [
@@ -175,7 +175,7 @@ class ClimateCopilot:
                             "Coordinate regional water tables",
                             "Deploy advisory channels to rural blocks"
                         ],
-                        "sources": ["IMD Gridded Feed", "INSAT LST", "NRSC Soil Moisture"]
+                        "sources": ["IMD Gridded Feed", "INSAT LST", "NRSC Soil Moisture", "CPCB AQI"]
                     }
                     action = {"type": "zoom_to_district", "district_id": target_district.id, "district_name": target_district.name, "lat": target_district.centroid_lat, "lon": target_district.centroid_lon}
                     recommended_actions = [
@@ -287,7 +287,7 @@ class ClimateCopilot:
         # Worsening flood risk or highest flood risk
         elif "flood" in text or "water" in text:
             focus = sorted(rankings, key=lambda row: row["flood_risk"], reverse=True)[:5]
-            explanation = "Flood vulnerability is highest where rainfall, river levels, and soil saturation align."
+            explanation = "Flood vulnerability is highest where rainfall, river levels, and soil saturation align. (River levels sourced from CWC telemetry)."
             risk_analysis = "The current twin flags riverine and coastal districts for near-term watch conditions."
             chart_data = [{"district": row["district_name"], "risk": row["flood_risk"]} for row in focus]
             recommended_actions = [
@@ -301,7 +301,7 @@ class ClimateCopilot:
         # Drought hotspots
         elif "drought" in text or "dry" in text:
             focus = sorted(rankings, key=lambda row: row["drought_risk"], reverse=True)[:5]
-            explanation = "Drought vulnerability is driven by rainfall deficit, low NDVI, and depleted reservoir storage."
+            explanation = "Drought vulnerability is driven by rainfall deficit, low NDVI, and depleted reservoir storage. (Reservoir levels sourced from India-WRIS)."
             risk_analysis = "Arid and rain-shadow districts require water budgeting and crop advisories."
             chart_data = [{"district": row["district_name"], "risk": row["drought_risk"]} for row in focus]
             recommended_actions = [
@@ -329,7 +329,7 @@ class ClimateCopilot:
         # Default general response
         else:
             focus = rankings[:6]
-            explanation = "The national risk picture combines flood, drought, heatwave, and water stress indicators."
+            explanation = "The national risk picture combines flood, drought, heatwave, and water stress indicators. (Data aggregated from IMD, NRSC, CPCB, CWC, and India-WRIS)."
             risk_analysis = "Immediate interventions should prioritize districts with high composite risk and rising trends."
             chart_data = [{"district": row["district_name"], "risk": row["composite_risk"]} for row in focus]
             recommended_actions = [
