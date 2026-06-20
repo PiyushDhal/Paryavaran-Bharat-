@@ -32,6 +32,21 @@ import {
   PanelLeftOpen
 } from "lucide-react";
 
+import {
+  FilledDashboard,
+  FilledDigitalTwin,
+  FilledAnalytics,
+  FilledRiskCenter,
+  FilledComparison,
+  FilledSimulator,
+  FilledTimeline,
+  FilledCopilot,
+  FilledReport,
+  FilledDataSources,
+  FilledSettings,
+  FilledProfile
+} from "@/components/icons/FilledIcons";
+
 import { cn } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
 import { DistrictSelector } from "@/components/climate/DistrictSelector";
@@ -40,28 +55,28 @@ const navSections = [
   {
     label: "Intelligence",
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: Gauge },
-      { href: "/map", label: "Digital Twin Map", icon: Map },
-      { href: "/analytics", label: "Climate Analytics", icon: BarChart3 },
-      { href: "/risk-center", label: "Risk Center", icon: Activity },
-      { href: "/compare", label: "District Comparison", icon: Scale }
+      { href: "/dashboard", label: "Dashboard", icon: FilledDashboard },
+      { href: "/map", label: "Digital Twin", icon: FilledDigitalTwin },
+      { href: "/analytics", label: "Climate Analytics", icon: FilledAnalytics },
+      { href: "/risk-center", label: "Risk Center", icon: FilledRiskCenter },
+      { href: "/compare", label: "District Comparison", icon: FilledComparison }
     ]
   },
   {
     label: "Operations",
     items: [
-      { href: "/simulator", label: "Scenario Simulator", icon: SlidersHorizontal },
-      { href: "/timeline", label: "Climate Timeline", icon: CalendarRange },
-      { href: "/copilot", label: "AI Copilot", icon: Bot },
-      { href: "/reports", label: "AI Report Generator", icon: FileText }
+      { href: "/simulator", label: "Scenario Simulator", icon: FilledSimulator },
+      { href: "/timeline", label: "Climate Timeline", icon: FilledTimeline },
+      { href: "/copilot", label: "AI Copilot", icon: FilledCopilot },
+      { href: "/reports", label: "AI Report", icon: FilledReport }
     ]
   },
   {
     label: "System",
     items: [
-      { href: "/data-sources", label: "Data Sources", icon: Layers3 },
-      { href: "/admin", label: "Admin Panel", icon: Settings },
-      { href: "/register", label: "Register Operator", icon: UserPlus }
+      { href: "/data-sources", label: "Data Sources", icon: FilledDataSources },
+      { href: "/admin", label: "Settings", icon: FilledSettings },
+      { href: "/register", label: "Profile", icon: FilledProfile }
     ]
   }
 ];
@@ -104,15 +119,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-radar-grid bg-[size:44px_44px]">
       {/* ── Desktop sidebar ────────────────────────────────────── */}
-      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-cyan-300/15 bg-slate-950/82 py-5 backdrop-blur-2xl lg:flex lg:flex-col transition-all duration-300", isCollapsed ? "w-20 px-2" : "w-72 px-4")}>
-        <div className="flex items-center justify-between px-2">
+      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-[#10B981]/10 bg-[#0B1220] py-5 lg:flex lg:flex-col transition-all duration-300", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
+        <div className="flex items-center justify-between px-2 mb-6">
           <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md border border-cyan-300/30 bg-cyan-400/10">
-              <Orbit className="h-6 w-6 animate-spin-slow text-cyan-200" />
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
+              <Orbit className="h-6 w-6 animate-spin-slow text-[#A7F3D0]" />
             </span>
             {!isCollapsed && (
               <span className="whitespace-nowrap overflow-hidden">
-                <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-cyan-200">
+                <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-[#A7F3D0]">
                   Bharat
                 </span>
                 <span className="block text-lg font-semibold tracking-normal text-white">
@@ -122,30 +137,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </Link>
           {!isCollapsed && (
-            <button onClick={toggleSidebar} className="text-slate-400 hover:text-white transition ml-2">
+            <button onClick={toggleSidebar} className="text-slate-500 hover:text-[#A7F3D0] transition ml-2 shrink-0">
               <PanelLeftClose className="h-5 w-5" />
             </button>
           )}
         </div>
         {isCollapsed && (
-          <div className="mt-4 flex justify-center">
-            <button onClick={toggleSidebar} className="text-slate-400 hover:text-white transition">
+          <div className="flex justify-center mb-2">
+            <button onClick={toggleSidebar} className="text-slate-500 hover:text-[#A7F3D0] transition">
               <PanelLeftOpen className="h-5 w-5" />
             </button>
           </div>
         )}
 
-        <nav className="mt-8 flex-1 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
           {navSections.map((section) => (
-            <div key={section.label} className="mb-5">
+            <div key={section.label} className="mb-6">
               {!isCollapsed ? (
-                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 whitespace-nowrap overflow-hidden">
+                <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#34D399]/60 whitespace-nowrap overflow-hidden">
                   {section.label}
                 </p>
               ) : (
-                <div className="h-4 border-b border-white/5 mb-4 mx-2" />
+                <div className="h-px bg-white/5 mb-4 mx-4" />
               )}
-              <div className="grid gap-0.5">
+              <div className="grid gap-2">
                 {section.items.map((item) => {
                   const Icon = item.icon;
                   const active = pathname === item.href;
@@ -155,14 +170,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       href={item.href}
                       title={isCollapsed ? item.label : undefined}
                       className={cn(
-                        "flex items-center gap-3 rounded-md py-2.5 text-sm font-medium text-slate-300 transition whitespace-nowrap overflow-hidden",
-                        isCollapsed ? "justify-center px-0" : "px-3",
-                        active && "border-l-2 border-cyan-400 bg-cyan-400/12 text-white shadow-glow",
-                        !active && "border-l-2 border-transparent hover:bg-white/6 hover:text-white"
+                        "flex items-center gap-4 text-sm font-medium transition whitespace-nowrap overflow-hidden group",
+                        isCollapsed ? "justify-center" : "px-3"
                       )}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      {!isCollapsed && <span>{item.label}</span>}
+                      <div className={cn(
+                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] transition-all duration-300 relative overflow-hidden",
+                        active 
+                          ? "bg-[#10B981]/20 text-[#A7F3D0] shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]" 
+                          : "bg-[#1F2937]/60 text-[#A7F3D0]/60 group-hover:bg-[#1F2937] group-hover:text-[#A7F3D0]"
+                      )}>
+                        {active && (
+                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#34D399] rounded-r-md" />
+                        )}
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      {!isCollapsed && <span className={cn(active ? "text-white font-semibold" : "text-slate-400 group-hover:text-[#A7F3D0]")}>{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -171,13 +194,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="border-t border-cyan-300/10 pt-4 pb-2 text-center overflow-hidden">
+        <div className="border-t border-white/5 pt-4 mt-2 text-center overflow-hidden">
           {!isCollapsed ? (
-            <p className="text-[10px] uppercase tracking-[0.15em] text-slate-500 font-bold whitespace-nowrap">
+            <p className="text-[10px] uppercase tracking-[0.15em] text-[#34D399]/50 font-bold whitespace-nowrap">
               IMD & ISRO Connected
             </p>
           ) : (
-            <Orbit className="h-4 w-4 text-slate-500 mx-auto" />
+            <Orbit className="h-4 w-4 text-[#34D399]/50 mx-auto" />
           )}
         </div>
       </aside>
