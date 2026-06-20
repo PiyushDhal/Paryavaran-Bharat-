@@ -80,11 +80,11 @@ export default function DataSourcesPage() {
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Data Provenance</h1>
-          <p className="mt-2 text-slate-400">Official Government integration endpoints powering the Bharat Climate Twin.</p>
+          <p className="mt-2 text-muted-foreground">Official Government integration endpoints powering the Bharat Climate Twin.</p>
         </div>
-        <div className="flex items-center gap-2 rounded-md bg-emerald-400/10 border border-emerald-400/20 px-4 py-2">
+        <div className="flex items-center gap-2 rounded-md bg-emerald-400/10 border border-white/[0.08] px-4 py-2">
           <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></div>
-          <span className="text-sm font-medium text-emerald-300">Ingestion Pipeline Active</span>
+          <span className="text-sm font-medium text-mint">Ingestion Pipeline Active</span>
         </div>
       </div>
 
@@ -92,9 +92,9 @@ export default function DataSourcesPage() {
         {sources.map((source) => {
           const Icon = source.icon;
           return (
-            <div key={source.id} className="overflow-hidden rounded-xl border border-slate-800 bg-[#1F2937]/50 p-6 backdrop-blur-xl shadow-glow">
+            <div key={source.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-surface/50 p-6 backdrop-blur-xl shadow-glow">
               <div className="flex flex-col md:flex-row gap-6 md:items-start">
-                <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-xl border border-${source.color}-400/30 bg-${source.color}-400/10 text-${source.color}-300`}>
+                <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-${source.color}-400/30 bg-${source.color}-400/10 text-${source.color}-300`}>
                   <Icon className="h-8 w-8" />
                 </div>
                 
@@ -107,38 +107,38 @@ export default function DataSourcesPage() {
                           {source.category}
                         </span>
                       </h2>
-                      <p className="text-sm text-slate-400 mt-1">{source.organization}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{source.organization}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-emerald-300">
+                    <div className="flex items-center gap-2 text-sm text-mint">
                       <Activity className="h-4 w-4" />
                       {source.status}
                     </div>
                   </div>
 
-                  <p className="text-slate-300 leading-relaxed text-sm">
+                  <p className="text-secondary-foreground leading-relaxed text-sm">
                     {source.description}
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-800">
                     <div>
-                      <span className="block text-xs text-slate-500 uppercase font-semibold mb-1">Coverage</span>
+                      <span className="block text-xs text-muted-foreground uppercase font-semibold mb-1">Coverage</span>
                       <span className="text-sm text-slate-200">{source.coverage}</span>
                     </div>
                     <div>
-                      <span className="block text-xs text-slate-500 uppercase font-semibold mb-1">Last Updated</span>
+                      <span className="block text-xs text-muted-foreground uppercase font-semibold mb-1">Last Updated</span>
                       <span className="text-sm text-slate-200">{source.lastUpdated}</span>
                     </div>
                     <div>
-                      <span className="block text-xs text-slate-500 uppercase font-semibold mb-1">Update Frequency</span>
+                      <span className="block text-xs text-muted-foreground uppercase font-semibold mb-1">Update Frequency</span>
                       <span className="text-sm text-slate-200">{source.updateFrequency}</span>
                     </div>
                   </div>
 
                   <div>
-                    <span className="block text-xs text-slate-500 uppercase font-semibold mb-2">Variables Ingested</span>
+                    <span className="block text-xs text-muted-foreground uppercase font-semibold mb-2">Variables Ingested</span>
                     <div className="flex flex-wrap gap-2">
                       {source.variables.map((v) => (
-                        <span key={v} className="inline-flex rounded-md border border-slate-700 bg-slate-800/50 px-2 py-1 text-xs text-slate-300">
+                        <span key={v} className="inline-flex rounded-md border border-slate-700 bg-surface-elevated/50 px-2 py-1 text-xs text-secondary-foreground">
                           {v}
                         </span>
                       ))}

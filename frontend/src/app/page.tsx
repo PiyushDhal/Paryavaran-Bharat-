@@ -250,7 +250,7 @@ function DataNodes() {
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
           </span>
           <span
-            className="text-[9px] font-mono text-emerald-300/70 tracking-wider whitespace-nowrap bg-[#0B1220]/50 px-1 py-0.5 rounded backdrop-blur-sm"
+            className="text-[9px] font-mono text-mint/70 tracking-wider whitespace-nowrap bg-background/50 px-1 py-0.5 rounded backdrop-blur-sm"
           >
             {node.label}
           </span>
@@ -308,7 +308,7 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className={`glass-card p-6 rounded-xl hover:border-emerald-400/40 group animate-fade-in-up stagger-${index + 1} perspective-1000 relative overflow-hidden`}
+      className={`glass-card p-6 rounded-2xl hover:border-white/[0.08] group animate-fade-in-up stagger-${index + 1} perspective-1000 relative overflow-hidden`}
       style={{
         transformStyle: "preserve-3d"
       }}
@@ -319,11 +319,11 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
       />
 
       <div className="relative z-10" style={{ transform: "translateZ(30px)" }}>
-        <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-emerald-400 border border-emerald-400/20 group-hover:bg-emerald-400/20 group-hover:border-emerald-400/40 group-hover:text-emerald-300 transition-all duration-300 shadow-glow" style={{ transform: "translateZ(15px)" }}>
+        <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-brand-emerald border border-white/[0.08] group-hover:bg-emerald-400/20 group-hover:border-white/[0.08] group-hover:text-mint transition-all duration-300 shadow-glow" style={{ transform: "translateZ(15px)" }}>
           <Icon className="w-6 h-6" />
         </div>
         <h3 className="mt-6 text-lg font-semibold text-white group-hover:text-emerald-100 transition-colors" style={{ transform: "translateZ(20px)" }}>{title}</h3>
-        <p className="mt-3 text-sm text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors" style={{ transform: "translateZ(10px)" }}>{detail}</p>
+        <p className="mt-3 text-sm text-muted-foreground leading-relaxed group-hover:text-secondary-foreground transition-colors" style={{ transform: "translateZ(10px)" }}>{detail}</p>
       </div>
     </div>
   );
@@ -445,9 +445,9 @@ export default function LandingPage() {
         {/* Telemetry Digital Stream Overlay */}
         <div
           ref={telemetryRef}
-          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-emerald-400/10 bg-[#0B1220]/75 backdrop-blur-md font-mono text-[11px] text-emerald-300/80 hidden xl:block z-10 leading-relaxed shadow-glow"
+          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-mint/80 hidden xl:block z-10 leading-relaxed shadow-glow"
         >
-          <div className="flex items-center justify-between border-b border-emerald-400/20 pb-1.5 mb-2 font-bold text-emerald-300">
+          <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 mb-2 font-bold text-mint">
             <span>TELEMETRY STREAM</span>
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -459,7 +459,7 @@ export default function LandingPage() {
             <div>&gt; IMD RAIN: OBS_INIT_0.25d</div>
             <div>&gt; SOIL_MOIST: SENSOR_98%</div>
             <div>&gt; HYDRO_LVL: 2026_SIM_LOAD</div>
-            <div className="text-emerald-400 animate-pulse">&gt; STATUS: SCANNING_OK</div>
+            <div className="text-brand-emerald animate-pulse">&gt; STATUS: SCANNING_OK</div>
           </div>
         </div>
 
@@ -472,9 +472,9 @@ export default function LandingPage() {
             >
               <div
                 ref={badgeRef}
-                className="inline-flex items-center gap-2 rounded-md border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-sm font-medium text-emerald-300 backdrop-blur-sm shadow-glow"
+                className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1.5 text-sm font-medium text-mint backdrop-blur-sm shadow-glow"
               >
-                <ShieldAlert className="w-4 h-4 text-emerald-400 animate-pulse" />
+                <ShieldAlert className="w-4 h-4 text-brand-emerald animate-pulse" />
                 Government-tech climate command layer
               </div>
 
@@ -482,7 +482,7 @@ export default function LandingPage() {
                 Bharat Climate<br />Twin
               </h1>
 
-              <p className="text-xl text-slate-300 leading-relaxed max-w-xl" style={{ textShadow: "0 0 30px rgba(2, 6, 23, 0.9)" }}>
+              <p className="text-xl text-secondary-foreground leading-relaxed max-w-xl" style={{ textShadow: "0 0 30px rgba(2, 6, 23, 0.9)" }}>
                 An AI-powered digital twin of India&apos;s climate system for prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks.
               </p>
 
@@ -519,9 +519,9 @@ export default function LandingPage() {
       <section className="container mx-auto px-6 lg:px-16 mb-24">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
-            <div key={stat.label} className="text-center p-8 rounded-2xl border border-emerald-400/10 bg-[#0B1220]/30">
-              <p className="text-4xl lg:text-5xl font-bold text-emerald-400 glow-emerald">{stat.value}</p>
-              <p className="mt-2 text-sm text-slate-400 font-medium">{stat.label}</p>
+            <div key={stat.label} className="text-center p-8 rounded-2xl border border-white/[0.08] bg-background/30">
+              <p className="text-4xl lg:text-5xl font-bold text-brand-emerald glow-emerald">{stat.value}</p>
+              <p className="mt-2 text-sm text-muted-foreground font-medium">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -530,12 +530,12 @@ export default function LandingPage() {
       {/* ── National Climate Datasets ─────────────────────────── */}
       <section className="container mx-auto px-6 lg:px-16 py-24">
         <div className="max-w-4xl mb-16">
-          <div className="inline-flex items-center gap-2 rounded-md border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-sm font-medium text-emerald-400">
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1 text-sm font-medium text-brand-emerald">
             <Database className="w-4 h-4" />
             National Climate Datasets
           </div>
           <h2 className="mt-6 text-4xl lg:text-5xl font-bold text-white">Powered by India&apos;s Climate Data Infrastructure</h2>
-          <p className="mt-6 text-lg text-slate-400 max-w-2xl">
+          <p className="mt-6 text-lg text-muted-foreground max-w-2xl">
             Bharat Climate Twin integrates meteorological observations, satellite products, and national climate datasets to power AI-driven forecasting and risk assessment.
           </p>
         </div>
@@ -544,32 +544,32 @@ export default function LandingPage() {
           {datasets.map((ds) => {
             const Icon = ds.icon;
             return (
-              <div key={ds.title} className="glass-card p-6 rounded-xl">
+              <div key={ds.title} className="glass-card p-6 rounded-2xl">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-emerald-400 border border-emerald-400/20">
+                  <div className="w-12 h-12 rounded-lg bg-emerald-400/10 flex items-center justify-center text-brand-emerald border border-white/[0.08]">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="px-2 py-1 rounded bg-emerald-400/10 text-emerald-400 text-xs font-medium border border-emerald-400/20">
+                  <span className="px-2 py-1 rounded bg-emerald-400/10 text-brand-emerald text-xs font-medium border border-white/[0.08]">
                     {ds.resolution}
                   </span>
                 </div>
                 <h4 className="text-white font-semibold">{ds.title}</h4>
-                <p className="mt-3 text-sm text-slate-400 leading-relaxed">{ds.desc}</p>
+                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{ds.desc}</p>
               </div>
             );
           })}
         </div>
 
         {/* Pipeline visualization */}
-        <div className="mt-12 glass-card p-8 rounded-2xl bg-[#0B1220]/20">
+        <div className="mt-12 glass-card p-8 rounded-2xl bg-background/20">
           <h3 className="text-xl font-semibold text-white mb-8">Climate Data Fusion Pipeline</h3>
           <div className="flex flex-wrap items-center gap-4">
             {pipeline.map((step, i) => (
               <div key={step} className="flex items-center gap-4">
                 <div className={`px-4 py-2 rounded-lg border text-sm ${
                   i === pipeline.length - 1
-                    ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300 font-semibold"
-                    : "border-emerald-400/20 bg-emerald-400/5 text-emerald-200"
+                    ? "border-white/[0.08] bg-emerald-400/10 text-mint font-semibold"
+                    : "border-white/[0.08] bg-emerald-400/5 text-emerald-200"
                 }`}>
                   {step}
                 </div>
@@ -586,10 +586,10 @@ export default function LandingPage() {
           {riskCards.map((card) => {
             const Icon = card.icon;
             return (
-              <div key={card.title} className="p-8 rounded-2xl border border-emerald-400/10 bg-[#0B1220]/30 flex flex-col gap-4 hover:border-emerald-400/25 transition-colors">
-                <Icon className="w-8 h-8 text-emerald-300" />
+              <div key={card.title} className="p-8 rounded-2xl border border-white/[0.08] bg-background/30 flex flex-col gap-4 hover:border-white/[0.08] transition-colors">
+                <Icon className="w-8 h-8 text-mint" />
                 <h4 className="text-xl font-bold text-white">{card.title}</h4>
-                <p className="text-slate-400 text-sm">{card.desc}</p>
+                <p className="text-muted-foreground text-sm">{card.desc}</p>
               </div>
             );
           })}
@@ -597,33 +597,33 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ────────────────────────────────────────────── */}
-      <footer className="border-t border-emerald-400/10 bg-[#0B1220]/80 backdrop-blur-md">
+      <footer className="border-t border-white/[0.08] bg-background/80 backdrop-blur-md">
         <div className="container mx-auto px-6 lg:px-16 py-16">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="grid h-10 w-10 place-items-center rounded-md bg-emerald-400/10 border border-emerald-400/20">
-                  <Satellite className="h-5 w-5 text-emerald-400" />
+                <div className="grid h-10 w-10 place-items-center rounded-md bg-emerald-400/10 border border-white/[0.08]">
+                  <Satellite className="h-5 w-5 text-brand-emerald" />
                 </div>
                 <span className="text-lg font-bold text-white">Bharat Climate Twin</span>
               </div>
-              <p className="text-sm text-slate-400 leading-relaxed max-w-md">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
                 AI-powered digital twin of India&apos;s climate system. Built for national resilience with indigenous data sources from IMD, ISRO, NRSC, India-WRIS, and CPCB.
               </p>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Platform</h4>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Platform</h4>
               <div className="grid gap-2">
                 {["Dashboard", "Digital Twin Map", "Risk Center", "Simulator", "AI Copilot"].map((item) => (
-                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-slate-400 hover:text-emerald-300 transition-colors">
+                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-muted-foreground hover:text-mint transition-colors">
                     {item}
                   </Link>
                 ))}
               </div>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Data Sources</h4>
-              <div className="grid gap-2 text-sm text-slate-400">
+              <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Data Sources</h4>
+              <div className="grid gap-2 text-sm text-muted-foreground">
                 <span>IMD Gridded Datasets</span>
                 <span>INSAT / MOSDAC</span>
                 <span>Bhuvan / NRSC</span>
@@ -632,7 +632,7 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-white/5 text-center text-xs text-slate-500">
+          <div className="mt-12 pt-8 border-t border-white/5 text-center text-xs text-muted-foreground">
             © 2025 Bharat Climate Twin. Government-tech climate resilience platform.
           </div>
         </div>

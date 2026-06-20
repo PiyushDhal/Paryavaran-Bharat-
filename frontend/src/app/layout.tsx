@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} font-sans bg-[#0B1220] text-slate-100 min-h-screen antialiased`}>
+      <body className={`${inter.variable} font-sans bg-background text-slate-100 min-h-screen antialiased`}>
         <ClimateProvider>
           <AppShell>{children}</AppShell>
         </ClimateProvider>

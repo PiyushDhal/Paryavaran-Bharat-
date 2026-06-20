@@ -119,32 +119,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-radar-grid bg-[size:44px_44px]">
       {/* ── Desktop sidebar ────────────────────────────────────── */}
-      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-[#10B981]/10 bg-[#0B1220] py-5 lg:flex lg:flex-col transition-all duration-300", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
+      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-white/5 bg-background py-5 lg:flex lg:flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)]", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
         <div className="flex items-center justify-between px-2 mb-6">
           <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-emerald-500/20 bg-emerald-500/10">
-              <Orbit className="h-6 w-6 animate-spin-slow text-[#A7F3D0]" />
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-green shadow-[0_4px_14px_0_rgba(16,185,129,0.25)]">
+              <Orbit className="h-5 w-5 animate-spin-slow text-white" />
             </span>
             {!isCollapsed && (
               <span className="whitespace-nowrap overflow-hidden">
-                <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-[#A7F3D0]">
+                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-mint/80">
                   Bharat
                 </span>
-                <span className="block text-lg font-semibold tracking-normal text-white">
+                <span className="block text-base font-bold tracking-tight text-white leading-tight">
                   Climate Twin
                 </span>
               </span>
             )}
           </Link>
           {!isCollapsed && (
-            <button onClick={toggleSidebar} className="text-slate-500 hover:text-[#A7F3D0] transition ml-2 shrink-0">
+            <button onClick={toggleSidebar} className="text-muted-foreground hover:text-white transition ml-2 shrink-0">
               <PanelLeftClose className="h-5 w-5" />
             </button>
           )}
         </div>
         {isCollapsed && (
           <div className="flex justify-center mb-2">
-            <button onClick={toggleSidebar} className="text-slate-500 hover:text-[#A7F3D0] transition">
+            <button onClick={toggleSidebar} className="text-muted-foreground hover:text-white transition">
               <PanelLeftOpen className="h-5 w-5" />
             </button>
           </div>
@@ -154,7 +154,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {navSections.map((section) => (
             <div key={section.label} className="mb-6">
               {!isCollapsed ? (
-                <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#34D399]/60 whitespace-nowrap overflow-hidden">
+                <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground whitespace-nowrap overflow-hidden">
                   {section.label}
                 </p>
               ) : (
@@ -170,22 +170,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       href={item.href}
                       title={isCollapsed ? item.label : undefined}
                       className={cn(
-                        "flex items-center gap-4 text-sm font-medium transition whitespace-nowrap overflow-hidden group",
+                        "flex items-center gap-4 text-sm transition-all duration-200 whitespace-nowrap overflow-hidden group p-2 rounded-[16px]",
+                        active ? "bg-brand-green shadow-sm" : "hover:bg-surface-elevated",
                         isCollapsed ? "justify-center" : "px-3"
                       )}
                     >
                       <div className={cn(
-                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] transition-all duration-300 relative overflow-hidden",
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] transition-all duration-300 relative overflow-hidden",
                         active 
-                          ? "bg-[#10B981]/20 text-[#A7F3D0] shadow-[inset_0_0_12px_rgba(16,185,129,0.1)]" 
-                          : "bg-[#1F2937]/60 text-[#A7F3D0]/60 group-hover:bg-[#1F2937] group-hover:text-[#A7F3D0]"
+                          ? "bg-transparent text-white" 
+                          : "bg-surface text-mint group-hover:bg-surface-elevated group-hover:text-white shadow-sm"
                       )}>
                         {active && (
-                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#34D399] rounded-r-md" />
+                          <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-white rounded-r-md opacity-60" />
                         )}
-                        <Icon className="h-6 w-6" />
+                        <Icon className="h-5 w-5" />
                       </div>
-                      {!isCollapsed && <span className={cn(active ? "text-white font-semibold" : "text-slate-400 group-hover:text-[#A7F3D0]")}>{item.label}</span>}
+                      {!isCollapsed && <span className={cn(active ? "text-white font-semibold" : "text-muted-foreground group-hover:text-white font-medium")}>{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -208,21 +209,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* ── Mobile drawer overlay ──────────────────────────────── */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-[#0B1220]/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-72 border-r border-emerald-300/15 bg-[#0B1220] px-4 py-5 overflow-y-auto">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 h-full w-72 border-r border-white/[0.08] bg-background px-4 py-5 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <Link href="/" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
                 <Orbit className="h-6 w-6 text-emerald-200" />
                 <span className="font-semibold text-white">Bharat Climate Twin</span>
               </Link>
-              <button onClick={() => setMobileOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setMobileOpen(false)} className="text-muted-foreground hover:text-white">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <nav>
               {navSections.map((section) => (
                 <div key={section.label} className="mb-5">
-                  <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+                  <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                     {section.label}
                   </p>
                   {section.items.map((item) => {
@@ -233,7 +234,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         href={item.href}
                         onClick={() => setMobileOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-slate-300 transition",
+                          "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-secondary-foreground transition",
                           pathname === item.href && "bg-emerald-400/12 text-white",
                           pathname !== item.href && "hover:bg-white/6"
                         )}
@@ -251,12 +252,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ── Top header bar ─────────────────────────────────────── */}
-      <header className={cn("sticky top-0 z-30 border-b border-emerald-300/15 bg-[#0B1220]/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
+      <header className={cn("sticky top-0 z-30 border-b border-white/[0.08] bg-background/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               onClick={() => setMobileOpen(true)}
-              className="grid h-10 w-10 place-items-center rounded-md border border-emerald-300/20 bg-white/5 text-emerald-100 lg:hidden shrink-0"
+              className="grid h-10 w-10 place-items-center rounded-md border border-white/[0.08] bg-white/5 text-emerald-100 lg:hidden shrink-0"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -278,7 +279,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <select
                   value={activeYear}
                   onChange={(e) => setActiveYear(Number(e.target.value))}
-                  className="h-10 w-full rounded-md border border-emerald-500/20 bg-[#0B1220]/70 px-3 text-sm font-medium text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
+                  className="h-10 w-full rounded-md border border-white/[0.08] bg-background/70 px-3 text-sm font-medium text-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-[0_0_15px_rgba(34,211,238,0.1)]"
                 >
                   <option value={2025}>2025 (Current)</option>
                   <option value={2030}>2030 (Projected)</option>
@@ -288,21 +289,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden rounded-md border border-emerald-300/25 bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5">
+            <div className="hidden rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Live feeds active
             </div>
 
 
             {/* Profile / Auth Relocation */}
-            <div className="h-8 w-px bg-slate-800" />
+            <div className="h-8 w-px bg-surface-elevated" />
             {isLoggedIn ? (
               <div className="flex items-center gap-3">
                 <div className="hidden text-right md:block">
                   <p className="text-xs font-semibold text-white">{userName}</p>
-                  <p className="text-[10px] text-slate-400">{userRole}</p>
+                  <p className="text-[10px] text-muted-foreground">{userRole}</p>
                 </div>
-                <div className="grid h-9 w-9 place-items-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-200" title={`${userName} (${userRole})`}>
+                <div className="grid h-9 w-9 place-items-center rounded-full border border-white/[0.08] bg-emerald-400/10 text-emerald-200" title={`${userName} (${userRole})`}>
                   <UserCheck className="h-4 w-4" />
                 </div>
                 <button
@@ -321,7 +322,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-400/20 transition-all shadow-glow"
+                className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-emerald-400/20 transition-all shadow-glow"
               >
                 <LockKeyhole className="h-3.5 w-3.5" />
                 Operator Sign In

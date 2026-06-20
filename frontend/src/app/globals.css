@@ -4,24 +4,24 @@
 
 @layer base {
   :root {
-    --background: 222 47% 4%;
-    --foreground: 192 35% 96%;
-    --card: 218 36% 8%;
-    --card-foreground: 192 35% 96%;
-    --primary: 185 92% 46%;
-    --primary-foreground: 222 47% 4%;
-    --secondary: 154 68% 42%;
-    --secondary-foreground: 222 47% 4%;
-    --muted: 218 36% 12%;
-    --muted-foreground: 215 20% 52%;
-    --accent: 185 40% 16%;
-    --accent-foreground: 192 35% 96%;
+    --background: 205 54% 6%;
+    --foreground: 210 40% 98%;
+    --card: 202 47% 11%;
+    --card-foreground: 210 40% 98%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 200 45% 17%;
+    --secondary-foreground: 152 68% 80%;
+    --muted: 200 45% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 202 47% 11%;
+    --accent-foreground: 160 84% 39%;
     --destructive: 0 80% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 196 42% 18%;
-    --input: 196 42% 18%;
-    --ring: 185 92% 46%;
-    --radius: 0.75rem;
+    --border: 202 47% 11%;
+    --input: 202 47% 11%;
+    --ring: 152 68% 80%;
+    --radius: 20px;
   }
 }
 
@@ -45,22 +45,23 @@
 
 /* ─── Glass card / panel ─────────────────────────────────────────── */
 .glass-card {
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(52, 211, 153, 0.15);
-  border-radius: 0.75rem;
-  transition: all 0.3s ease;
+  background: #10222D;
+  border: 1px solid rgba(167, 243, 208, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
 }
 .glass-card:hover {
-  border-color: rgba(52, 211, 153, 0.3);
-  box-shadow: 0 0 20px rgba(52, 211, 153, 0.05);
+  border-color: rgba(167, 243, 208, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  transform: scale(1.01);
 }
 
 .glass-panel {
-  border: 1px solid rgba(125, 211, 252, 0.22);
-  background: rgba(8, 20, 34, 0.74);
-  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.26);
-  backdrop-filter: blur(20px);
+  background: #10222D;
+  border: 1px solid rgba(167, 243, 208, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 /* ─── Glow text effects ──────────────────────────────────────────── */

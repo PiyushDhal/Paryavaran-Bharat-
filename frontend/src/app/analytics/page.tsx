@@ -381,7 +381,7 @@ export default function AnalyticsPage() {
 
 
   if (states.length === 0 || districts.length === 0 || allRankings.length === 0 || Object.keys(allHistories).length === 0 || !analyticsData || !metrics) {
-    return <div className="text-center py-20 text-slate-500">Loading analytics datasets...</div>;
+    return <div className="text-center py-20 text-muted-foreground">Loading analytics datasets...</div>;
   }
 
   if (!metrics) return null;
@@ -391,24 +391,24 @@ export default function AnalyticsPage() {
       {/* ─── Page Header & Title ───────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <Badge className="border-emerald-500/20 bg-emerald-400/10 text-emerald-300">Climate Intelligence Workspace</Badge>
+          <Badge className="border-white/[0.08] bg-emerald-400/10 text-mint">Climate Intelligence Workspace</Badge>
           <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">National Climate & Sustainability Analytics</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300">
+          <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Unified Climate Trends, Risk Models, Sustainability Indexes, and Cognitive Recommendations workspace.
           </p>
         </div>
 
         {/* ─── Global Filters Bar ────────────────────────────────────────── */}
-        <div className="flex flex-wrap gap-2.5 bg-[#1F2937]/60 border border-emerald-500/10 p-2 rounded-xl backdrop-blur-md">
+        <div className="flex flex-wrap gap-2.5 bg-surface/60 border border-white/[0.08] p-2 rounded-2xl backdrop-blur-md">
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-slate-500 uppercase tracking-wider">State</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">State</span>
             <select
               value={stateId}
               onChange={(e) => {
                 setStateId(e.target.value === "" ? "" : Number(e.target.value));
                 setSelectedDistId("");
               }}
-              className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
             >
               <option value="">All States</option>
               {states.map((s) => (
@@ -418,11 +418,11 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-slate-500 uppercase tracking-wider">District</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">District</span>
             <select
               value={selectedDistId}
               onChange={(e) => setSelectedDistId(e.target.value === "" ? "" : Number(e.target.value))}
-              className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
             >
               <option value="">All Districts</option>
               {filteredDistricts.map((d) => (
@@ -432,11 +432,11 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-slate-500 uppercase tracking-wider">Timeline</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Timeline</span>
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
             >
               {[2020, 2025, 2030, 2040, 2050].map((y) => (
                 <option key={y} value={y}>{y} AD</option>
@@ -445,14 +445,14 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-slate-500 uppercase tracking-wider">Zone</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Zone</span>
             <select
               value={climateZone}
               onChange={(e) => {
                 setClimateZone(e.target.value);
                 setSelectedDistId("");
               }}
-              className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
             >
               <option value="">All Zones</option>
               {["Tropical", "Semi-Arid", "Arid", "Humid"].map((z) => (
@@ -462,14 +462,14 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-slate-500 uppercase tracking-wider">Climatic Risk</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Climatic Risk</span>
             <select
               value={riskCategory}
               onChange={(e) => {
                 setRiskCategory(e.target.value);
                 setSelectedDistId("");
               }}
-              className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
             >
               <option value="">All Categories</option>
               {["Flood Prone", "Drought Prone", "Heatwave Prone", "Water Stressed", "Safe"].map((r) => (
@@ -481,7 +481,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ─── Export & Print Floating Actions ─────────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-emerald-500/10 pb-2.5">
+      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
         <div className="flex gap-1.5 overflow-x-auto select-none no-scrollbar">
           {[
             { id: "overview", label: "Overview", icon: Layers3 },
@@ -503,7 +503,7 @@ export default function AnalyticsPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                   active 
                     ? "bg-emerald-500 text-slate-950 shadow-[0_0_12px_#10B98150]" 
-                    : "text-slate-400 hover:text-slate-200 hover:bg-[#1F2937]/60"
+                    : "text-muted-foreground hover:text-slate-200 hover:bg-surface/60"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -518,7 +518,7 @@ export default function AnalyticsPage() {
             size="sm" 
             variant="outline" 
             onClick={handleExportCSV}
-            className="border-emerald-500/25 bg-[#0B1220] hover:bg-[#1F2937] hover:text-emerald-300 text-slate-300 text-xs gap-1.5 h-8"
+            className="border-white/[0.08] bg-background hover:bg-surface hover:text-mint text-secondary-foreground text-xs gap-1.5 h-8"
           >
             <Download className="h-3.5 w-3.5" />
             <span>CSV</span>
@@ -527,7 +527,7 @@ export default function AnalyticsPage() {
             size="sm" 
             variant="outline" 
             onClick={handleExportPDF}
-            className="border-emerald-500/25 bg-[#0B1220] hover:bg-[#1F2937] hover:text-emerald-300 text-slate-300 text-xs gap-1.5 h-8"
+            className="border-white/[0.08] bg-background hover:bg-surface hover:text-mint text-secondary-foreground text-xs gap-1.5 h-8"
           >
             <Printer className="h-3.5 w-3.5" />
             <span>Print PDF</span>
@@ -540,47 +540,47 @@ export default function AnalyticsPage() {
         <div className="space-y-5">
           {/* Summary Scorecards Grid */}
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <Card className="glass-card bg-[#0B1220]/50 p-4 flex flex-col justify-between h-[104px]">
+            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
               <div>
-                <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest block">Temperature</span>
+                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Temperature</span>
                 <p className="mt-2 text-2xl font-bold text-rose-400 font-mono">{metrics.avgTemp}°C</p>
               </div>
-              <span className="text-[9px] text-slate-400">Monthly Avg Range</span>
+              <span className="text-[9px] text-muted-foreground">Monthly Avg Range</span>
             </Card>
 
-            <Card className="glass-card bg-[#0B1220]/50 p-4 flex flex-col justify-between h-[104px]">
+            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
               <div>
-                <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest block">Precipitation</span>
-                <p className="mt-2 text-2xl font-bold text-emerald-300 font-mono">{metrics.avgRain} mm</p>
+                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Precipitation</span>
+                <p className="mt-2 text-2xl font-bold text-mint font-mono">{metrics.avgRain} mm</p>
               </div>
-              <span className="text-[9px] text-slate-400">Monsoon Aggregate</span>
+              <span className="text-[9px] text-muted-foreground">Monsoon Aggregate</span>
             </Card>
 
-            <Card className="glass-card bg-[#0B1220]/50 p-4 flex flex-col justify-between h-[104px]">
+            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
               <div>
-                <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest block">Reservoir Status</span>
-                <p className="mt-2 text-2xl font-bold text-emerald-400 font-mono">{metrics.avgReservoir}%</p>
+                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Reservoir Status</span>
+                <p className="mt-2 text-2xl font-bold text-brand-emerald font-mono">{metrics.avgReservoir}%</p>
               </div>
-              <span className="text-[9px] text-slate-400">Total Capacity Level</span>
+              <span className="text-[9px] text-muted-foreground">Total Capacity Level</span>
             </Card>
 
-            <Card className="glass-card bg-[#0B1220]/50 p-4 flex flex-col justify-between h-[104px]">
+            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
               <div>
-                <span className="text-[8.5px] font-bold text-slate-500 uppercase tracking-widest block">Air Quality</span>
+                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Air Quality</span>
                 <p className="mt-2 text-2xl font-bold text-amber-400 font-mono">{metrics.avgAqi} AQI</p>
               </div>
-              <span className="text-[9px] text-slate-400">CPCB Gridded Index</span>
+              <span className="text-[9px] text-muted-foreground">CPCB Gridded Index</span>
             </Card>
 
-            <Card className="glass-card border-emerald-500/20 bg-emerald-950/10 p-4 flex flex-col justify-between h-[104px] cursor-pointer hover:border-emerald-500/40 transition" onClick={() => setActiveTab("sustainability")}>
+            <Card className="glass-card border-white/[0.08] bg-emerald-950/10 p-4 flex flex-col justify-between h-[104px] cursor-pointer hover:border-white/[0.08] transition" onClick={() => setActiveTab("sustainability")}>
               <div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[8.5px] font-bold text-emerald-400 uppercase tracking-widest block">Sustainability Index</span>
-                  <Leaf className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-[8.5px] font-bold text-brand-emerald uppercase tracking-widest block">Sustainability Index</span>
+                  <Leaf className="h-3.5 w-3.5 text-brand-emerald" />
                 </div>
                 <p className="mt-2 text-2xl font-bold text-white font-mono">{metrics.compositeIndex}/100</p>
               </div>
-              <span className="text-[9px] text-emerald-300 font-medium flex items-center gap-0.5">
+              <span className="text-[9px] text-mint font-medium flex items-center gap-0.5">
                 Explore Ecologics <ChevronRight className="h-3 w-3" />
               </span>
             </Card>
@@ -594,7 +594,7 @@ export default function AnalyticsPage() {
                   <CardTitle className="text-white text-base">Scope Climate Trends Overview</CardTitle>
                   <CardDescription>Monthly aggregates for target parameters.</CardDescription>
                 </div>
-                <Button size="sm" variant="ghost" className="text-emerald-300 hover:text-white" onClick={() => setActiveTab("trends")}>
+                <Button size="sm" variant="ghost" className="text-mint hover:text-white" onClick={() => setActiveTab("trends")}>
                   Full Charts
                 </Button>
               </CardHeader>
@@ -619,21 +619,21 @@ export default function AnalyticsPage() {
             {/* AI Insights Quick block */}
             <Card className="glass-card flex flex-col justify-between p-5 space-y-4">
               <div className="space-y-2">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-mint flex items-center gap-1.5">
                   <Sparkles className="h-4 w-4" />
                   Cognitive Analysis Summary
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed italic">
+                <p className="text-xs text-secondary-foreground leading-relaxed italic">
                   "{aiInsights?.summary}"
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 border-t border-emerald-500/10 pt-3 text-[10.5px]">
+              <div className="grid grid-cols-2 gap-3 border-t border-white/[0.08] pt-3 text-[10.5px]">
                 <div>
-                  <span className="font-bold text-emerald-400 block mb-1">✓ Positives</span>
+                  <span className="font-bold text-brand-emerald block mb-1">✓ Positives</span>
                   <div className="space-y-0.5">
                     {aiInsights?.positives.slice(0, 2).map((p: string, i: number) => (
-                      <p key={i} className="text-slate-300">• {p}</p>
+                      <p key={i} className="text-secondary-foreground">• {p}</p>
                     ))}
                   </div>
                 </div>
@@ -641,7 +641,7 @@ export default function AnalyticsPage() {
                   <span className="font-bold text-amber-500 block mb-1">⚠ Critical Factors</span>
                   <div className="space-y-0.5">
                     {aiInsights?.negatives.slice(0, 2).map((n: string, i: number) => (
-                      <p key={i} className="text-slate-300">• {n}</p>
+                      <p key={i} className="text-secondary-foreground">• {n}</p>
                     ))}
                   </div>
                 </div>
@@ -696,15 +696,15 @@ export default function AnalyticsPage() {
           <div className="grid gap-4 md:grid-cols-5">
             {[
               { label: "Composite Risk Index", val: metrics.avgRisk, color: "text-rose-400" },
-              { label: "Flood Inundation Risk", val: metrics.avgFlood, color: "text-emerald-400" },
+              { label: "Flood Inundation Risk", val: metrics.avgFlood, color: "text-brand-emerald" },
               { label: "Extreme Heatwaves Risk", val: metrics.avgHeat, color: "text-red-400" },
               { label: "Agricultural Drought Risk", val: metrics.avgDrought, color: "text-amber-400" },
               { label: "Hydrologic Water Stress", val: metrics.avgWater, color: "text-sky-400" }
             ].map((r, i) => (
-              <Card key={i} className="glass-card bg-[#0B1220]/50 p-4">
-                <span className="text-[8.5px] font-bold text-slate-500 uppercase block">{r.label}</span>
+              <Card key={i} className="glass-card bg-background/50 p-4">
+                <span className="text-[8.5px] font-bold text-muted-foreground uppercase block">{r.label}</span>
                 <p className={`mt-2 text-2xl font-bold font-mono ${r.color}`}>{r.val}%</p>
-                <div className="h-1 bg-slate-800 rounded-full mt-2 overflow-hidden">
+                <div className="h-1 bg-surface-elevated rounded-full mt-2 overflow-hidden">
                   <div className="h-full bg-current" style={{ width: `${r.val}%`, color: r.color.replace("text-", "#") }} />
                 </div>
               </Card>
@@ -712,19 +712,19 @@ export default function AnalyticsPage() {
           </div>
 
           <Card className="glass-card p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-4">ML Predictor Facades</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-mint mb-4">ML Predictor Facades</h3>
             <div className="grid gap-4 md:grid-cols-3">
               {[
                 ["Flood Forecast Model", "Predicts localized river flood thresholds and flash discharge anomalies.", "RandomForestFlood-v1.2", "emerald"],
                 ["Drought Severity Model", "Evaluates soil moisture dry index and crop NDVI conditions.", "XGBoostDrought-v2.0", "amber"],
                 ["Heatwave Warning Model", "Fuzzy-logic index based on ambient temperature and relative humidity grids.", "SklearnHeatAlert-v1.1", "red"]
               ].map(([title, desc, model, col]) => (
-                <div key={title} className="rounded-xl border border-emerald-500/10 bg-white/[0.01] p-4 flex flex-col justify-between">
+                <div key={title} className="rounded-2xl border border-white/[0.08] bg-white/[0.01] p-4 flex flex-col justify-between">
                   <div>
                     <h4 className="font-bold text-white text-xs">{title}</h4>
-                    <p className="text-[11px] text-slate-400 mt-1">{desc}</p>
+                    <p className="text-[11px] text-muted-foreground mt-1">{desc}</p>
                   </div>
-                  <Badge className="mt-4 self-start font-mono text-[9px] uppercase border-emerald-500/20 bg-emerald-400/5 text-emerald-300">
+                  <Badge className="mt-4 self-start font-mono text-[9px] uppercase border-white/[0.08] bg-emerald-400/5 text-mint">
                     {model}
                   </Badge>
                 </div>
@@ -738,7 +738,7 @@ export default function AnalyticsPage() {
       {activeTab === "sustainability" && (
         <div className="space-y-5">
           {/* ─── Sustainability Sub-Navigation ────────────────────────────── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-emerald-500/10 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
             <div className="flex flex-wrap gap-1.5">
               {[
                 { id: "scorecard", label: "Executive Scorecard", icon: BarChart3 },
@@ -753,8 +753,8 @@ export default function AnalyticsPage() {
                     onClick={() => setSusSubTab(sub.id as any)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
                       active
-                        ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/35 shadow-[0_0_8px_rgba(6,182,212,0.15)]"
-                        : "text-slate-400 hover:text-slate-200 hover:bg-[#1F2937]/40 border-transparent"
+                        ? "bg-surface-elevated text-mint border-white/[0.08] shadow-[0_0_8px_rgba(6,182,212,0.15)]"
+                        : "text-muted-foreground hover:text-slate-200 hover:bg-surface/40 border-transparent"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -764,9 +764,9 @@ export default function AnalyticsPage() {
               })}
             </div>
             
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span>Overall Sustainability Index:</span>
-              <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold text-xs py-0.5 px-2">
+              <Badge className="bg-surface-elevated text-brand-emerald border border-white/[0.08] font-mono font-bold text-xs py-0.5 px-2">
                 {metrics.compositeIndex}/100
               </Badge>
             </div>
@@ -803,26 +803,26 @@ export default function AnalyticsPage() {
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-4xl font-extrabold text-white tracking-tighter">{metrics.compositeIndex}</span>
-                      <span className="text-[8px] uppercase tracking-widest font-extrabold text-slate-400 mt-1">Sustainability Score</span>
+                      <span className="text-[8px] uppercase tracking-widest font-extrabold text-muted-foreground mt-1">Sustainability Score</span>
                     </div>
                   </div>
 
                   {/* Pillars cards */}
                   <div className="grid grid-cols-2 gap-2.5 w-full text-left text-[10.5px]">
                     {[
-                      { label: "Environmental Health", score: `${metrics.envHealthScore}/100`, key: "environmental_health", color: "hover:border-emerald-500/25" },
-                      { label: "Water Sustainability", score: `${metrics.waterSustainability}%`, key: "water_resources", color: "hover:border-emerald-500/25" },
+                      { label: "Environmental Health", score: `${metrics.envHealthScore}/100`, key: "environmental_health", color: "hover:border-white/[0.08]" },
+                      { label: "Water Sustainability", score: `${metrics.waterSustainability}%`, key: "water_resources", color: "hover:border-white/[0.08]" },
                       { label: "Forest Cover (NDVI)", score: `${metrics.forestHealth}%`, key: "green_cover", color: "hover:border-green-500/25" },
                       { label: "Resilience Score", score: `${metrics.climateResilience}%`, key: "climate_resilience", color: "hover:border-rose-500/25" }
                     ].map((item) => (
                       <div
                         key={item.key}
                         onClick={() => triggerMapUpdate(item.key)}
-                        className={`p-3 rounded-xl bg-[#1F2937]/40 border border-white/5 cursor-pointer transition ${item.color} active:scale-95`}
+                        className={`p-3 rounded-2xl bg-surface/40 border border-white/5 cursor-pointer transition ${item.color} active:scale-95`}
                       >
-                        <span className="text-[7.5px] text-slate-500 font-bold block uppercase tracking-wider">{item.label}</span>
+                        <span className="text-[7.5px] text-muted-foreground font-bold block uppercase tracking-wider">{item.label}</span>
                         <p className="mt-1 font-bold text-white font-mono text-sm">{item.score}</p>
-                        <span className="text-[8px] text-emerald-400/80 mt-1 block">Click to view map layer</span>
+                        <span className="text-[8px] text-brand-emerald/80 mt-1 block">Click to view map layer</span>
                       </div>
                     ))}
                   </div>
@@ -856,14 +856,14 @@ export default function AnalyticsPage() {
 
                   {/* Policy Directives */}
                   <div className="space-y-3">
-                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-brand-emerald flex items-center gap-1.5">
                       <Sparkles className="h-3.5 w-3.5" />
                       Enterprise Directives
                     </h4>
                     <div className="space-y-2">
                       {aiInsights?.recommendations.slice(0, 3).map((tip: string, idx: number) => (
-                        <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-emerald-500/10 bg-emerald-400/5 text-[11px] text-slate-300 leading-normal">
-                          <Check className="h-3.5 w-3.5 shrink-0 text-emerald-400 mt-0.5" />
+                        <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-white/[0.08] bg-emerald-400/5 text-[11px] text-secondary-foreground leading-normal">
+                          <Check className="h-3.5 w-3.5 shrink-0 text-brand-emerald mt-0.5" />
                           <span>{tip}</span>
                         </div>
                       ))}
@@ -887,7 +887,7 @@ export default function AnalyticsPage() {
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-[10px] uppercase text-emerald-300 hover:bg-[#1F2937] px-2 h-7"
+                    className="text-[10px] uppercase text-mint hover:bg-surface px-2 h-7"
                     onClick={() => {
                       setReforestRate(15);
                       setEvShare(20);
@@ -903,8 +903,8 @@ export default function AnalyticsPage() {
                   {/* Afforestation Slider */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs font-medium">
-                      <span className="text-slate-300">Forest Canopy/Afforestation Expansion</span>
-                      <span className="text-emerald-400 font-mono font-bold">+{reforestRate}% yr</span>
+                      <span className="text-secondary-foreground">Forest Canopy/Afforestation Expansion</span>
+                      <span className="text-brand-emerald font-mono font-bold">+{reforestRate}% yr</span>
                     </div>
                     <input
                       type="range"
@@ -912,16 +912,16 @@ export default function AnalyticsPage() {
                       max="100"
                       value={reforestRate}
                       onChange={(e) => setReforestRate(Number(e.target.value))}
-                      className="w-full accent-emerald-400 bg-[#1F2937] rounded-lg cursor-pointer h-1.5"
+                      className="w-full accent-emerald-400 bg-surface rounded-lg cursor-pointer h-1.5"
                     />
-                    <p className="text-[9.5px] text-slate-400">Increases canopy NDVI levels and improves baseline soil moisture retention.</p>
+                    <p className="text-[9.5px] text-muted-foreground">Increases canopy NDVI levels and improves baseline soil moisture retention.</p>
                   </div>
 
                   {/* EV Adoption Slider */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs font-medium">
-                      <span className="text-slate-300">E-Mobility & Public Transit Grid Share</span>
-                      <span className="text-emerald-300 font-mono font-bold">{evShare}%</span>
+                      <span className="text-secondary-foreground">E-Mobility & Public Transit Grid Share</span>
+                      <span className="text-mint font-mono font-bold">{evShare}%</span>
                     </div>
                     <input
                       type="range"
@@ -929,15 +929,15 @@ export default function AnalyticsPage() {
                       max="100"
                       value={evShare}
                       onChange={(e) => setEvShare(Number(e.target.value))}
-                      className="w-full accent-emerald-400 bg-[#1F2937] rounded-lg cursor-pointer h-1.5"
+                      className="w-full accent-emerald-400 bg-surface rounded-lg cursor-pointer h-1.5"
                     />
-                    <p className="text-[9.5px] text-slate-400">Direct abatement of vehicular particulates and volatile carbon emissions.</p>
+                    <p className="text-[9.5px] text-muted-foreground">Direct abatement of vehicular particulates and volatile carbon emissions.</p>
                   </div>
 
                   {/* Renewable Share Slider */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs font-medium">
-                      <span className="text-slate-300">Renewable Energy Share (Solar & Wind)</span>
+                      <span className="text-secondary-foreground">Renewable Energy Share (Solar & Wind)</span>
                       <span className="text-amber-400 font-mono font-bold">{renewablesShare}%</span>
                     </div>
                     <input
@@ -946,15 +946,15 @@ export default function AnalyticsPage() {
                       max="100"
                       value={renewablesShare}
                       onChange={(e) => setRenewablesShare(Number(e.target.value))}
-                      className="w-full accent-amber-400 bg-[#1F2937] rounded-lg cursor-pointer h-1.5"
+                      className="w-full accent-amber-400 bg-surface rounded-lg cursor-pointer h-1.5"
                     />
-                    <p className="text-[9.5px] text-slate-400">Reduces industrial coal burning emissions, improving CPCB Air Quality Index.</p>
+                    <p className="text-[9.5px] text-muted-foreground">Reduces industrial coal burning emissions, improving CPCB Air Quality Index.</p>
                   </div>
 
                   {/* Water Recycling Slider */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between text-xs font-medium">
-                      <span className="text-slate-300">Hydrologic Recycling & Basin Recovery</span>
+                      <span className="text-secondary-foreground">Hydrologic Recycling & Basin Recovery</span>
                       <span className="text-sky-300 font-mono font-bold">{recycleRate}%</span>
                     </div>
                     <input
@@ -963,9 +963,9 @@ export default function AnalyticsPage() {
                       max="100"
                       value={recycleRate}
                       onChange={(e) => setRecycleRate(Number(e.target.value))}
-                      className="w-full accent-sky-400 bg-[#1F2937] rounded-lg cursor-pointer h-1.5"
+                      className="w-full accent-sky-400 bg-surface rounded-lg cursor-pointer h-1.5"
                     />
-                    <p className="text-[9.5px] text-slate-400">Preserves localized surface reservoir capacities, hedging drought anomalies.</p>
+                    <p className="text-[9.5px] text-muted-foreground">Preserves localized surface reservoir capacities, hedging drought anomalies.</p>
                   </div>
                 </div>
               </Card>
@@ -1008,14 +1008,14 @@ export default function AnalyticsPage() {
                   placeholder="Search district..."
                   value={rankSearchText}
                   onChange={(e) => setRankSearchText(e.target.value)}
-                  className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-1.5 px-3 text-white focus:outline-none text-xs w-56 placeholder:text-slate-500"
+                  className="bg-background border border-white/[0.08] rounded-lg py-1.5 px-3 text-white focus:outline-none text-xs w-56 placeholder:text-muted-foreground"
                 />
               </div>
 
               <div className="overflow-x-auto mt-4 max-h-[360px] overflow-y-auto pr-1">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-emerald-500/10 text-slate-400">
+                    <tr className="border-b border-white/[0.08] text-muted-foreground">
                       {[
                         { label: "District Name", sortKey: "name" },
                         { label: "State", sortKey: "state" },
@@ -1039,7 +1039,7 @@ export default function AnalyticsPage() {
                         >
                           <div className="flex items-center gap-1">
                             <span>{h.label}</span>
-                            <span className="text-[10px] text-emerald-400">
+                            <span className="text-[10px] text-brand-emerald">
                               {rankSortKey === h.sortKey ? (rankSortOrder === "asc" ? "▲" : "▼") : ""}
                             </span>
                           </div>
@@ -1055,30 +1055,30 @@ export default function AnalyticsPage() {
                         <tr
                           key={item.id}
                           onClick={() => setSelectedDistId(item.id)}
-                          className={`hover:bg-[#1F2937]/40 cursor-pointer transition ${
+                          className={`hover:bg-surface/40 cursor-pointer transition ${
                             isSelected ? "bg-emerald-500/5 border-l-2 border-l-emerald-400" : ""
                           }`}
                         >
                           <td className="py-3 px-2 font-bold text-white whitespace-nowrap">{item.name}</td>
-                          <td className="py-3 px-2 text-slate-300">{item.state}</td>
+                          <td className="py-3 px-2 text-secondary-foreground">{item.state}</td>
                           
                           {/* Composite Index score bar */}
                           <td className="py-3 px-2 whitespace-nowrap">
                             <span className={`px-2 py-0.5 rounded font-mono font-bold text-[11px] ${
                               item.score >= 70
-                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                ? "bg-surface-elevated text-brand-emerald border border-white/[0.08]"
                                 : item.score >= 50
-                                ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                ? "bg-surface-elevated text-mint border border-white/[0.08]"
                                 : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                             }`}>
                               {item.score}/100
                             </span>
                           </td>
                           
-                          <td className="py-3 px-2 text-slate-300 font-mono">{item.forest}%</td>
-                          <td className="py-3 px-2 text-slate-300 font-mono">{item.water}%</td>
-                          <td className="py-3 px-2 text-slate-300 font-mono">{item.aqi}/100</td>
-                          <td className="py-3 px-2 text-slate-300 font-mono">{item.resilience}%</td>
+                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.forest}%</td>
+                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.water}%</td>
+                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.aqi}/100</td>
+                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.resilience}%</td>
                         </tr>
                       );
                     })}
@@ -1112,20 +1112,20 @@ export default function AnalyticsPage() {
 
           <Card className="glass-card p-5 flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-2">Water Stress Index</h3>
-              <p className="text-[11px] text-slate-400">Evaluates monthly groundwater draft and surface reservoir levels.</p>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-mint mb-2">Water Stress Index</h3>
+              <p className="text-[11px] text-muted-foreground">Evaluates monthly groundwater draft and surface reservoir levels.</p>
               <div className="mt-4 space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-300">Water Stress Risk Level</span>
-                    <span className="text-emerald-300 font-bold font-mono">{metrics.waterStress}%</span>
+                    <span className="text-secondary-foreground">Water Stress Risk Level</span>
+                    <span className="text-mint font-bold font-mono">{metrics.waterStress}%</span>
                   </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-400" style={{ width: `${metrics.waterStress}%` }} />
                   </div>
                 </div>
-                <div className="text-[11px] text-slate-300 leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-emerald-500/5">
-                  <p className="font-semibold text-emerald-300">Recommended Basin Interventions:</p>
+                <div className="text-[11px] text-secondary-foreground leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-white/[0.08]">
+                  <p className="font-semibold text-mint">Recommended Basin Interventions:</p>
                   <p>• Mandate drip-irrigation retrofits in agricultural blocks.</p>
                   <p>• Construct localized check-dams to capture monsoon peak run-offs.</p>
                 </div>
@@ -1157,20 +1157,20 @@ export default function AnalyticsPage() {
 
           <Card className="glass-card p-5 flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-2">Air Protection Score</h3>
-              <p className="text-[11px] text-slate-400">Computed safety score where higher is cleaner.</p>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-mint mb-2">Air Protection Score</h3>
+              <p className="text-[11px] text-muted-foreground">Computed safety score where higher is cleaner.</p>
               <div className="mt-4 space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-300">Clean Air Index</span>
-                    <span className="text-emerald-400 font-bold font-mono">{metrics.airQualityScore}/100</span>
+                    <span className="text-secondary-foreground">Clean Air Index</span>
+                    <span className="text-brand-emerald font-bold font-mono">{metrics.airQualityScore}/100</span>
                   </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
                     <div className="h-full bg-emerald-400" style={{ width: `${metrics.airQualityScore}%` }} />
                   </div>
                 </div>
-                <div className="text-[11px] text-slate-300 leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-emerald-500/5">
-                  <p className="font-semibold text-emerald-400">Direct Clean Air Policies:</p>
+                <div className="text-[11px] text-secondary-foreground leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-white/[0.08]">
+                  <p className="font-semibold text-brand-emerald">Direct Clean Air Policies:</p>
                   <p>• Establish strict buffer plantation shields around commercial grids.</p>
                   <p>• Monitor real-time particulate emission grids for block-level compliance.</p>
                 </div>
@@ -1202,19 +1202,19 @@ export default function AnalyticsPage() {
 
           <Card className="glass-card p-5 flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-2">Soil Health & Vegetation</h3>
-              <p className="text-[11px] text-slate-400">Calculated composite soil moisture indexes.</p>
+              <h3 className="text-sm font-bold uppercase tracking-wider text-mint mb-2">Soil Health & Vegetation</h3>
+              <p className="text-[11px] text-muted-foreground">Calculated composite soil moisture indexes.</p>
               <div className="mt-4 space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-300">Soil Moisture Score</span>
+                    <span className="text-secondary-foreground">Soil Moisture Score</span>
                     <span className="text-amber-400 font-bold font-mono">{metrics.avgSoil}%</span>
                   </div>
-                  <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
                     <div className="h-full bg-amber-400" style={{ width: `${metrics.avgSoil}%` }} />
                   </div>
                 </div>
-                <div className="text-[11px] text-slate-300 leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-emerald-500/5">
+                <div className="text-[11px] text-secondary-foreground leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-white/[0.08]">
                   <p className="font-semibold text-amber-400">Soil Quality Recommendations:</p>
                   <p>• Deploy moisture retention mulch overlays in arable zones.</p>
                   <p>• Avoid nutrient drafts by regulating crop rotation schedules.</p>
@@ -1230,22 +1230,22 @@ export default function AnalyticsPage() {
         <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
           <Card className="glass-card p-5 space-y-5">
             <div className="space-y-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-mint flex items-center gap-1.5">
                 <Sparkles className="h-4.5 w-4.5" />
                 Unified Ecological AI Explanation
               </h3>
-              <p className="text-xs text-slate-300 leading-relaxed italic bg-[#0B1220]/40 p-3.5 rounded-xl border border-emerald-500/5">
+              <p className="text-xs text-secondary-foreground leading-relaxed italic bg-background/40 p-3.5 rounded-2xl border border-white/[0.08]">
                 "{aiInsights?.summary}"
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 border-t border-emerald-500/10 pt-4 text-xs">
+            <div className="grid grid-cols-2 gap-4 border-t border-white/[0.08] pt-4 text-xs">
               <div className="space-y-2">
-                <span className="font-bold text-emerald-400 block uppercase tracking-wider text-[10px]">Positive Indicators</span>
+                <span className="font-bold text-brand-emerald block uppercase tracking-wider text-[10px]">Positive Indicators</span>
                 <div className="space-y-1.5">
                   {aiInsights?.positives.map((p: string, i: number) => (
-                    <div key={i} className="flex gap-1.5 text-slate-300 leading-normal">
-                      <span className="text-emerald-400 font-bold">•</span>
+                    <div key={i} className="flex gap-1.5 text-secondary-foreground leading-normal">
+                      <span className="text-brand-emerald font-bold">•</span>
                       <span>{p}</span>
                     </div>
                   ))}
@@ -1256,7 +1256,7 @@ export default function AnalyticsPage() {
                 <span className="font-bold text-amber-500 block uppercase tracking-wider text-[10px]">Negative Indicators</span>
                 <div className="space-y-1.5">
                   {aiInsights?.negatives.map((n: string, i: number) => (
-                    <div key={i} className="flex gap-1.5 text-slate-300 leading-normal">
+                    <div key={i} className="flex gap-1.5 text-secondary-foreground leading-normal">
                       <span className="text-amber-500 font-bold">•</span>
                       <span>{n}</span>
                     </div>
@@ -1268,21 +1268,21 @@ export default function AnalyticsPage() {
 
           {/* Dynamic Rankings Widget */}
           <Card className="glass-card p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-4 flex items-center gap-1.5">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-mint mb-4 flex items-center gap-1.5">
               <History className="h-4.5 w-4.5" />
               Dynamic Sustainability Rankings
             </h3>
             <div className="space-y-2.5">
               {rankingsList.slice(0, 5).map((r, i) => (
-                <div key={r.id} className="flex justify-between items-center bg-white/[0.02] border border-emerald-500/5 rounded-lg p-2 text-xs">
+                <div key={r.id} className="flex justify-between items-center bg-white/[0.02] border border-white/[0.08] rounded-lg p-2 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold font-mono text-emerald-400 w-4 text-right">#{i + 1}</span>
+                    <span className="font-bold font-mono text-brand-emerald w-4 text-right">#{i + 1}</span>
                     <div className="leading-tight">
                       <p className="font-bold text-white">{r.name}</p>
-                      <p className="text-[10px] text-slate-400">{r.state}</p>
+                      <p className="text-[10px] text-muted-foreground">{r.state}</p>
                     </div>
                   </div>
-                  <span className="font-bold font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded text-[10.5px]">
+                  <span className="font-bold font-mono text-brand-emerald bg-surface-elevated px-1.5 py-0.5 rounded text-[10.5px]">
                     {r.score} pts
                   </span>
                 </div>
@@ -1296,13 +1296,13 @@ export default function AnalyticsPage() {
       {activeTab === "compare" && compMetrics && (
         <div className="space-y-5">
           {/* Comparison Selector Dropdowns */}
-          <div className="grid gap-4 md:grid-cols-2 bg-[#1F2937]/40 border border-emerald-500/10 p-4 rounded-xl backdrop-blur-md">
+          <div className="grid gap-4 md:grid-cols-2 bg-surface/40 border border-white/[0.08] p-4 rounded-2xl backdrop-blur-md">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Location A</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Location A</label>
               <select
                 value={compDistA}
                 onChange={(e) => setCompDistA(Number(e.target.value))}
-                className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
+                className="bg-background border border-white/[0.08] rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
               >
                 {districts.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
@@ -1311,11 +1311,11 @@ export default function AnalyticsPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Location B</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Location B</label>
               <select
                 value={compDistB}
                 onChange={(e) => setCompDistB(Number(e.target.value))}
-                className="bg-[#0B1220] border border-emerald-500/15 rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
+                className="bg-background border border-white/[0.08] rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
               >
                 {districts.map((d) => (
                   <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
@@ -1327,10 +1327,10 @@ export default function AnalyticsPage() {
           {/* Comparison Cards side-by-side */}
           <div className="grid gap-5 md:grid-cols-2">
             {/* Location A */}
-            <Card className="glass-card p-5 border-emerald-500/15 bg-[#0B1220]/20">
-              <Badge className="border-emerald-500/20 bg-emerald-400/5 text-emerald-300">Location A</Badge>
+            <Card className="glass-card p-5 border-white/[0.08] bg-background/20">
+              <Badge className="border-white/[0.08] bg-emerald-400/5 text-mint">Location A</Badge>
               <h3 className="text-lg font-bold text-white mt-1.5">{compMetrics.distA.name}</h3>
-              <p className="text-xs text-slate-400">{compMetrics.distA.state_name}</p>
+              <p className="text-xs text-muted-foreground">{compMetrics.distA.state_name}</p>
               
               <div className="mt-4 space-y-3">
                 {[
@@ -1343,10 +1343,10 @@ export default function AnalyticsPage() {
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-400">{item.label}</span>
+                      <span className="text-muted-foreground">{item.label}</span>
                       <span className="text-white font-mono font-semibold">{item.val}</span>
                     </div>
-                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
                       <div className={`h-full ${item.color}`} style={{ width: `${item.val}%` }} />
                     </div>
                   </div>
@@ -1355,10 +1355,10 @@ export default function AnalyticsPage() {
             </Card>
 
             {/* Location B */}
-            <Card className="glass-card p-5 border-emerald-500/15 bg-[#0B1220]/20">
-              <Badge className="border-emerald-500/20 bg-emerald-400/5 text-emerald-300">Location B</Badge>
+            <Card className="glass-card p-5 border-white/[0.08] bg-background/20">
+              <Badge className="border-white/[0.08] bg-emerald-400/5 text-mint">Location B</Badge>
               <h3 className="text-lg font-bold text-white mt-1.5">{compMetrics.distB.name}</h3>
-              <p className="text-xs text-slate-400">{compMetrics.distB.state_name}</p>
+              <p className="text-xs text-muted-foreground">{compMetrics.distB.state_name}</p>
               
               <div className="mt-4 space-y-3">
                 {[
@@ -1371,10 +1371,10 @@ export default function AnalyticsPage() {
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-400">{item.label}</span>
+                      <span className="text-muted-foreground">{item.label}</span>
                       <span className="text-white font-mono font-semibold">{item.val}</span>
                     </div>
-                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
                       <div className={`h-full ${item.color}`} style={{ width: `${item.val}%` }} />
                     </div>
                   </div>
@@ -1385,11 +1385,11 @@ export default function AnalyticsPage() {
 
           {/* AI Comparison Summary */}
           <Card className="glass-card p-4 space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-mint flex items-center gap-1.5">
               <Sparkles className="h-4 w-4" />
               AI Cognitive Side-by-Side Comparison
             </h4>
-            <p className="text-xs text-slate-300 leading-relaxed italic bg-[#1F2937]/30 p-3 rounded-lg border border-emerald-500/5">
+            <p className="text-xs text-secondary-foreground leading-relaxed italic bg-surface/30 p-3 rounded-lg border border-white/[0.08]">
               Comparative analysis evaluates {compMetrics.distA.name} ({compMetrics.dataA.score} pts) against {compMetrics.distB.name} ({compMetrics.dataB.score} pts). {
                 compMetrics.dataA.score > compMetrics.dataB.score 
                   ? `${compMetrics.distA.name} holds a distinct edge in ecological safety indexes, primarily driven by stronger forest canopy conditions (+${compMetrics.dataA.forest - compMetrics.dataB.forest}% NDVI score).` 

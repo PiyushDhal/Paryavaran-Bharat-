@@ -36,7 +36,7 @@ function ProbabilityGauge({ value, color }: { value: number; color: string }) {
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-4xl font-black text-white">{pct}%</span>
         <span className={`text-[10px] uppercase tracking-widest font-bold ${
-          pct >= 70 ? "text-rose-400" : pct >= 40 ? "text-amber-400" : "text-emerald-400"
+          pct >= 70 ? "text-rose-400" : pct >= 40 ? "text-amber-400" : "text-brand-emerald"
         }`}>
           {pct >= 70 ? "High Risk" : pct >= 40 ? "Moderate" : "Low Risk"}
         </span>
@@ -80,21 +80,21 @@ export default function PredictionsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-md border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200 mb-4">
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200 mb-4">
             <TrendingUp className="w-4 h-4" />
             AI Prediction Engine
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-white">Hazard Predictions</h1>
-          <p className="mt-2 text-slate-400 max-w-2xl">
+          <p className="mt-2 text-muted-foreground max-w-2xl">
             Multi-hazard probability forecasts powered by RandomForest, XGBoost, and scikit-learn pipelines for district-level risk assessment.
           </p>
         </div>
         <div className="w-full max-w-xs">
-          <label className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-2 block">Target District</label>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">Target District</label>
           <select
             value={districtId || ""}
             onChange={(e) => setDistrictId(Number(e.target.value))}
-            className="w-full bg-[#1F2937]/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-emerald-400/50 transition-all text-sm"
+            className="w-full bg-surface/50 border border-slate-700 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-white/[0.08] transition-all text-sm"
           >
             {districts.map((d) => (
               <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
@@ -105,7 +105,7 @@ export default function PredictionsPage() {
 
       {/* Prediction Cards */}
       {loading ? (
-        <div className="text-center py-20 text-slate-500">Loading predictions...</div>
+        <div className="text-center py-20 text-muted-foreground">Loading predictions...</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {hazardTypes.map((hazard) => {
@@ -117,7 +117,7 @@ export default function PredictionsPage() {
               <div key={hazard.key} className="glass-card rounded-2xl overflow-hidden">
                 <div className={`p-6 border-b border-white/5 flex items-center gap-3`}>
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
-                    hazard.color === "emerald" ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20" :
+                    hazard.color === "emerald" ? "bg-emerald-400/10 text-brand-emerald border-white/[0.08]" :
                     hazard.color === "amber" ? "bg-amber-400/10 text-amber-400 border-amber-400/20" :
                     "bg-rose-400/10 text-rose-400 border-rose-400/20"
                   }`}>
@@ -125,7 +125,7 @@ export default function PredictionsPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white">{hazard.label} Prediction</h3>
-                    <p className="text-xs text-slate-500">{pred.model_name} {pred.model_version}</p>
+                    <p className="text-xs text-muted-foreground">{pred.model_name} {pred.model_version}</p>
                   </div>
                 </div>
 
@@ -133,29 +133,29 @@ export default function PredictionsPage() {
                   <ProbabilityGauge value={pred.probability} color={hazard.color} />
 
                   <div className="mt-6 grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-lg bg-[#1F2937]/40 border border-white/5">
-                      <span className="text-[10px] text-slate-500 uppercase">Risk Zone</span>
+                    <div className="p-3 rounded-lg bg-surface/40 border border-white/5">
+                      <span className="text-[10px] text-muted-foreground uppercase">Risk Zone</span>
                       <p className={`text-sm font-bold ${
                         pred.risk_zone === "High" ? "text-rose-400" :
-                        pred.risk_zone === "Moderate" ? "text-amber-400" : "text-emerald-400"
+                        pred.risk_zone === "Moderate" ? "text-amber-400" : "text-brand-emerald"
                       }`}>{pred.risk_zone}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-[#1F2937]/40 border border-white/5">
-                      <span className="text-[10px] text-slate-500 uppercase">Valid For</span>
+                    <div className="p-3 rounded-lg bg-surface/40 border border-white/5">
+                      <span className="text-[10px] text-muted-foreground uppercase">Valid For</span>
                       <p className="text-sm font-bold text-white">{pred.valid_for}</p>
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-lg border border-emerald-300/10 bg-emerald-400/5 p-4">
-                    <p className="text-xs text-slate-300 leading-relaxed">{pred.explanation}</p>
+                  <div className="mt-4 rounded-lg border border-white/[0.08] bg-emerald-400/5 p-4">
+                    <p className="text-xs text-secondary-foreground leading-relaxed">{pred.explanation}</p>
                   </div>
 
                   {/* Input parameters */}
                   <div className="mt-4 space-y-2">
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Input Parameters</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Input Parameters</p>
                     {Object.entries(pred.inputs).filter(([k]) => k !== "district_id").map(([key, val]) => (
                       <div key={key} className="flex justify-between text-xs py-1.5 border-b border-white/5">
-                        <span className="text-slate-400">{key.replace(/_/g, " ")}</span>
+                        <span className="text-muted-foreground">{key.replace(/_/g, " ")}</span>
                         <span className="text-white font-mono">{val}</span>
                       </div>
                     ))}

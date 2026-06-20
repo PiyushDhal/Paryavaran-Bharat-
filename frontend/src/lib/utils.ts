@@ -9,7 +9,7 @@ export function riskColor(value: number) {
   if (value >= 80) return "text-red-300";
   if (value >= 60) return "text-amber-300";
   if (value >= 35) return "text-emerald-200";
-  return "text-emerald-300";
+  return "text-mint";
 }
 
 export function riskFill(value: number) {

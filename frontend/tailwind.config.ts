@@ -42,7 +42,15 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))"
-        }
+        },
+        surface: "#10222D",
+        "surface-elevated": "#183240",
+        mint: "#A7F3D0",
+        "brand-emerald": "#34D399",
+        "brand-green": "#10B981"
+      },
+      borderRadius: {
+        "2xl": "20px"
       },
       boxShadow: {
         glow: "0 0 40px rgba(52, 211, 153, 0.18)"

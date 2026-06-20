@@ -23,7 +23,7 @@ export default function AdminPage() {
       <div>
         <Badge>Admin Panel</Badge>
         <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">Platform Operations</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-300">
+        <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
           Role-protected overview of users, feeds, climate records, predictions, simulations, and integration readiness.
         </p>
       </div>
@@ -51,7 +51,7 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {overview?.integrations.map((integration) => (
-            <div key={integration.name} className="rounded-md border border-emerald-300/15 bg-white/[0.03] p-4">
+            <div key={integration.name} className="rounded-md border border-white/[0.08] bg-white/[0.03] p-4">
               <h3 className="text-sm font-semibold text-white">{integration.name}</h3>
               <Badge className="mt-3">{integration.status}</Badge>
             </div>

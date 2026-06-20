@@ -152,7 +152,7 @@ export default function ComparePage() {
   }, [rankingA, rankingB, districtA, districtB]);
 
   if (!districtA || !districtB || !rankingA || !rankingB) {
-    return <div className="text-center py-20 text-slate-500">Loading comparison datasets...</div>;
+    return <div className="text-center py-20 text-muted-foreground">Loading comparison datasets...</div>;
   }
 
   return (
@@ -161,16 +161,16 @@ export default function ComparePage() {
         <div>
           <Badge>Climate Intelligence Toolkit</Badge>
           <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">Cross-District Risk Comparison</h1>
-          <p className="mt-2 max-w-3xl text-sm text-slate-300">
+          <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Compare two district risk matrices side-by-side to understand relative vulnerabilities, exposures, and policy requirements.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-[#1F2937]/50 border border-slate-700 rounded-lg p-2">
-          <span className="text-xs text-slate-400 font-semibold px-2 uppercase">Scenario Year</span>
+        <div className="flex items-center gap-2 bg-surface/50 border border-slate-700 rounded-lg p-2">
+          <span className="text-xs text-muted-foreground font-semibold px-2 uppercase">Scenario Year</span>
           <select
             value={year}
             onChange={(e) => setYear(Number(e.target.value))}
-            className="bg-[#0B1220] border border-slate-700 rounded px-2.5 py-1 text-xs text-emerald-200 focus:outline-none"
+            className="bg-background border border-slate-700 rounded px-2.5 py-1 text-xs text-emerald-200 focus:outline-none"
           >
             {[2010, 2015, 2020, 2025, 2030, 2040, 2050].map((y) => (
               <option key={y} value={y}>{y} AD</option>
@@ -184,7 +184,7 @@ export default function ComparePage() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Layers3 className="h-5 w-5 text-emerald-400" />
+              <Layers3 className="h-5 w-5 text-brand-emerald" />
               Select Primary District (A)
             </CardTitle>
           </CardHeader>
@@ -192,7 +192,7 @@ export default function ComparePage() {
             <select
               value={districtIdA}
               onChange={(e) => setDistrictIdA(Number(e.target.value))}
-              className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-400"
+              className="w-full bg-background/70 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-400"
             >
               {districts.map((d) => (
                 <option key={d.id} value={d.id} disabled={d.id === districtIdB}>
@@ -201,17 +201,17 @@ export default function ComparePage() {
               ))}
             </select>
             
-            <div className="mt-5 grid grid-cols-2 gap-4 text-sm text-slate-300">
-              <div className="p-3.5 rounded-lg bg-[#1F2937]/30 border border-white/5">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Population</span>
+            <div className="mt-5 grid grid-cols-2 gap-4 text-sm text-secondary-foreground">
+              <div className="p-3.5 rounded-lg bg-surface/30 border border-white/5">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Population</span>
                 <p className="mt-1 font-bold text-white font-mono">{districtA.population.toLocaleString()}</p>
               </div>
-              <div className="p-3.5 rounded-lg bg-[#1F2937]/30 border border-white/5">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Area Sq KM</span>
+              <div className="p-3.5 rounded-lg bg-surface/30 border border-white/5">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Area Sq KM</span>
                 <p className="mt-1 font-bold text-white font-mono">{districtA.area_sq_km.toLocaleString()} km²</p>
               </div>
-              <div className="p-3.5 rounded-lg bg-[#1F2937]/30 border border-white/5 col-span-2">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Geospatial Coordinates</span>
+              <div className="p-3.5 rounded-lg bg-surface/30 border border-white/5 col-span-2">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Geospatial Coordinates</span>
                 <p className="mt-1 font-bold text-white font-mono text-xs">{districtA.centroid_lat.toFixed(4)}° N, {districtA.centroid_lon.toFixed(4)}° E</p>
               </div>
             </div>
@@ -221,7 +221,7 @@ export default function ComparePage() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Layers3 className="h-5 w-5 text-emerald-400" />
+              <Layers3 className="h-5 w-5 text-brand-emerald" />
               Select Comparison District (B)
             </CardTitle>
           </CardHeader>
@@ -229,7 +229,7 @@ export default function ComparePage() {
             <select
               value={districtIdB}
               onChange={(e) => setDistrictIdB(Number(e.target.value))}
-              className="w-full bg-[#0B1220]/70 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-400"
+              className="w-full bg-background/70 border border-slate-800 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-emerald-400"
             >
               {districts.map((d) => (
                 <option key={d.id} value={d.id} disabled={d.id === districtIdA}>
@@ -238,17 +238,17 @@ export default function ComparePage() {
               ))}
             </select>
 
-            <div className="mt-5 grid grid-cols-2 gap-4 text-sm text-slate-300">
-              <div className="p-3.5 rounded-lg bg-[#1F2937]/30 border border-white/5">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Population</span>
+            <div className="mt-5 grid grid-cols-2 gap-4 text-sm text-secondary-foreground">
+              <div className="p-3.5 rounded-lg bg-surface/30 border border-white/5">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Population</span>
                 <p className="mt-1 font-bold text-white font-mono">{districtB.population.toLocaleString()}</p>
               </div>
-              <div className="p-3.5 rounded-lg bg-[#1F2937]/30 border border-white/5">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Area Sq KM</span>
+              <div className="p-3.5 rounded-lg bg-surface/30 border border-white/5">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Area Sq KM</span>
                 <p className="mt-1 font-bold text-white font-mono">{districtB.area_sq_km.toLocaleString()} km²</p>
               </div>
-              <div className="p-3.5 rounded-lg bg-[#1F2937]/30 border border-white/5 col-span-2">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Geospatial Coordinates</span>
+              <div className="p-3.5 rounded-lg bg-surface/30 border border-white/5 col-span-2">
+                <span className="text-[10px] text-muted-foreground uppercase font-semibold">Geospatial Coordinates</span>
                 <p className="mt-1 font-bold text-white font-mono text-xs">{districtB.centroid_lat.toFixed(4)}° N, {districtB.centroid_lon.toFixed(4)}° E</p>
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function ComparePage() {
         <Card className="glass-card flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <ArrowLeftRight className="h-5 w-5 text-emerald-300" />
+              <ArrowLeftRight className="h-5 w-5 text-mint" />
               AI Comparison Insights
             </CardTitle>
             <CardDescription>Automated risk assessment matrix analysis.</CardDescription>
@@ -297,14 +297,14 @@ export default function ComparePage() {
           <CardContent className="flex-1 space-y-4">
             <div className="space-y-3">
               {comparisonAdvisory.map((item, index) => (
-                <div key={index} className="flex gap-2.5 rounded-lg border border-emerald-500/15 bg-emerald-400/5 p-3.5 text-xs leading-relaxed text-slate-300">
-                  <span className="mt-0.5 shrink-0 text-emerald-400">⚡</span>
+                <div key={index} className="flex gap-2.5 rounded-lg border border-white/[0.08] bg-emerald-400/5 p-3.5 text-xs leading-relaxed text-secondary-foreground">
+                  <span className="mt-0.5 shrink-0 text-brand-emerald">⚡</span>
                   <p>{item}</p>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-lg border border-amber-500/20 bg-amber-400/5 p-4 text-xs leading-relaxed text-slate-400 flex gap-2">
+            <div className="rounded-lg border border-amber-500/20 bg-amber-400/5 p-4 text-xs leading-relaxed text-muted-foreground flex gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
               <p>
                 Policy Advisory: Local disaster coordination centers should tailor intervention funding based on these discrepancies (e.g. coastal pumping arrays for {districtA.name} versus dryland canal management for {districtB.name}).

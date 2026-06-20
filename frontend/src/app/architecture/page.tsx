@@ -54,14 +54,14 @@ export default function ArchitecturePage() {
     <div className="space-y-16">
       {/* Header */}
       <div className="max-w-4xl space-y-6">
-        <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-emerald-400 backdrop-blur-md">
+        <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-emerald-400/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-emerald backdrop-blur-md">
           <Cpu className="w-4 h-4" />
           Core AI Architecture
         </div>
         <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
-          Climate Digital Twin <span className="text-emerald-400">Workflow</span>
+          Climate Digital Twin <span className="text-brand-emerald">Workflow</span>
         </h1>
-        <p className="text-xl text-slate-400 max-w-2xl leading-relaxed">
+        <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
           The end-to-end technical pipeline integrating multi-source national observation datasets into a predictive &ldquo;What-If&rdquo; climate simulation engine.
         </p>
       </div>
@@ -118,19 +118,19 @@ export default function ArchitecturePage() {
               <div
                 key={step.title}
                 className={`glass-panel p-8 rounded-2xl text-center space-y-4 step-node ${
-                  isEmerald ? "border-emerald-400/20 shadow-[0_0_40px_rgba(34,197,94,0.15)]" : "shadow-glow"
+                  isEmerald ? "border-white/[0.08] shadow-[0_0_40px_rgba(34,197,94,0.15)]" : "shadow-glow"
                 }`}
               >
-                <div className={`w-14 h-14 mx-auto rounded-xl flex items-center justify-center border ${
+                <div className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center border ${
                   isEmerald
-                    ? "bg-emerald-400/20 text-emerald-400 border-emerald-400/40"
-                    : "bg-emerald-400/20 text-emerald-400 border-emerald-400/40"
+                    ? "bg-emerald-400/20 text-brand-emerald border-white/[0.08]"
+                    : "bg-emerald-400/20 text-brand-emerald border-white/[0.08]"
                 }`}>
                   <Icon className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className={`font-bold text-lg ${isEmerald ? "text-emerald-400" : "text-white"}`}>{step.title}</h3>
-                  <p className="text-xs text-slate-400 mt-2">{step.desc}</p>
+                  <h3 className={`font-bold text-lg ${isEmerald ? "text-brand-emerald" : "text-white"}`}>{step.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-2">{step.desc}</p>
                 </div>
               </div>
             );
@@ -143,12 +143,12 @@ export default function ArchitecturePage() {
             const Icon = step.icon;
             return (
               <div key={step.title} className="glass-panel p-8 rounded-2xl text-center space-y-4 step-node shadow-glow">
-                <div className="w-14 h-14 mx-auto rounded-xl bg-emerald-400/20 flex items-center justify-center text-emerald-400 border border-emerald-400/40">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-400/20 flex items-center justify-center text-brand-emerald border border-white/[0.08]">
                   <Icon className="w-7 h-7" />
                 </div>
                 <div>
                   <h3 className="font-bold text-white text-lg">{step.title}</h3>
-                  <p className="text-xs text-slate-400 mt-2">{step.desc}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{step.desc}</p>
                 </div>
               </div>
             );
@@ -159,25 +159,25 @@ export default function ArchitecturePage() {
       {/* AI Forecaster Models */}
       <div>
         <h2 className="text-3xl font-bold text-white mb-2">AI Forecaster Specifications</h2>
-        <p className="text-slate-400 mb-8">Core model architectures powering district-level climate predictions.</p>
+        <p className="text-muted-foreground mb-8">Core model architectures powering district-level climate predictions.</p>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {models.map((model) => (
             <div key={model.name} className={`glass-card rounded-2xl p-6 hover:border-${model.color}-400/30 transition-all`}>
               <div className="flex items-center justify-between mb-4">
                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                  model.color === "emerald" ? "bg-emerald-400/10 text-emerald-400 border-emerald-400/20" :
+                  model.color === "emerald" ? "bg-emerald-400/10 text-brand-emerald border-white/[0.08]" :
                   model.color === "rose" ? "bg-rose-400/10 text-rose-400 border-rose-400/20" :
-                  "bg-emerald-400/10 text-emerald-400 border-emerald-400/20"
+                  "bg-emerald-400/10 text-brand-emerald border-white/[0.08]"
                 }`}>
                   {model.badge}
                 </span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">{model.type}</span>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{model.type}</span>
               </div>
               <h3 className="text-lg font-bold text-white mb-3">{model.name}</h3>
-              <p className="text-sm text-slate-400 leading-relaxed mb-6">{model.desc}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-6">{model.desc}</p>
               <div className="space-y-2">
                 {model.specs.map((spec) => (
-                  <div key={spec} className="text-xs text-slate-300 bg-white/[0.03] border border-white/5 rounded-md px-3 py-2">
+                  <div key={spec} className="text-xs text-secondary-foreground bg-white/[0.03] border border-white/5 rounded-md px-3 py-2">
                     {spec}
                   </div>
                 ))}
@@ -190,12 +190,12 @@ export default function ArchitecturePage() {
       {/* Indigenous Technical Assets */}
       <div className="glass-card rounded-2xl p-8">
         <h2 className="text-2xl font-bold text-white mb-2">Indigenous Technical Assets</h2>
-        <p className="text-slate-400 mb-8 text-sm">National data providers and deployment infrastructure.</p>
+        <p className="text-muted-foreground mb-8 text-sm">National data providers and deployment infrastructure.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {techAssets.map((asset) => (
-            <div key={asset.name} className="p-5 rounded-xl bg-[#1F2937]/40 border border-white/5 hover:border-emerald-400/20 transition-all">
+            <div key={asset.name} className="p-5 rounded-2xl bg-surface/40 border border-white/5 hover:border-white/[0.08] transition-all">
               <h4 className="text-sm font-bold text-white mb-2">{asset.name}</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">{asset.desc}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{asset.desc}</p>
             </div>
           ))}
         </div>

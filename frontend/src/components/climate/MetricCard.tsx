@@ -26,14 +26,14 @@ export function MetricCard({
 }) {
   const toneMap = {
     emerald: {
-      text: "text-emerald-200 bg-emerald-400/10 border-emerald-300/20",
-      glow: "glow-emerald text-emerald-300",
-      delta: "text-emerald-400"
+      text: "text-emerald-200 bg-emerald-400/10 border-white/[0.08]",
+      glow: "glow-emerald text-mint",
+      delta: "text-brand-emerald"
     },
     emerald: {
-      text: "text-emerald-200 bg-emerald-400/10 border-emerald-300/20",
-      glow: "glow-emerald text-emerald-300",
-      delta: "text-emerald-400"
+      text: "text-emerald-200 bg-emerald-400/10 border-white/[0.08]",
+      glow: "glow-emerald text-mint",
+      delta: "text-brand-emerald"
     },
     amber: {
       text: "text-amber-200 bg-amber-400/10 border-amber-300/20",
@@ -56,7 +56,7 @@ export function MetricCard({
 
       <CardContent className="flex items-center justify-between gap-4 p-5 relative z-10">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-slate-400">{title}</p>
+          <p className="truncate text-sm font-medium text-muted-foreground">{title}</p>
           <p className={cn("mt-1.5 text-3xl font-bold tracking-normal", toneMap[tone].glow)}>
             {value}
           </p>
@@ -66,9 +66,9 @@ export function MetricCard({
                 {delta.value}
               </span>
             )}
-            <span className="text-xs text-slate-500">{detail}</span>
+            <span className="text-xs text-muted-foreground">{detail}</span>
             {source && (
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-600 bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-700/50">Source: {source}</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-600 bg-surface-elevated/50 px-1.5 py-0.5 rounded border border-slate-700/50">Source: {source}</span>
             )}
           </div>
         </div>

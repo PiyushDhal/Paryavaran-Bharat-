@@ -36,7 +36,7 @@ export default function RegisterPage() {
     <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-lg items-center">
       <Card className="w-full">
         <CardHeader>
-          <div className="mb-3 grid h-12 w-12 place-items-center rounded-md border border-emerald-300/25 bg-emerald-400/10">
+          <div className="mb-3 grid h-12 w-12 place-items-center rounded-md border border-white/[0.08] bg-emerald-400/10">
             <UserPlus className="h-5 w-5 text-emerald-100" />
           </div>
           <CardTitle>Create Operator Account</CardTitle>
@@ -66,7 +66,7 @@ export default function RegisterPage() {
                 id="role"
                 value={form.role}
                 onChange={(event) => setForm({ ...form, role: event.target.value })}
-                className="h-10 rounded-md border border-input bg-[#0B1220]/70 px-3 text-sm text-white"
+                className="h-10 rounded-md border border-input bg-background/70 px-3 text-sm text-white"
               >
                 <option value="analyst">Analyst</option>
                 <option value="planner">Planner</option>

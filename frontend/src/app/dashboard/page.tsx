@@ -66,12 +66,12 @@ function LiveClock() {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-[#1F2937]/40 px-3.5 py-1.5 backdrop-blur-md">
+    <div className="flex items-center gap-2 rounded-full border border-white/10 bg-surface/40 px-3.5 py-1.5 backdrop-blur-md">
       <span className="relative flex h-2 w-2">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
       </span>
-      <span className="text-[11px] font-medium font-mono text-slate-300">
+      <span className="text-[11px] font-medium font-mono text-secondary-foreground">
         MISSION LIVE · {time}
       </span>
     </div>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
       {/* ─── HEADER SECTION ──────────────────────────────────────────────────── */}
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <Badge className="bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 border border-emerald-400/20 px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
+          <Badge className="bg-surface-elevated text-mint hover:bg-emerald-500/20 border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             National Climate Mission Control
           </Badge>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
@@ -165,20 +165,20 @@ export default function DashboardPage() {
       {/* ─── 2. 4 NATIONAL KPIs ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {/* KPI 1: Risk Score */}
-        <Card className="glass-card relative overflow-hidden group hover:border-emerald-300/30 transition-all duration-300">
+        <Card className="glass-card relative overflow-hidden group hover:border-white/[0.08] transition-all duration-300">
           <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
             <Shield className="h-24 w-24 text-white" />
           </div>
           <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               National Climate Risk Score
             </p>
-            <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-emerald-300 tracking-tight glow-emerald">
+            <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-mint tracking-tight glow-emerald">
               <AnimatedCounter value={nationalRiskScore} />
-              <span className="text-lg font-bold text-slate-500">/100</span>
+              <span className="text-lg font-bold text-muted-foreground">/100</span>
             </div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-400 border border-emerald-400/10">
+              <span className="rounded-full bg-emerald-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-emerald border border-white/[0.08]">
                 {nationalRiskScore >= 60 ? "Elevated" : "Standard"}
               </span>
             </div>
@@ -191,7 +191,7 @@ export default function DashboardPage() {
             <AlertTriangle className="h-24 w-24 text-white" />
           </div>
           <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Active Alerts
             </p>
             <div className="mt-2.5 text-4xl font-extrabold text-rose-400 tracking-tight glow-rose">
@@ -211,14 +211,14 @@ export default function DashboardPage() {
             <Users className="h-24 w-24 text-white" />
           </div>
           <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Population at Risk
             </p>
             <div className="mt-2.5 flex items-baseline gap-0.5 text-4xl font-extrabold text-amber-300 tracking-tight glow-amber">
               <AnimatedCounter value={Math.floor(populationAtRiskMillions)} />
-              <span className="text-xl font-bold text-slate-500">.</span>
+              <span className="text-xl font-bold text-muted-foreground">.</span>
               <AnimatedCounter value={Math.round((populationAtRiskMillions % 1) * 10)} />
-              <span className="text-2xl font-bold ml-1 text-slate-400">M</span>
+              <span className="text-2xl font-bold ml-1 text-muted-foreground">M</span>
             </div>
             <div className="mt-2 flex items-center gap-1.5">
               <span className="rounded-full bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400 border border-amber-400/10">
@@ -234,7 +234,7 @@ export default function DashboardPage() {
             <MapPin className="h-24 w-24 text-white" />
           </div>
           <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               High-Risk Districts
             </p>
             <div className="mt-2.5 text-4xl font-extrabold text-purple-300 tracking-tight glow-purple">
@@ -254,16 +254,16 @@ export default function DashboardPage() {
         
         {/* ─── 3. HERO MAP (60-70% width on large screens) ────────────────────── */}
         <div className="lg:col-span-2 flex flex-col h-[520px] lg:h-[620px]">
-          <Card className="glass-card flex-1 flex flex-col overflow-hidden relative group border-emerald-500/20">
+          <Card className="glass-card flex-1 flex flex-col overflow-hidden relative group border-white/[0.08]">
             <div className="absolute top-4 left-4 z-20 pointer-events-none">
-              <Badge className="bg-[#0B1220]/80 text-emerald-300 border border-emerald-400/20 backdrop-blur-md flex items-center gap-1.5 py-1 px-2.5 shadow-lg">
+              <Badge className="bg-background/80 text-mint border border-white/[0.08] backdrop-blur-md flex items-center gap-1.5 py-1 px-2.5 shadow-lg">
                 <Globe2 className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '6s' }} /> Live Climate Layer
               </Badge>
             </div>
             
             <div className="absolute top-4 right-4 z-20">
               <Link href="/map">
-                <Button size="sm" className="bg-emerald-500/80 hover:bg-emerald-500 text-slate-950 font-bold border border-emerald-400/30 shadow-lg text-xs gap-1 py-1 h-8 px-3 transition-all">
+                <Button size="sm" className="bg-emerald-500/80 hover:bg-emerald-500 text-slate-950 font-bold border border-white/[0.08] shadow-lg text-xs gap-1 py-1 h-8 px-3 transition-all">
                   Full Interactive Map <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </Link>
@@ -274,9 +274,9 @@ export default function DashboardPage() {
             </div>
             
             <div className="absolute bottom-4 left-4 right-4 z-20 pointer-events-none flex justify-between items-end">
-              <div className="bg-[#0B1220]/80 border border-white/5 p-3 rounded-lg backdrop-blur-md shadow-lg max-w-[280px]">
-                <p className="text-[10px] font-bold uppercase text-slate-400">Map Legend</p>
-                <div className="mt-1.5 flex items-center justify-between text-[9px] font-bold text-slate-500">
+              <div className="bg-background/80 border border-white/5 p-3 rounded-lg backdrop-blur-md shadow-lg max-w-[280px]">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Map Legend</p>
+                <div className="mt-1.5 flex items-center justify-between text-[9px] font-bold text-muted-foreground">
                   <span>Safe</span>
                   <span>Moderate</span>
                   <span>High</span>
@@ -292,34 +292,34 @@ export default function DashboardPage() {
         <div className="lg:col-span-1 flex flex-col gap-6 h-auto">
           
           {/* ─── 4. AI CLIMATE BRIEF ─────────────────────────────────────────── */}
-          <Card className="glass-card overflow-hidden flex flex-col justify-between border-emerald-500/15 bg-gradient-to-br from-emerald-950/20 to-slate-900/60 flex-1 min-h-[260px]">
-            <CardHeader className="pb-3 border-b border-emerald-300/10">
+          <Card className="glass-card overflow-hidden flex flex-col justify-between border-white/[0.08] bg-gradient-to-br from-emerald-950/20 to-slate-900/60 flex-1 min-h-[260px]">
+            <CardHeader className="pb-3 border-b border-white/[0.08]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/10 border border-emerald-400/20">
-                    <Brain className="h-4 w-4 text-emerald-400" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-400/10 border border-white/[0.08]">
+                    <Brain className="h-4 w-4 text-brand-emerald" />
                   </div>
                   <div>
                     <CardTitle className="text-sm font-bold text-white leading-none">AI Climate Brief</CardTitle>
-                    <CardDescription className="text-[10px] text-slate-500 mt-1">Copilot Synthesis</CardDescription>
+                    <CardDescription className="text-[10px] text-muted-foreground mt-1">Copilot Synthesis</CardDescription>
                   </div>
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/10 border border-emerald-400/15 text-[9px] font-bold py-0.5 px-2">
+                <Badge className="bg-surface-elevated text-mint hover:bg-surface-elevated border border-white/[0.08] text-[9px] font-bold py-0.5 px-2">
                   88% Confidence
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="p-5 flex-1 flex flex-col justify-between">
-              <p className="text-slate-300 text-xs leading-relaxed font-normal">
+              <p className="text-secondary-foreground text-xs leading-relaxed font-normal">
                 {dynamicBrief}
               </p>
               
-              <div className="mt-5 pt-4 border-t border-emerald-300/10 flex items-center justify-between">
-                <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-slate-500" /> Updated 1m ago
+              <div className="mt-5 pt-4 border-t border-white/[0.08] flex items-center justify-between">
+                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-muted-foreground" /> Updated 1m ago
                 </span>
                 <Link href="/copilot">
-                  <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-emerald-300 border-emerald-500/20 hover:border-emerald-400/40 hover:bg-emerald-500/10 font-bold transition-all">
+                  <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-mint border-white/[0.08] hover:border-white/[0.08] hover:bg-surface-elevated font-bold transition-all">
                     Ask AI Copilot <ArrowRight className="w-3 h-3" />
                   </Button>
                 </Link>
@@ -328,16 +328,16 @@ export default function DashboardPage() {
           </Card>
 
           {/* ─── 5. QUICK ACTIONS ────────────────────────────────────────────── */}
-          <Card className="glass-card border-white/5 bg-[#1F2937]/30 flex-1 min-h-[260px]">
+          <Card className="glass-card border-white/5 bg-surface/30 flex-1 min-h-[260px]">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-bold text-white">Quick Actions</CardTitle>
-              <CardDescription className="text-[10px] text-slate-500">Fast access to key services</CardDescription>
+              <CardDescription className="text-[10px] text-muted-foreground">Fast access to key services</CardDescription>
             </CardHeader>
             <CardContent className="p-4 grid grid-cols-2 gap-3">
               {/* Button 1: Digital Twin */}
               <Link href="/map" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-500/5 hover:bg-emerald-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300 group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-white/[0.08] bg-emerald-500/5 hover:bg-surface-elevated p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-400/10 text-mint group-hover:scale-110 transition-transform">
                     <Globe2 className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Digital Twin</span>
@@ -346,8 +346,8 @@ export default function DashboardPage() {
 
               {/* Button 2: Ask Copilot */}
               <Link href="/copilot" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-emerald-500/15 bg-emerald-500/5 hover:bg-emerald-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/10 text-emerald-300 group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-white/[0.08] bg-emerald-500/5 hover:bg-surface-elevated p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-400/10 text-mint group-hover:scale-110 transition-transform">
                     <Brain className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">AI Copilot</span>
@@ -356,8 +356,8 @@ export default function DashboardPage() {
 
               {/* Button 3: Scenario Simulator */}
               <Link href="/simulator" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-purple-500/15 bg-purple-500/5 hover:bg-purple-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-400/10 text-purple-300 group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-purple-500/15 bg-purple-500/5 hover:bg-purple-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-purple-400/10 text-purple-300 group-hover:scale-110 transition-transform">
                     <Zap className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-purple-200 uppercase tracking-wider">Simulator</span>
@@ -366,8 +366,8 @@ export default function DashboardPage() {
 
               {/* Button 4: Climate Report */}
               <Link href="/reports" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-xl border border-amber-500/15 bg-amber-500/5 hover:bg-amber-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/10 text-amber-300 group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-amber-500/15 bg-amber-500/5 hover:bg-amber-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300 group-hover:scale-110 transition-transform">
                     <FileText className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-amber-200 uppercase tracking-wider">Get Report</span>
