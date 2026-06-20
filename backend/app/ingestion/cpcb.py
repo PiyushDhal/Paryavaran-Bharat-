@@ -2,10 +2,11 @@ import logging
 import json
 import urllib.request
 import random
+import time
 from datetime import date
 from sqlalchemy.orm import Session
 from app.models.climate import WeatherData, District
-from app.ingestion.base import BaseConnector
+from app.ingestion.base import BaseConnector, safe_get_json
 
 logger = logging.getLogger(__name__)
 
@@ -24,27 +25,38 @@ class CPCBConnector(BaseConnector):
         districts = db.query(District).all()
         results = []
         
-        for district in districts:
-            lat = district.centroid_lat
-            lon = district.centroid_lon
-            # Query keyless Open-Meteo Air Quality API
-            url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&current=us_aqi"
+        # Batch coordinates in chunks of 50
+        chunk_size = 50
+        chunks = [districts[i:i + chunk_size] for i in range(0, len(districts), chunk_size)]
+        
+        for chunk in chunks:
+            lats = ",".join(str(d.centroid_lat) for d in chunk)
+            lons = ",".join(str(d.centroid_lon) for d in chunk)
+            
+            url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lats}&longitude={lons}&current=us_aqi"
             try:
-                logger.info(f"CPCB: Querying Open-Meteo Air Quality API for {district.name} ({lat}, {lon})")
-                req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-                with urllib.request.urlopen(req, timeout=10) as response:
-                    payload = json.loads(response.read().decode('utf-8'))
+                logger.info(f"CPCB: Batch fetching air quality data for {len(chunk)} districts...")
+                payload = safe_get_json(url)
+                
+                if isinstance(payload, dict):
+                    payload = [payload]
+                    
+                for idx, d in enumerate(chunk):
                     results.append({
-                        "district_id": district.id,
-                        "payload": payload
+                        "district_id": d.id,
+                        "payload": payload[idx] if idx < len(payload) else None
                     })
             except Exception as e:
-                logger.error(f"CPCB/Open-Meteo Air Quality fetch failed for {district.name}: {e}")
-                results.append({
-                    "district_id": district.id,
-                    "payload": None
-                })
+                logger.error(f"CPCB: Batch fetch failed: {e}")
+                for d in chunk:
+                    results.append({
+                        "district_id": d.id,
+                        "payload": None
+                    })
+            # Add delay to prevent HTTP 429 rate limit errors
+            time.sleep(1.0)
         return results
+
 
     def validate(self, raw_data: list[dict]) -> list[dict]:
         validated = []
@@ -73,7 +85,6 @@ class CPCBConnector(BaseConnector):
             district_id = item["district_id"]
             aqi = item["aqi"]
             
-            # Resilient fallback to safe background AQI range if API is down
             if aqi is None:
                 aqi = random.randint(45, 140)
                 
