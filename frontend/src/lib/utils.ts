@@ -7,15 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 
 export function riskColor(value: number) {
   if (value >= 80) return "text-red-300";
-  if (value >= 60) return "text-amber-300";
+  if (value >= 60) return "text-brand-highlight";
   if (value >= 35) return "text-emerald-200";
-  return "text-brand-steel";
+  return "text-brand-titanium";
 }
 
 export function riskFill(value: number) {
   if (value >= 80) return "#f87171";
   if (value >= 60) return "#fbbf24";
-  if (value >= 35) return "#F59E0B";
+  if (value >= 35) return "#4DA8DA";
   return "#34d399";
 }
 

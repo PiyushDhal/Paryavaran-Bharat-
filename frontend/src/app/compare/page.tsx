@@ -184,7 +184,7 @@ export default function ComparePage() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Layers3 className="h-5 w-5 text-brand-amber" />
+              <Layers3 className="h-5 w-5 text-brand-blue" />
               Select Primary District (A)
             </CardTitle>
           </CardHeader>
@@ -221,7 +221,7 @@ export default function ComparePage() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Layers3 className="h-5 w-5 text-brand-amber" />
+              <Layers3 className="h-5 w-5 text-brand-blue" />
               Select Comparison District (B)
             </CardTitle>
           </CardHeader>
@@ -267,8 +267,8 @@ export default function ComparePage() {
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
-                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} domain={[0, 100]} />
+                <XAxis dataKey="name" stroke="#C0C8D4" tick={{ fontSize: 11 }} />
+                <YAxis stroke="#C0C8D4" tick={{ fontSize: 11 }} domain={[0, 100]} />
                 <Tooltip
                   contentStyle={{
                     background: "#07111f",
@@ -278,8 +278,8 @@ export default function ComparePage() {
                   }}
                 />
                 <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                <Bar dataKey={districtA.name} fill="#F59E0B" radius={[4, 4, 0, 0]} />
-                <Bar dataKey={districtB.name} fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={districtA.name} fill="#4DA8DA" radius={[4, 4, 0, 0]} />
+                <Bar dataKey={districtB.name} fill="#22C55E" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -289,7 +289,7 @@ export default function ComparePage() {
         <Card className="glass-card flex flex-col justify-between">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <ArrowLeftRight className="h-5 w-5 text-brand-steel" />
+              <ArrowLeftRight className="h-5 w-5 text-brand-titanium" />
               AI Comparison Insights
             </CardTitle>
             <CardDescription>Automated risk assessment matrix analysis.</CardDescription>
@@ -297,15 +297,15 @@ export default function ComparePage() {
           <CardContent className="flex-1 space-y-4">
             <div className="space-y-3">
               {comparisonAdvisory.map((item, index) => (
-                <div key={index} className="flex gap-2.5 rounded-lg border border-white/[0.08] bg-brand-amber/10 p-3.5 text-xs leading-relaxed text-secondary-foreground">
-                  <span className="mt-0.5 shrink-0 text-brand-amber">⚡</span>
+                <div key={index} className="flex gap-2.5 rounded-lg border border-white/[0.08] bg-brand-blue/10 p-3.5 text-xs leading-relaxed text-secondary-foreground">
+                  <span className="mt-0.5 shrink-0 text-brand-blue">⚡</span>
                   <p>{item}</p>
                 </div>
               ))}
             </div>
 
-            <div className="rounded-lg border border-amber-500/20 bg-amber-400/5 p-4 text-xs leading-relaxed text-muted-foreground flex gap-2">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
+            <div className="rounded-lg border border-brand-blue/20 bg-brand-blue/10 p-4 text-xs leading-relaxed text-muted-foreground flex gap-2">
+              <AlertTriangle className="h-4 w-4 shrink-0 text-brand-blue mt-0.5" />
               <p>
                 Policy Advisory: Local disaster coordination centers should tailor intervention funding based on these discrepancies (e.g. coastal pumping arrays for {districtA.name} versus dryland canal management for {districtB.name}).
               </p>

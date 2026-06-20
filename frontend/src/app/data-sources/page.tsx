@@ -82,9 +82,9 @@ export default function DataSourcesPage() {
           <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Data Provenance</h1>
           <p className="mt-2 text-muted-foreground">Official Government integration endpoints powering the Bharat Climate Twin.</p>
         </div>
-        <div className="flex items-center gap-2 rounded-md bg-brand-amber/10 border border-white/[0.08] px-4 py-2">
-          <div className="h-2 w-2 rounded-full bg-brand-amber animate-pulse"></div>
-          <span className="text-sm font-medium text-brand-steel">Ingestion Pipeline Active</span>
+        <div className="flex items-center gap-2 rounded-md bg-brand-blue/10 border border-white/[0.08] px-4 py-2">
+          <div className="h-2 w-2 rounded-full bg-brand-blue animate-pulse"></div>
+          <span className="text-sm font-medium text-brand-titanium">Ingestion Pipeline Active</span>
         </div>
       </div>
 
@@ -109,7 +109,7 @@ export default function DataSourcesPage() {
                       </h2>
                       <p className="text-sm text-muted-foreground mt-1">{source.organization}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-brand-steel">
+                    <div className="flex items-center gap-2 text-sm text-brand-titanium">
                       <Activity className="h-4 w-4" />
                       {source.status}
                     </div>

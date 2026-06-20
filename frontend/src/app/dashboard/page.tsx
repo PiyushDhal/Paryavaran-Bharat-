@@ -68,8 +68,8 @@ function LiveClock() {
   return (
     <div className="flex items-center gap-2 rounded-full border border-white/10 bg-surface/40 px-3.5 py-1.5 backdrop-blur-md">
       <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-amber opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-amber" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-blue opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-blue" />
       </span>
       <span className="text-[11px] font-medium font-mono text-secondary-foreground">
         MISSION LIVE · {time}
@@ -150,7 +150,7 @@ export default function DashboardPage() {
       {/* ─── HEADER SECTION ──────────────────────────────────────────────────── */}
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
-          <Badge className="bg-surface-elevated text-brand-steel hover:bg-brand-amber/10 border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
+          <Badge className="bg-surface-elevated text-brand-titanium hover:bg-brand-blue/10 border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             National Climate Mission Control
           </Badge>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
@@ -173,12 +173,12 @@ export default function DashboardPage() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               National Climate Risk Score
             </p>
-            <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-brand-steel tracking-tight glow-amber">
+            <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-brand-titanium tracking-tight glow-blue">
               <AnimatedCounter value={nationalRiskScore} />
               <span className="text-lg font-bold text-muted-foreground">/100</span>
             </div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-brand-amber/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-amber border border-white/[0.08]">
+              <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-white/[0.08]">
                 {nationalRiskScore >= 60 ? "Elevated" : "Standard"}
               </span>
             </div>
@@ -206,7 +206,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* KPI 3: Population at Risk */}
-        <Card className="glass-card relative overflow-hidden group hover:border-amber-300/30 transition-all duration-300">
+        <Card className="glass-card relative overflow-hidden group hover:border-brand-blue/20 transition-all duration-300">
           <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
             <Users className="h-24 w-24 text-white" />
           </div>
@@ -214,14 +214,14 @@ export default function DashboardPage() {
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
               Population at Risk
             </p>
-            <div className="mt-2.5 flex items-baseline gap-0.5 text-4xl font-extrabold text-amber-300 tracking-tight glow-amber">
+            <div className="mt-2.5 flex items-baseline gap-0.5 text-4xl font-extrabold text-brand-highlight tracking-tight glow-blue">
               <AnimatedCounter value={Math.floor(populationAtRiskMillions)} />
               <span className="text-xl font-bold text-muted-foreground">.</span>
               <AnimatedCounter value={Math.round((populationAtRiskMillions % 1) * 10)} />
               <span className="text-2xl font-bold ml-1 text-muted-foreground">M</span>
             </div>
             <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-amber-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-400 border border-amber-400/10">
+              <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-brand-blue/20">
                 Direct Exposure
               </span>
             </div>
@@ -256,14 +256,14 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 flex flex-col h-[520px] lg:h-[620px]">
           <Card className="glass-card flex-1 flex flex-col overflow-hidden relative group border-white/[0.08]">
             <div className="absolute top-4 left-4 z-20 pointer-events-none">
-              <Badge className="bg-background/80 text-brand-steel border border-white/[0.08] backdrop-blur-md flex items-center gap-1.5 py-1 px-2.5 shadow-lg">
+              <Badge className="bg-background/80 text-brand-titanium border border-white/[0.08] backdrop-blur-md flex items-center gap-1.5 py-1 px-2.5 shadow-lg">
                 <Globe2 className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '6s' }} /> Live Climate Layer
               </Badge>
             </div>
             
             <div className="absolute top-4 right-4 z-20">
               <Link href="/map">
-                <Button size="sm" className="bg-brand-amber/10 hover:bg-brand-amber text-slate-950 font-bold border border-white/[0.08] shadow-lg text-xs gap-1 py-1 h-8 px-3 transition-all">
+                <Button size="sm" className="bg-brand-blue/10 hover:bg-brand-blue text-slate-950 font-bold border border-white/[0.08] shadow-lg text-xs gap-1 py-1 h-8 px-3 transition-all">
                   Full Interactive Map <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </Link>
@@ -282,7 +282,7 @@ export default function DashboardPage() {
                   <span>High</span>
                   <span>Critical</span>
                 </div>
-                <div className="mt-1 h-1.5 w-full rounded-full bg-gradient-to-r from-[#10b981] via-[#eab308] to-[#ef4444]" />
+                <div className="mt-1 h-1.5 w-full rounded-full bg-gradient-to-r from-[#22C55E] via-[#eab308] to-[#ef4444]" />
               </div>
             </div>
           </Card>
@@ -296,15 +296,15 @@ export default function DashboardPage() {
             <CardHeader className="pb-3 border-b border-white/[0.08]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-amber/10 border border-white/[0.08]">
-                    <Brain className="h-4 w-4 text-brand-amber" />
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-blue/10 border border-white/[0.08]">
+                    <Brain className="h-4 w-4 text-brand-blue" />
                   </div>
                   <div>
                     <CardTitle className="text-sm font-bold text-white leading-none">AI Climate Brief</CardTitle>
                     <CardDescription className="text-[10px] text-muted-foreground mt-1">Copilot Synthesis</CardDescription>
                   </div>
                 </div>
-                <Badge className="bg-surface-elevated text-brand-steel hover:bg-surface-elevated border border-white/[0.08] text-[9px] font-bold py-0.5 px-2">
+                <Badge className="bg-surface-elevated text-brand-titanium hover:bg-surface-elevated border border-white/[0.08] text-[9px] font-bold py-0.5 px-2">
                   88% Confidence
                 </Badge>
               </div>
@@ -319,7 +319,7 @@ export default function DashboardPage() {
                   <Clock className="w-3 h-3 text-muted-foreground" /> Updated 1m ago
                 </span>
                 <Link href="/copilot">
-                  <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-brand-steel border-white/[0.08] hover:border-white/[0.08] hover:bg-surface-elevated font-bold transition-all">
+                  <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-brand-titanium border-white/[0.08] hover:border-white/[0.08] hover:bg-surface-elevated font-bold transition-all">
                     Ask AI Copilot <ArrowRight className="w-3 h-3" />
                   </Button>
                 </Link>
@@ -336,8 +336,8 @@ export default function DashboardPage() {
             <CardContent className="p-4 grid grid-cols-2 gap-3">
               {/* Button 1: Digital Twin */}
               <Link href="/map" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-white/[0.08] bg-brand-amber/10 hover:bg-surface-elevated p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-amber/10 text-brand-steel group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-white/[0.08] bg-brand-blue/10 hover:bg-surface-elevated p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-titanium group-hover:scale-110 transition-transform">
                     <Globe2 className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Digital Twin</span>
@@ -346,8 +346,8 @@ export default function DashboardPage() {
 
               {/* Button 2: Ask Copilot */}
               <Link href="/copilot" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-white/[0.08] bg-brand-amber/10 hover:bg-surface-elevated p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-amber/10 text-brand-steel group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-white/[0.08] bg-brand-blue/10 hover:bg-surface-elevated p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-titanium group-hover:scale-110 transition-transform">
                     <Brain className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">AI Copilot</span>
@@ -366,8 +366,8 @@ export default function DashboardPage() {
 
               {/* Button 4: Climate Report */}
               <Link href="/reports" className="col-span-1">
-                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-amber-500/15 bg-amber-500/5 hover:bg-amber-500/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300 group-hover:scale-110 transition-transform">
+                <div className="group flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-brand-blue/20 bg-brand-blue/10 hover:bg-brand-blue/10 p-3 text-center transition-all duration-300 hover:scale-[1.02] cursor-pointer">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-highlight group-hover:scale-110 transition-transform">
                     <FileText className="w-5 h-5" />
                   </div>
                   <span className="text-[10px] font-bold text-amber-200 uppercase tracking-wider">Get Report</span>

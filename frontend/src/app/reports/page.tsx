@@ -688,7 +688,7 @@ export default function ReportsPage() {
       {/* ─── TOAST NOTIFICATION ────────────────────────────────────────── */}
       {toastMsg && (
         <div className="fixed top-20 right-6 z-50 animate-bounce flex items-center gap-2.5 rounded-lg border border-white/[0.08] bg-background/90 px-4 py-3 text-xs font-semibold text-emerald-200 shadow-[0_0_20px_rgba(6,182,212,0.3)] backdrop-blur-md">
-          <Sparkles className="h-4 w-4 text-brand-amber animate-pulse" />
+          <Sparkles className="h-4 w-4 text-brand-blue animate-pulse" />
           {toastMsg}
         </div>
       )}
@@ -696,7 +696,7 @@ export default function ReportsPage() {
       {/* ─── HEADER SECTION ──────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
         <div>
-          <Badge className="bg-surface-elevated text-brand-steel border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
+          <Badge className="bg-surface-elevated text-brand-titanium border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             Strategic Decision Cockpit
           </Badge>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
@@ -716,9 +716,9 @@ export default function ReportsPage() {
           <Card className="glass-card border-white/5 bg-surface/20 p-4 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-white uppercase flex items-center gap-1.5">
-                <History className="w-3.5 h-3.5 text-brand-amber" /> Report Library
+                <History className="w-3.5 h-3.5 text-brand-blue" /> Report Library
               </span>
-              <Badge className="bg-surface-elevated border-white/[0.08] text-brand-steel text-[9px] font-bold">
+              <Badge className="bg-surface-elevated border-white/[0.08] text-brand-titanium text-[9px] font-bold">
                 {history.length} Saved Memos
               </Badge>
             </div>
@@ -751,7 +751,7 @@ export default function ReportsPage() {
                       key={rep.id} 
                       className={`group rounded-lg border p-2.5 transition-all cursor-pointer ${
                         isActive 
-                          ? "border-white/[0.08] bg-brand-amber/10" 
+                          ? "border-white/[0.08] bg-brand-blue/10" 
                           : "border-slate-800 bg-surface/35 hover:border-slate-700"
                       }`}
                       onClick={() => !isRenaming && handleLoadReport(rep)}
@@ -766,15 +766,15 @@ export default function ReportsPage() {
                                 className="h-7 text-xs px-2 py-0 bg-background text-white"
                                 autoFocus
                               />
-                              <Button size="sm" onClick={handleSaveRename} className="h-7 px-2 bg-brand-amber text-slate-950 font-bold text-xs">Save</Button>
+                              <Button size="sm" onClick={handleSaveRename} className="h-7 px-2 bg-brand-blue text-slate-950 font-bold text-xs">Save</Button>
                             </div>
                           ) : (
-                            <p className="text-xs font-semibold text-white truncate group-hover:text-brand-steel transition-colors">
+                            <p className="text-xs font-semibold text-white truncate group-hover:text-brand-titanium transition-colors">
                               {rep.name}
                             </p>
                           )}
                           <div className="mt-1 flex items-center gap-1.5 text-[9px] text-muted-foreground">
-                            <span className="font-mono text-brand-amber">{rep.refNo.split("-")[2]} AD</span>
+                            <span className="font-mono text-brand-blue">{rep.refNo.split("-")[2]} AD</span>
                             <span>·</span>
                             <span>{rep.dateCompiled}</span>
                           </div>
@@ -785,13 +785,13 @@ export default function ReportsPage() {
                       <div className="mt-2 flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                         <button 
                           onClick={() => handleStartRename(rep)}
-                          className="p-1 text-[9px] text-muted-foreground hover:text-brand-steel bg-white/5 rounded border border-white/5"
+                          className="p-1 text-[9px] text-muted-foreground hover:text-brand-titanium bg-white/5 rounded border border-white/5"
                         >
                           Rename
                         </button>
                         <button 
                           onClick={() => handleDuplicateReport(rep)}
-                          className="p-1 text-[9px] text-muted-foreground hover:text-brand-steel bg-white/5 rounded border border-white/5"
+                          className="p-1 text-[9px] text-muted-foreground hover:text-brand-titanium bg-white/5 rounded border border-white/5"
                           title="Duplicate"
                         >
                           <Copy className="w-2.5 h-2.5" />
@@ -819,7 +819,7 @@ export default function ReportsPage() {
           <Card className="glass-card border-white/5">
             <CardHeader className="pb-3 border-b border-white/5">
               <CardTitle className="text-base text-white flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-brand-amber" /> Configure Climate Memorandum Parameters
+                <SlidersHorizontal className="w-4 h-4 text-brand-blue" /> Configure Climate Memorandum Parameters
               </CardTitle>
               <CardDescription className="text-muted-foreground text-xs">
                 Select target districts, timeframe ranges, and scenario metrics to initiate AI synthesis.
@@ -986,7 +986,7 @@ export default function ReportsPage() {
                     id="compare-check"
                     checked={isComparison}
                     onChange={(e) => setIsComparison(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded text-brand-amber focus:ring-emerald-400 bg-background border-slate-800"
+                    className="w-3.5 h-3.5 rounded text-brand-blue focus:ring-emerald-400 bg-background border-slate-800"
                   />
                   <label htmlFor="compare-check" className="font-semibold text-secondary-foreground cursor-pointer">
                     Enable Location Comparison
@@ -999,7 +999,7 @@ export default function ReportsPage() {
                 <div className="grid gap-1.5 md:col-span-3 border-t border-white/[0.08] pt-4 mt-1 animate-fade-in">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="grid gap-1.5">
-                      <label className="text-[10px] font-bold uppercase text-brand-amber">Bilateral Comparison State</label>
+                      <label className="text-[10px] font-bold uppercase text-brand-blue">Bilateral Comparison State</label>
                       <select
                         value={compareStateId}
                         onChange={(e) => setCompareStateId(e.target.value)}
@@ -1012,7 +1012,7 @@ export default function ReportsPage() {
                       </select>
                     </div>
                     <div className="grid gap-1.5">
-                      <label className="text-[10px] font-bold uppercase text-brand-amber">Bilateral Comparison Location</label>
+                      <label className="text-[10px] font-bold uppercase text-brand-blue">Bilateral Comparison Location</label>
                       <select
                         value={compareDistrictId}
                         onChange={(e) => setCompareDistrictId(Number(e.target.value))}
@@ -1025,7 +1025,7 @@ export default function ReportsPage() {
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-muted-foreground leading-normal">
-                    Comparing <span className="text-white font-semibold">{district.name} ({district.state_name})</span> side-by-side with <span className="text-brand-steel font-semibold">{compareDistrict.name} ({compareDistrict.state_name})</span>.
+                    Comparing <span className="text-white font-semibold">{district.name} ({district.state_name})</span> side-by-side with <span className="text-brand-titanium font-semibold">{compareDistrict.name} ({compareDistrict.state_name})</span>.
                   </div>
                 </div>
               )}
@@ -1035,7 +1035,7 @@ export default function ReportsPage() {
                 <Button 
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="bg-brand-amber hover:bg-brand-amber text-slate-950 font-bold px-6 py-2 gap-2 shadow-[0_0_15px_rgba(6,182,212,0.25)] rounded-full text-xs"
+                  className="bg-brand-blue hover:bg-brand-blue text-slate-950 font-bold px-6 py-2 gap-2 shadow-[0_0_15px_rgba(6,182,212,0.25)] rounded-full text-xs"
                 >
                   {generating ? (
                     <>
@@ -1068,7 +1068,7 @@ export default function ReportsPage() {
           {generating && (
             <div className="grid min-h-[360px] place-items-center rounded-2xl border border-white/[0.08] text-center text-sm text-secondary-foreground bg-background/20 animate-pulse">
               <div>
-                <Bot className="h-10 w-10 mx-auto text-brand-amber mb-4 animate-bounce" />
+                <Bot className="h-10 w-10 mx-auto text-brand-blue mb-4 animate-bounce" />
                 <p className="font-bold text-white uppercase tracking-wider text-xs">Consulting Neural Forecasting Engine</p>
                 <p className="max-w-md mt-1 text-[11px] text-muted-foreground leading-normal">
                   Fusing satellite rainfall grids with IMD daily temperature datasets, computing population multipliers, and establishing adaptation contingencies...
@@ -1105,13 +1105,13 @@ export default function ReportsPage() {
                   
                   {/* MEMORANDUM HEADER */}
                   <div className="border-b-2 border-slate-700 pb-6 text-center flex flex-col items-center relative z-10">
-                    <div className="w-10 h-10 rounded bg-brand-amber/10 border border-white/[0.08] grid place-items-center text-brand-amber mb-2">
+                    <div className="w-10 h-10 rounded bg-brand-blue/10 border border-white/[0.08] grid place-items-center text-brand-blue mb-2">
                       <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h2 className="text-base font-extrabold tracking-[0.15em] text-white uppercase font-sans">
                       Government of India — Climate Twin Command
                     </h2>
-                    <p className="text-[9px] tracking-widest text-brand-steel font-sans font-bold mt-1.5 uppercase">
+                    <p className="text-[9px] tracking-widest text-brand-titanium font-sans font-bold mt-1.5 uppercase">
                       National Security Advisory & Mitigation Memorandum
                     </p>
                   </div>
@@ -1131,13 +1131,13 @@ export default function ReportsPage() {
                       <span className="text-white font-semibold">
                         {generatedReport.districtName} District, {generatedReport.stateName}
                         {generatedReport.isComparison && (
-                          <span className="text-brand-steel font-bold"> vs {generatedReport.compareDistrictName} ({generatedReport.compareStateName})</span>
+                          <span className="text-brand-titanium font-bold"> vs {generatedReport.compareDistrictName} ({generatedReport.compareStateName})</span>
                         )}
                       </span>
                     </div>
                     <div className="text-right">
                       <span className="font-bold block text-muted-foreground text-[10px] tracking-wider">SCENARIO TARGET:</span>
-                      <span className="text-brand-steel font-bold tracking-wider">{generatedReport.year} AD Climate Model</span>
+                      <span className="text-brand-titanium font-bold tracking-wider">{generatedReport.year} AD Climate Model</span>
                     </div>
                   </div>
 
@@ -1145,22 +1145,22 @@ export default function ReportsPage() {
                   <div className="py-6 space-y-6 text-sm font-serif text-secondary-foreground relative z-10">
                     
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <FileText className="w-3.5 h-3.5 text-brand-amber" /> I. Executive Summary
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <FileText className="w-3.5 h-3.5 text-brand-blue" /> I. Executive Summary
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.summary}</p>
                     </div>
 
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <Activity className="w-3.5 h-3.5 text-brand-amber" /> II. Telemetry & Current Conditions
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <Activity className="w-3.5 h-3.5 text-brand-blue" /> II. Telemetry & Current Conditions
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.condition}</p>
                     </div>
                     {/* SPATIAL INTELLIGENCE MAPS */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <Globe2 className="w-3.5 h-3.5 text-brand-amber" /> III. Spatial Intelligence & Multi-Hazard Mapping
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <Globe2 className="w-3.5 h-3.5 text-brand-blue" /> III. Spatial Intelligence & Multi-Hazard Mapping
                       </h4>
                       <div className="grid gap-4 md:grid-cols-3 no-print mb-6">
                         
@@ -1169,7 +1169,7 @@ export default function ReportsPage() {
                           <div>
                             <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-muted-foreground mb-1 flex items-center justify-between">
                               <span>District Boundaries Grid</span>
-                              <span className="text-[9px] text-brand-amber font-mono">Interactive Talukas</span>
+                              <span className="text-[9px] text-brand-blue font-mono">Interactive Talukas</span>
                             </p>
                             <p className="text-[9px] text-muted-foreground mb-2 leading-tight">Hover zones for telemetry forecast details.</p>
                           </div>
@@ -1188,7 +1188,7 @@ export default function ReportsPage() {
                               <polygon 
                                 points="45,35 100,28 100,70 45,70" 
                                 fill={hoveredDistrictZone === "North Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "North Taluka" ? "#F59E0B" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "North Taluka" ? "#4DA8DA" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "North Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("North Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
@@ -1197,7 +1197,7 @@ export default function ReportsPage() {
                               <polygon 
                                 points="100,28 125,25 165,55 100,70" 
                                 fill={hoveredDistrictZone === "East Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "East Taluka" ? "#F59E0B" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "East Taluka" ? "#4DA8DA" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "East Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("East Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
@@ -1206,7 +1206,7 @@ export default function ReportsPage() {
                               <polygon 
                                 points="100,70 145,115 75,125 100,70" 
                                 fill={hoveredDistrictZone === "South Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "South Taluka" ? "#F59E0B" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "South Taluka" ? "#4DA8DA" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "South Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("South Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
@@ -1215,24 +1215,24 @@ export default function ReportsPage() {
                               <polygon 
                                 points="45,35 100,70 75,125 35,85" 
                                 fill={hoveredDistrictZone === "West Taluka" ? "rgba(6,182,212,0.18)" : "rgba(6,182,212,0.04)"} 
-                                stroke={hoveredDistrictZone === "West Taluka" ? "#F59E0B" : "rgba(6,182,212,0.3)"} 
+                                stroke={hoveredDistrictZone === "West Taluka" ? "#4DA8DA" : "rgba(6,182,212,0.3)"} 
                                 strokeWidth={hoveredDistrictZone === "West Taluka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredDistrictZone("West Taluka")} 
                                 onMouseLeave={() => setHoveredDistrictZone(null)}
                                 className="cursor-pointer transition-all duration-200" 
                               />
                               
-                              <circle cx="100" cy="70" r="3.5" fill="#F59E0B" className="pointer-events-none" />
-                              <text x="105" y="73" fill="#F59E0B" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">{generatedReport.districtName}</text>
+                              <circle cx="100" cy="70" r="3.5" fill="#4DA8DA" className="pointer-events-none" />
+                              <text x="105" y="73" fill="#4DA8DA" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">{generatedReport.districtName}</text>
                               <text x="10" y="142" fill="#64748b" fontSize="7" fontFamily="monospace" className="pointer-events-none">MODEL ACC: SSP5-8.5</text>
                             </svg>
 
                             {/* Floating Telemetry Box for District Zone */}
                             {hoveredDistrictZone && districtZoneForecasts[hoveredDistrictZone] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-white/[0.08] bg-background/95 shadow-2xl text-[9px] text-secondary-foreground w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
-                                <p className="font-bold text-brand-steel border-b border-white/5 pb-0.5 flex items-center justify-between">
+                                <p className="font-bold text-brand-titanium border-b border-white/5 pb-0.5 flex items-center justify-between">
                                   <span>{hoveredDistrictZone}</span>
-                                  <span className="text-[7.5px] px-1 bg-brand-amber text-brand-steel rounded uppercase font-mono">Risk: {districtZoneForecasts[hoveredDistrictZone].risk}%</span>
+                                  <span className="text-[7.5px] px-1 bg-brand-blue text-brand-titanium rounded uppercase font-mono">Risk: {districtZoneForecasts[hoveredDistrictZone].risk}%</span>
                                 </p>
                                 <p className="mt-1 font-semibold text-white font-mono">Temp: {districtZoneForecasts[hoveredDistrictZone].temp}°C | Precip: {districtZoneForecasts[hoveredDistrictZone].rainfall}mm</p>
                                 <p className="text-muted-foreground mt-0.5 leading-tight text-[8px]">Soil: {districtZoneForecasts[hoveredDistrictZone].soil}</p>
@@ -1247,7 +1247,7 @@ export default function ReportsPage() {
                           <div>
                             <p className="text-[10px] font-bold font-sans uppercase tracking-wider text-muted-foreground mb-1 flex items-center justify-between">
                               <span>National Climate Threat Map</span>
-                              <span className="text-[9px] text-brand-amber font-mono">Click to Select State</span>
+                              <span className="text-[9px] text-brand-blue font-mono">Click to Select State</span>
                             </p>
                             <p className="text-[9px] text-muted-foreground mb-2 leading-tight">Hover states for weather alerts & forecasts.</p>
                           </div>
@@ -1269,9 +1269,9 @@ export default function ReportsPage() {
                               {/* Gujarat */}
                               <polygon 
                                 points="25,75 50,80 60,95 35,100 20,90" 
-                                fill={hoveredStateName === "Gujarat" ? "rgba(245,158,11,0.35)" : "#f59e0b"} 
+                                fill={hoveredStateName === "Gujarat" ? "rgba(77, 168, 218,0.35)" : "#4DA8DA"} 
                                 fillOpacity={hoveredStateName === "Gujarat" ? 0.45 : 0.2}
-                                stroke={hoveredStateName === "Gujarat" ? "#f59e0b" : "rgba(245,158,11,0.5)"} 
+                                stroke={hoveredStateName === "Gujarat" ? "#4DA8DA" : "rgba(77, 168, 218,0.5)"} 
                                 strokeWidth={hoveredStateName === "Gujarat" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredStateName("Gujarat")} 
                                 onMouseLeave={() => setHoveredStateName(null)}
@@ -1293,9 +1293,9 @@ export default function ReportsPage() {
                               {/* Karnataka */}
                               <polygon 
                                 points="58,130 78,125 85,160 65,170" 
-                                fill={hoveredStateName === "Karnataka" ? "rgba(16,185,129,0.35)" : "#10b981"} 
+                                fill={hoveredStateName === "Karnataka" ? "rgba(34, 197, 94,0.35)" : "#22C55E"} 
                                 fillOpacity={hoveredStateName === "Karnataka" ? 0.45 : 0.2}
-                                stroke={hoveredStateName === "Karnataka" ? "#10b981" : "rgba(16,185,129,0.5)"} 
+                                stroke={hoveredStateName === "Karnataka" ? "#22C55E" : "rgba(34, 197, 94,0.5)"} 
                                 strokeWidth={hoveredStateName === "Karnataka" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredStateName("Karnataka")} 
                                 onMouseLeave={() => setHoveredStateName(null)}
@@ -1305,9 +1305,9 @@ export default function ReportsPage() {
                               {/* Tamil Nadu */}
                               <polygon 
                                 points="78,160 92,155 98,180 82,180" 
-                                fill={hoveredStateName === "Tamil Nadu" ? "rgba(16,185,129,0.35)" : "#10b981"} 
+                                fill={hoveredStateName === "Tamil Nadu" ? "rgba(34, 197, 94,0.35)" : "#22C55E"} 
                                 fillOpacity={hoveredStateName === "Tamil Nadu" ? 0.45 : 0.2}
-                                stroke={hoveredStateName === "Tamil Nadu" ? "#10b981" : "rgba(16,185,129,0.5)"} 
+                                stroke={hoveredStateName === "Tamil Nadu" ? "#22C55E" : "rgba(34, 197, 94,0.5)"} 
                                 strokeWidth={hoveredStateName === "Tamil Nadu" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredStateName("Tamil Nadu")} 
                                 onMouseLeave={() => setHoveredStateName(null)}
@@ -1354,16 +1354,16 @@ export default function ReportsPage() {
                               {/* Dynamic glowing target indicator for currently selected district's state */}
                               {district && (
                                 <>
-                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="3" fill="#F59E0B" className="pointer-events-none" />
-                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="8" fill="none" stroke="#F59E0B" strokeWidth="1" className="animate-ping pointer-events-none" />
+                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="3" fill="#4DA8DA" className="pointer-events-none" />
+                                  <circle cx={district.state_id === 3 ? 62 : district.state_id === 1 ? 75 : district.state_id === 2 ? 180 : district.state_id === 4 ? 88 : district.state_id === 5 ? 42 : district.state_id === 6 ? 72 : district.state_id === 7 ? 150 : 110} cy={district.state_id === 3 ? 55 : district.state_id === 1 ? 110 : district.state_id === 2 ? 60 : district.state_id === 4 ? 170 : district.state_id === 5 ? 88 : district.state_id === 6 ? 148 : district.state_id === 7 ? 85 : 58} r="8" fill="none" stroke="#4DA8DA" strokeWidth="1" className="animate-ping pointer-events-none" />
                                 </>
                               )}
 
                               {/* Risk Legend Graphic inside SVG */}
                               <g transform="translate(10, 110)" className="pointer-events-none">
-                                <rect x="0" y="0" width="8" height="6" fill="#10b981" />
+                                <rect x="0" y="0" width="8" height="6" fill="#22C55E" />
                                 <rect x="10" y="0" width="8" height="6" fill="#fb923c" />
-                                <rect x="20" y="0" width="8" height="6" fill="#f59e0b" />
+                                <rect x="20" y="0" width="8" height="6" fill="#4DA8DA" />
                                 <rect x="30" y="0" width="8" height="6" fill="#f43f5e" />
                                 <text x="0" y="14" fill="#64748b" fontSize="6" fontFamily="sans-serif">Normal</text>
                                 <text x="30" y="14" fill="#f43f5e" fontSize="6" fontFamily="sans-serif" fontWeight="bold">Critical</text>
@@ -1373,9 +1373,9 @@ export default function ReportsPage() {
                             {/* Floating Telemetry Box for State */}
                             {hoveredStateName && stateForecasts[hoveredStateName] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-white/[0.08] bg-background/95 shadow-2xl text-[9px] text-secondary-foreground w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
-                                <p className="font-bold text-brand-steel border-b border-white/5 pb-0.5 flex items-center justify-between">
+                                <p className="font-bold text-brand-titanium border-b border-white/5 pb-0.5 flex items-center justify-between">
                                   <span>{hoveredStateName}</span>
-                                  <span className="text-[7.5px] px-1 bg-brand-amber text-brand-steel rounded uppercase font-mono">{stateForecasts[hoveredStateName].alert}</span>
+                                  <span className="text-[7.5px] px-1 bg-brand-blue text-brand-titanium rounded uppercase font-mono">{stateForecasts[hoveredStateName].alert}</span>
                                 </p>
                                 <p className="mt-1 font-semibold text-white font-mono">Temp: {stateForecasts[hoveredStateName].temp}°C | Risk: {stateForecasts[hoveredStateName].risk}%</p>
                                 <p className="text-muted-foreground mt-0.5 leading-tight">{stateForecasts[hoveredStateName].forecast}</p>
@@ -1427,8 +1427,8 @@ export default function ReportsPage() {
                                 cx="75" 
                                 cy="80" 
                                 r="10" 
-                                fill={hoveredHeatspot === "urban" ? "rgba(245,158,11,0.2)" : "rgba(245,158,11,0.05)"} 
-                                stroke="#f59e0b" 
+                                fill={hoveredHeatspot === "urban" ? "rgba(77, 168, 218,0.2)" : "rgba(77, 168, 218,0.05)"} 
+                                stroke="#4DA8DA" 
                                 strokeWidth={hoveredHeatspot === "urban" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredHeatspot("urban")} 
                                 onMouseLeave={() => setHoveredHeatspot(null)}
@@ -1439,8 +1439,8 @@ export default function ReportsPage() {
                                 cx="140" 
                                 cy="110" 
                                 r="9" 
-                                fill={hoveredHeatspot === "farm" ? "rgba(16,185,129,0.2)" : "rgba(16,185,129,0.05)"} 
-                                stroke="#10b981" 
+                                fill={hoveredHeatspot === "farm" ? "rgba(34, 197, 94,0.2)" : "rgba(34, 197, 94,0.05)"} 
+                                stroke="#22C55E" 
                                 strokeWidth={hoveredHeatspot === "farm" ? "1.5" : "1"} 
                                 onMouseEnter={() => setHoveredHeatspot("farm")} 
                                 onMouseLeave={() => setHoveredHeatspot(null)}
@@ -1448,7 +1448,7 @@ export default function ReportsPage() {
                               />
                               
                               <text x="10" y="20" fill="#f87171" fontSize="8" fontWeight="bold" fontFamily="sans-serif" className="pointer-events-none">HEAT CONTROLS</text>
-                              <text x="125" y="142" fill="#94a3b8" fontSize="8" fontFamily="monospace" className="pointer-events-none">{ranking.composite_risk}% composite</text>
+                              <text x="125" y="142" fill="#C0C8D4" fontSize="8" fontFamily="monospace" className="pointer-events-none">{ranking.composite_risk}% composite</text>
                             </svg>
 
                             {/* Floating Telemetry Box for Heatspot */}
@@ -1469,8 +1469,8 @@ export default function ReportsPage() {
 
                     {/* CHARTS CONTAINER (Publication-ready visuals) */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <TrendingUp className="w-3.5 h-3.5 text-brand-amber" /> IV. Climate Charts & Analytical Trends
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <TrendingUp className="w-3.5 h-3.5 text-brand-blue" /> IV. Climate Charts & Analytical Trends
                       </h4>
                       
                       <div className="grid gap-4 md:grid-cols-2 mb-6 no-print">
@@ -1508,7 +1508,7 @@ export default function ReportsPage() {
                               <YAxis stroke="#64748b" tick={{ fontSize: 9 }} tickLine={false} axisLine={false} />
                               <Tooltip contentStyle={{ background: "#091220", border: "1px solid rgba(103,232,249,0.2)", fontSize: 10 }} />
                               <Line type="monotone" dataKey="temperature" name="Temp °C" stroke="#f87171" strokeWidth={1.5} dot={{ r: 1 }} />
-                              <Line type="monotone" dataKey="heatwaveRisk" name="Heat Index %" stroke="#f59e0b" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                              <Line type="monotone" dataKey="heatwaveRisk" name="Heat Index %" stroke="#4DA8DA" strokeWidth={1} strokeDasharray="3 3" dot={false} />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
@@ -1569,16 +1569,16 @@ export default function ReportsPage() {
 
                     {/* RISK & EXPOSURE METRICS (GRID) */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-3 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <Layers className="w-3.5 h-3.5 text-brand-amber" /> V. Socio-Economic Exposure & Impact Index
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-3 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <Layers className="w-3.5 h-3.5 text-brand-blue" /> V. Socio-Economic Exposure & Impact Index
                       </h4>
                       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 font-sans text-center">
                         <div className="p-3 border border-slate-800 bg-background/20 rounded-lg flex flex-col justify-between items-center">
-                          <Users className="w-4 h-4 text-brand-amber mb-1" />
+                          <Users className="w-4 h-4 text-brand-blue mb-1" />
                           <span className="text-[8.5px] text-muted-foreground font-bold uppercase">Pop. Exposure</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">{Math.round(ranking.composite_risk * 1.8)}k citizens</span>
                           <div className="w-full bg-surface-elevated h-1 rounded-full mt-2 overflow-hidden">
-                            <div className="bg-brand-amber h-full rounded-full" style={{ width: `${Math.min(ranking.composite_risk * 1.2, 100)}%` }} />
+                            <div className="bg-brand-blue h-full rounded-full" style={{ width: `${Math.min(ranking.composite_risk * 1.2, 100)}%` }} />
                           </div>
                         </div>
                         <div className="p-3 border border-slate-800 bg-background/20 rounded-lg flex flex-col justify-between items-center">
@@ -1590,36 +1590,36 @@ export default function ReportsPage() {
                           </div>
                         </div>
                         <div className="p-3 border border-slate-800 bg-background/20 rounded-lg flex flex-col justify-between items-center">
-                          <Leaf className="w-4 h-4 text-brand-amber mb-1" />
+                          <Leaf className="w-4 h-4 text-brand-blue mb-1" />
                           <span className="text-[8.5px] text-muted-foreground font-bold uppercase">Agricultural Stress</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">{ranking.drought_risk}% Stress</span>
                           <div className="w-full bg-surface-elevated h-1 rounded-full mt-2 overflow-hidden">
-                            <div className="bg-brand-amber h-full rounded-full" style={{ width: `${ranking.drought_risk}%` }} />
+                            <div className="bg-brand-blue h-full rounded-full" style={{ width: `${ranking.drought_risk}%` }} />
                           </div>
                         </div>
                         <div className="p-3 border border-slate-800 bg-background/20 rounded-lg flex flex-col justify-between items-center">
-                          <Scale className="w-4 h-4 text-amber-400 mb-1" />
+                          <Scale className="w-4 h-4 text-brand-blue mb-1" />
                           <span className="text-[8.5px] text-muted-foreground font-bold uppercase">Economic Index</span>
                           <span className="text-sm font-bold text-white font-mono mt-1">x{((ranking.composite_risk / 100) * 2.5 + 1).toFixed(1)} Multiplier</span>
                           <div className="w-full bg-surface-elevated h-1 rounded-full mt-2 overflow-hidden">
-                            <div className="bg-amber-500 h-full rounded-full" style={{ width: `${Math.min(ranking.composite_risk * 1.5, 100)}%` }} />
+                            <div className="bg-brand-blue h-full rounded-full" style={{ width: `${Math.min(ranking.composite_risk * 1.5, 100)}%` }} />
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* AI RECOMMENDATION / COGNITIVE ADVISORY */}
-                    <div className="border-l-2 border-emerald-400 pl-4 bg-brand-amber/10 py-4.5 rounded-r">
-                      <div className="flex items-center gap-1.5 text-brand-steel font-bold font-sans text-xs mb-1.5">
-                        <Bot className="w-4 h-4 text-brand-amber" /> AI CLIMATE COGNITIVE BRIEF
+                    <div className="border-l-2 border-emerald-400 pl-4 bg-brand-blue/10 py-4.5 rounded-r">
+                      <div className="flex items-center gap-1.5 text-brand-titanium font-bold font-sans text-xs mb-1.5">
+                        <Bot className="w-4 h-4 text-brand-blue" /> AI CLIMATE COGNITIVE BRIEF
                       </div>
                       <p className="italic text-emerald-200 text-justify font-serif text-sm leading-relaxed">{reportNarrative?.aiBrief}</p>
                     </div>
 
                     {/* DECISION INTELLIGENCE BLOCK */}
                     <div className="space-y-4">
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <ShieldCheck className="w-3.5 h-3.5 text-brand-amber" /> VI. Decision Intelligence Advisories
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" /> VI. Decision Intelligence Advisories
                       </h4>
                       
                       <div className="space-y-3 font-sans text-xs">
@@ -1642,7 +1642,7 @@ export default function ReportsPage() {
                         </div>
 
                         <div className="p-3.5 border border-slate-800 bg-background/20 rounded-lg">
-                          <p className="font-bold text-amber-400 text-[11px] mb-1.5 uppercase flex items-center gap-1">
+                          <p className="font-bold text-brand-blue text-[11px] mb-1.5 uppercase flex items-center gap-1">
                             📋 Short-Term Planning Recommendations (Next 90 Days)
                           </p>
                           <ul className="space-y-1.5 text-secondary-foreground list-disc pl-4 font-serif text-sm">
@@ -1653,7 +1653,7 @@ export default function ReportsPage() {
                         </div>
 
                         <div className="p-3.5 border border-slate-800 bg-background/20 rounded-lg">
-                          <p className="font-bold text-brand-amber text-[11px] mb-1.5 uppercase flex items-center gap-1">
+                          <p className="font-bold text-brand-blue text-[11px] mb-1.5 uppercase flex items-center gap-1">
                             🌱 Long-Term Infrastructure & Resource Adaptation
                           </p>
                           <ul className="space-y-1.5 text-secondary-foreground list-disc pl-4 font-serif text-sm">
@@ -1667,13 +1667,13 @@ export default function ReportsPage() {
 
                     {/* KEY FINDINGS */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-steel mb-2 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <Sparkles className="w-3.5 h-3.5 text-brand-amber" /> VII. Key Findings & Confidence Levels
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                        <Sparkles className="w-3.5 h-3.5 text-brand-blue" /> VII. Key Findings & Confidence Levels
                       </h4>
                       <div className="grid gap-2 font-sans text-xs">
                         {reportNarrative?.keyFindings.map((finding, idx) => (
                           <div key={idx} className="flex items-start gap-2 text-secondary-foreground bg-background/10 p-2 rounded border border-slate-800/40">
-                            <span className="text-brand-amber font-bold mt-0.5">•</span>
+                            <span className="text-brand-blue font-bold mt-0.5">•</span>
                             <span className="font-serif text-[13px]">{finding}</span>
                           </div>
                         ))}
@@ -1685,7 +1685,7 @@ export default function ReportsPage() {
                   {/* SIGNATURE / CERTIFICATION BLOCK */}
                   <div className="border-t border-slate-800 pt-6 mt-6 flex justify-between items-center text-[10px] font-sans text-muted-foreground relative z-10">
                     <span className="flex items-center gap-1">
-                      <ShieldCheck className="w-3.5 h-3.5 text-brand-amber" />
+                      <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" />
                       Certified by Bharat Climate Twin AI Forecaster Layer v2.1.0
                     </span>
                     <span className="italic">Authorized digital signature — Command operations center</span>
@@ -1708,9 +1708,9 @@ export default function ReportsPage() {
                         setActiveLayer(disasterType === "flood" ? "flood_risk" : disasterType === "drought" ? "drought_risk" : "composite_risk");
                       }}
                     >
-                      <Link href={`/map?district_id=${districtId}`} className="flex items-center justify-between border border-white/[0.08] bg-brand-amber/10 hover:bg-surface-elevated p-3.5 rounded-2xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
+                      <Link href={`/map?district_id=${districtId}`} className="flex items-center justify-between border border-white/[0.08] bg-brand-blue/10 hover:bg-surface-elevated p-3.5 rounded-2xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-8 w-8 rounded-lg bg-brand-amber/10 grid place-items-center text-brand-amber">
+                          <div className="h-8 w-8 rounded-lg bg-brand-blue/10 grid place-items-center text-brand-blue">
                             <Globe2 className="w-4 h-4" />
                           </div>
                           <div>
@@ -1718,14 +1718,14 @@ export default function ReportsPage() {
                             <p className="text-[9px] text-muted-foreground">Visualize layer context</p>
                           </div>
                         </div>
-                        <ArrowRight className="w-3.5 h-3.5 text-brand-amber" />
+                        <ArrowRight className="w-3.5 h-3.5 text-brand-blue" />
                       </Link>
                     </div>
 
                     {/* Action 2: Ask AI Copilot */}
-                    <Link href="/copilot" className="flex items-center justify-between border border-white/[0.08] bg-brand-amber/10 hover:bg-surface-elevated p-3.5 rounded-2xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
+                    <Link href="/copilot" className="flex items-center justify-between border border-white/[0.08] bg-brand-blue/10 hover:bg-surface-elevated p-3.5 rounded-2xl transition-all duration-300 hover:scale-[1.01] cursor-pointer">
                       <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-brand-amber/10 grid place-items-center text-brand-amber">
+                        <div className="h-8 w-8 rounded-lg bg-brand-blue/10 grid place-items-center text-brand-blue">
                           <Bot className="w-4 h-4" />
                         </div>
                         <div>
@@ -1733,7 +1733,7 @@ export default function ReportsPage() {
                           <p className="text-[9px] text-muted-foreground">Ask operational queries</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-brand-amber" />
+                      <ArrowRight className="w-3.5 h-3.5 text-brand-blue" />
                     </Link>
 
                     {/* Action 3: Run Scenario Simulator */}

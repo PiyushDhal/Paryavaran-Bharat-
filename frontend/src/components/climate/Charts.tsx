@@ -36,8 +36,8 @@ export function TrendAreaChart({
           </linearGradient>
         </defs>
         <CartesianGrid stroke="rgba(148,163,184,0.12)" vertical={false} />
-        <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-        <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <XAxis dataKey="date" stroke="#C0C8D4" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <YAxis stroke="#C0C8D4" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
           contentStyle={{
             background: "#101B27",
@@ -64,8 +64,8 @@ export function RiskLineChart({ data }: { data: Array<Record<string, number | st
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
         <CartesianGrid stroke="rgba(148,163,184,0.12)" vertical={false} />
-        <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-        <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <XAxis dataKey="date" stroke="#C0C8D4" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <YAxis stroke="#C0C8D4" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
           contentStyle={{
             background: "#101B27",
@@ -75,13 +75,13 @@ export function RiskLineChart({ data }: { data: Array<Record<string, number | st
           }}
         />
         <Legend
-          wrapperStyle={{ paddingTop: 12, fontSize: 11, color: "#94a3b8" }}
+          wrapperStyle={{ paddingTop: 12, fontSize: 11, color: "#C0C8D4" }}
           formatter={(value) => <span className="capitalize text-muted-foreground">{value.replace("_", " ")}</span>}
         />
-        <Line type="monotone" name="flood" dataKey="flood" stroke="#94A3B8" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="flood" dataKey="flood" stroke="#C0C8D4" strokeWidth={2} dot={false} />
         <Line type="monotone" name="drought" dataKey="drought" stroke="#CBD5E1" strokeWidth={2} dot={false} />
-        <Line type="monotone" name="heatwave" dataKey="heatwave" stroke="#F59E0B" strokeWidth={2} dot={false} />
-        <Line type="monotone" name="water_stress" dataKey="water_stress" stroke="#F59E0B" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="heatwave" dataKey="heatwave" stroke="#4DA8DA" strokeWidth={2} dot={false} />
+        <Line type="monotone" name="water_stress" dataKey="water_stress" stroke="#4DA8DA" strokeWidth={2} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );
@@ -92,8 +92,8 @@ export function RankingBarChart({ data }: { data: Array<{ district: string; risk
     <ResponsiveContainer width="100%" height={250}>
       <BarChart data={data}>
         <CartesianGrid stroke="rgba(148,163,184,0.12)" vertical={false} />
-        <XAxis dataKey="district" stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-        <YAxis stroke="#94a3b8" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <XAxis dataKey="district" stroke="#C0C8D4" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+        <YAxis stroke="#C0C8D4" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
         <Tooltip
           contentStyle={{
             background: "#101B27",
@@ -102,7 +102,7 @@ export function RankingBarChart({ data }: { data: Array<{ district: string; risk
             color: "#F8FAFC"
           }}
         />
-        <Bar dataKey="risk" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="risk" fill="#4DA8DA" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

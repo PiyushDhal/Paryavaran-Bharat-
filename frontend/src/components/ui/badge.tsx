@@ -3,9 +3,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const toneClass: Record<string, string> = {
-  low: "border-white/[0.08] bg-brand-amber/10 text-emerald-200",
-  moderate: "border-white/[0.08] bg-brand-amber/10 text-emerald-100",
-  high: "border-amber-300/40 bg-amber-400/12 text-amber-100",
+  low: "border-white/[0.08] bg-brand-blue/10 text-emerald-200",
+  moderate: "border-white/[0.08] bg-brand-blue/10 text-emerald-100",
+  high: "border-brand-blue/20 bg-brand-blue/10 text-amber-100",
   critical: "border-red-300/40 bg-red-400/12 text-red-100",
   default: "border-white/[0.08] bg-white/5 text-emerald-100"
 };

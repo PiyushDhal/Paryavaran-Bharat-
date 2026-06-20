@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="mx-auto flex min-h-[calc(100vh-140px)] max-w-md items-center">
       <Card className="w-full">
         <CardHeader>
-          <div className="mb-3 grid h-12 w-12 place-items-center rounded-md border border-white/[0.08] bg-brand-amber/10">
+          <div className="mb-3 grid h-12 w-12 place-items-center rounded-md border border-white/[0.08] bg-brand-blue/10">
             <LockKeyhole className="h-5 w-5 text-emerald-100" />
           </div>
           <CardTitle>Secure Mission Login</CardTitle>

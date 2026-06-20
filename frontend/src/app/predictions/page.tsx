@@ -15,7 +15,7 @@ function ProbabilityGauge({ value, color }: { value: number; color: string }) {
   const pct = Math.round(value * 100);
   const circumference = 2 * Math.PI * 42;
   const offset = circumference * (1 - value);
-  const strokeColor = color === "emerald" ? "#F59E0B" : color === "amber" ? "#f59e0b" : "#f43f5e";
+  const strokeColor = color === "emerald" ? "#4DA8DA" : color === "amber" ? "#4DA8DA" : "#f43f5e";
 
   return (
     <div className="relative w-48 h-48 flex items-center justify-center mx-auto">
@@ -36,7 +36,7 @@ function ProbabilityGauge({ value, color }: { value: number; color: string }) {
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-4xl font-black text-white">{pct}%</span>
         <span className={`text-[10px] uppercase tracking-widest font-bold ${
-          pct >= 70 ? "text-rose-400" : pct >= 40 ? "text-amber-400" : "text-brand-amber"
+          pct >= 70 ? "text-rose-400" : pct >= 40 ? "text-brand-blue" : "text-brand-blue"
         }`}>
           {pct >= 70 ? "High Risk" : pct >= 40 ? "Moderate" : "Low Risk"}
         </span>
@@ -80,7 +80,7 @@ export default function PredictionsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-amber/10 px-3 py-1 text-xs font-semibold text-emerald-200 mb-4">
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1 text-xs font-semibold text-emerald-200 mb-4">
             <TrendingUp className="w-4 h-4" />
             AI Prediction Engine
           </div>
@@ -117,8 +117,8 @@ export default function PredictionsPage() {
               <div key={hazard.key} className="glass-card rounded-2xl overflow-hidden">
                 <div className={`p-6 border-b border-white/5 flex items-center gap-3`}>
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${
-                    hazard.color === "emerald" ? "bg-brand-amber/10 text-brand-amber border-white/[0.08]" :
-                    hazard.color === "amber" ? "bg-amber-400/10 text-amber-400 border-amber-400/20" :
+                    hazard.color === "emerald" ? "bg-brand-blue/10 text-brand-blue border-white/[0.08]" :
+                    hazard.color === "amber" ? "bg-brand-blue/10 text-brand-blue border-brand-blue/20" :
                     "bg-rose-400/10 text-rose-400 border-rose-400/20"
                   }`}>
                     <Icon className="w-5 h-5" />
@@ -137,7 +137,7 @@ export default function PredictionsPage() {
                       <span className="text-[10px] text-muted-foreground uppercase">Risk Zone</span>
                       <p className={`text-sm font-bold ${
                         pred.risk_zone === "High" ? "text-rose-400" :
-                        pred.risk_zone === "Moderate" ? "text-amber-400" : "text-brand-amber"
+                        pred.risk_zone === "Moderate" ? "text-brand-blue" : "text-brand-blue"
                       }`}>{pred.risk_zone}</p>
                     </div>
                     <div className="p-3 rounded-lg bg-surface/40 border border-white/5">
@@ -146,7 +146,7 @@ export default function PredictionsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-lg border border-white/[0.08] bg-brand-amber/10 p-4">
+                  <div className="mt-4 rounded-lg border border-white/[0.08] bg-brand-blue/10 p-4">
                     <p className="text-xs text-secondary-foreground leading-relaxed">{pred.explanation}</p>
                   </div>
 
