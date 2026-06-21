@@ -904,11 +904,10 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const stateW = maxX - minX;
     const stateH = maxY - minY;
     
-    const baseScale = Math.min((SVG_W - 350) / stateW, (SVG_H - 100) / stateH);
-    const scale = Math.min(Math.max(baseScale, 1.8), 4.5);
+    const baseScale = Math.min((SVG_W - 80) / stateW, (SVG_H - 80) / stateH);
+    const scale = Math.min(Math.max(baseScale, 1.8), 5.5);
     
-    // shift slightly to left so sidebar doesn't cover it
-    const tx = (SVG_W / 2 - 120) - cx * scale;
+    const tx = (SVG_W / 2) - cx * scale;
     const ty = (SVG_H / 2) - cy * scale;
     
     return `translate(${tx}px, ${ty}px) scale(${scale})`;
@@ -1224,7 +1223,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               });
               map.fitBounds(
                 [[minLon, minLat], [maxLon, maxLat]],
-                { padding: { top: 80, bottom: 80, left: 80, right: 350 }, maxZoom: 9, duration: 1200, essential: true }
+                { padding: 40, maxZoom: 8.5, duration: 1200, essential: true }
               );
             } else {
               map.flyTo({ center: e.lngLat, zoom: 5.5, duration: 1000, essential: true });
@@ -1249,7 +1248,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         if (!(e as any)._stateClick) {
           setClickedStateName(null);
           setTooltipCoords(null);
-          map.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, offset: [compact ? 0 : -100, 0], duration: 1000 });
+          map.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
         }
       });
     });
@@ -1410,7 +1409,6 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       mapRef.current.flyTo({
         center: [d.centroid_lon, d.centroid_lat],
         zoom: compact ? 6.5 : 7.8,
-        offset: [compact ? 0 : -175, 0], // shift left to account for sidebar
         duration: 1500,
         essential: true
       });
@@ -1800,7 +1798,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     setClickedStateName(null);
                     setTooltipCoords(null);
                     if (mapRef.current) {
-                      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, offset: [compact ? 0 : -100, 0], duration: 1000 });
+                      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
                     }
                   }}
                   className="text-muted-foreground hover:text-white transition"
