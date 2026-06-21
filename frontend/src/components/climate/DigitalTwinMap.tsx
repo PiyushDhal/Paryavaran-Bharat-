@@ -1276,6 +1276,47 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     }
   }, [selectedDistrictId, allDistricts, compact]);
 
+  const themeConfig = useMemo(() => {
+    switch (mapMode) {
+      case "satellite":
+        return {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(11,35,30,0.60),transparent_60%),linear-gradient(135deg,#051009,#0a1b12)]",
+          grid: "rgba(52,211,153,0.08)",
+          gridText: "rgba(52,211,153,0.3)",
+          boundaryStroke: "rgba(52, 211, 153, 0.45)",
+          boundaryGlow: "rgba(52, 211, 153, 0.1)",
+          stateStroke: "rgba(52, 211, 153, 0.18)"
+        };
+      case "terrain":
+        return {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(50,40,20,0.40),transparent_60%),linear-gradient(135deg,#120f09,#1e1810)]",
+          grid: "rgba(217,119,6,0.06)",
+          gridText: "rgba(217,119,6,0.25)",
+          boundaryStroke: "rgba(217, 119, 6, 0.45)",
+          boundaryGlow: "rgba(217, 119, 6, 0.1)",
+          stateStroke: "rgba(217, 119, 6, 0.18)"
+        };
+      case "hybrid":
+        return {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(30,20,50,0.50),transparent_60%),linear-gradient(135deg,#0a0512,#140a24)]",
+          grid: "rgba(167,139,250,0.06)",
+          gridText: "rgba(167,139,250,0.25)",
+          boundaryStroke: "rgba(167, 139, 250, 0.45)",
+          boundaryGlow: "rgba(167, 139, 250, 0.1)",
+          stateStroke: "rgba(167, 139, 250, 0.18)"
+        };
+      case "streets":
+      default:
+        return {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(6,25,44,0.60),transparent_48%),linear-gradient(135deg,#030914,#081c2e)]",
+          grid: "rgba(34,211,238,0.04)",
+          gridText: "rgba(34,211,238,0.2)",
+          boundaryStroke: "rgba(52, 211, 153, 0.35)", // Using the existing emerald color for default boundary
+          boundaryGlow: "rgba(52, 211, 153, 0.08)",
+          stateStroke: "rgba(52, 211, 153, 0.12)"     // Using the existing emerald color for default state
+        };
+    }
+  }, [mapMode]);
 
   return (
     <div className={`relative w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-background ${compact ? "h-full" : "h-[calc(100vh-112px)]"}`}>
@@ -1290,7 +1331,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               setClickedStateName(null);
               setTooltipCoords(null);
             }}
-            className="relative w-full h-full overflow-hidden bg-[radial-gradient(circle_at_center,rgba(6,25,44,0.60),transparent_48%),linear-gradient(135deg,#030914,#081c2e)] select-none"
+            className={`relative w-full h-full overflow-hidden ${themeConfig.bg} select-none transition-colors duration-700`}
           >
             <div className="absolute inset-0 bg-radar-grid bg-[size:40px_40px] opacity-25" />
             
@@ -1298,7 +1339,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               width="100%"
               height="100%"
               viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-              className="absolute inset-0 w-full h-full p-6"
+              className="absolute inset-0 w-full h-full p-6 transition-colors duration-700"
             >
               {/* SVG Map Projection Grid Lines */}
               {[70, 75, 80, 85, 90, 95].map((lon) => {
@@ -1310,17 +1351,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       y1={15}
                       x2={x}
                       y2={SVG_H - 15}
-                      stroke="rgba(34,211,238,0.04)"
+                      stroke={themeConfig.grid}
                       strokeWidth={0.8}
                       strokeDasharray="3 5"
+                      className="transition-colors duration-700"
                     />
                     <text
                       x={x}
                       y={SVG_H - 5}
                       fontSize={6}
-                      fill="rgba(34,211,238,0.2)"
+                      fill={themeConfig.gridText}
                       textAnchor="middle"
                       fontFamily="monospace"
+                      className="transition-colors duration-700"
                     >
                       {lon}°E
                     </text>
@@ -1336,17 +1379,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       y1={y}
                       x2={SVG_W - 15}
                       y2={y}
-                      stroke="rgba(34,211,238,0.04)"
+                      stroke={themeConfig.grid}
                       strokeWidth={0.8}
                       strokeDasharray="3 5"
+                      className="transition-colors duration-700"
                     />
                     <text
                       x={5}
                       y={y + 1.8}
                       fontSize={6}
-                      fill="rgba(34,211,238,0.2)"
+                      fill={themeConfig.gridText}
                       textAnchor="start"
                       fontFamily="monospace"
+                      className="transition-colors duration-700"
                     >
                       {lat}°N
                     </text>
@@ -1374,7 +1419,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           d={pathData}
                           fill={stateColor}
                           fillOpacity={hoveredStateName === state.name ? 0.65 : 0.25}
-                          stroke={hoveredStateName === state.name ? "#4DA8DA" : "rgba(52, 211, 153, 0.12)"}
+                          stroke={hoveredStateName === state.name ? "#4DA8DA" : themeConfig.stateStroke}
                           strokeWidth={hoveredStateName === state.name ? 1.5 : 0.6}
                           strokeLinejoin="round"
                           className="transition-all duration-300 cursor-pointer"
@@ -1415,19 +1460,21 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     <path
                       d={pathData}
                       fill="rgba(52, 211, 153, 0.01)"
-                      stroke="rgba(52, 211, 153, 0.35)"
+                      stroke={themeConfig.boundaryStroke}
                       strokeWidth={1.5}
                       strokeLinejoin="round"
                       style={{ pointerEvents: "none" }}
+                      className="transition-colors duration-700"
                     />
                     <path
                       d={pathData}
                       fill="none"
-                      stroke="rgba(52, 211, 153, 0.08)"
+                      stroke={themeConfig.boundaryGlow}
                       strokeWidth={1.5}
                       strokeLinejoin="round"
                       filter="url(#glow-fallback)"
                       style={{ pointerEvents: "none" }}
+                      className="transition-colors duration-700"
                     />
                     <defs>
                       <filter id="glow-fallback" x="-20%" y="-20%" width="140%" height="140%">
