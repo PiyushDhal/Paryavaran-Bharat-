@@ -16,7 +16,7 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE EXTENSION IF NOT EXISTS postgis")
+    pass
     op.create_table(
         "users",
         sa.Column("id", sa.Integer(), primary_key=True),

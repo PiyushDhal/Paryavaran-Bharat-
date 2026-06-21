@@ -3,6 +3,7 @@ import urllib.error
 import json
 import time
 import logging
+import os
 from typing import Any
 from sqlalchemy.orm import Session
 
@@ -31,6 +32,23 @@ def safe_get_json(url: str, retries: int = 5, backoff: float = 2.0) -> Any:
             else:
                 raise e
     raise Exception(f"Failed to fetch data from URL after {retries} retries.")
+
+def load_local_dataset(filename: str) -> Any:
+    """Load dataset from local JSON file in backend/datasets/."""
+    # Assuming the current file is in backend/app/ingestion/
+    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "datasets")
+    file_path = os.path.join(base_dir, filename)
+    
+    if not os.path.exists(file_path):
+        return None
+        
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Failed to read local dataset {filename}: {e}")
+        return None
+
 
 class BaseConnector:
     """Base interface for all Government Data source connectors."""

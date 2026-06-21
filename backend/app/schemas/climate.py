@@ -40,6 +40,10 @@ class ClimateObservation(BaseModel):
     aqi: int
     ndvi: float | None = None
     reservoir_level_pct: float | None = None
+    data_source: str | None = None
+    last_updated: datetime | None = None
+    dataset_version: str | None = None
+    confidence: str | None = None
 
 
 class RiskScoreRead(BaseModel):

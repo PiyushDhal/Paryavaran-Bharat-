@@ -68,6 +68,10 @@ class WeatherData(Base, TimestampMixin):
     soil_moisture_pct: Mapped[float] = mapped_column(Float, default=0, nullable=False)
     aqi: Mapped[int] = mapped_column(Integer, default=60, nullable=False)
     source: Mapped[str] = mapped_column(String(80), default="mock-imd", nullable=False)
+    dataset_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    last_updated: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ingestion_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    quality_status: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     district = relationship("District", back_populates="weather")
 
@@ -85,6 +89,10 @@ class SatelliteData(Base, TimestampMixin):
     water_body_index: Mapped[float] = mapped_column(Float, nullable=False)
     reservoir_level_pct: Mapped[float] = mapped_column(Float, nullable=False)
     source: Mapped[str] = mapped_column(String(80), default="mock-nrsc", nullable=False)
+    dataset_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    last_updated: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ingestion_time: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    quality_status: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     district = relationship("District", back_populates="satellite")
 

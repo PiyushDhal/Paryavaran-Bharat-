@@ -3,10 +3,11 @@ import json
 import urllib.request
 import random
 import time
-from datetime import date
+import os
+from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.climate import WeatherData, District
-from app.ingestion.base import BaseConnector, safe_get_json
+from app.ingestion.base import BaseConnector, safe_get_json, load_local_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -25,38 +26,40 @@ class CWCConnector(BaseConnector):
         districts = db.query(District).all()
         results = []
         
-        # Batch coordinates in chunks of 50
-        chunk_size = 50
-        chunks = [districts[i:i + chunk_size] for i in range(0, len(districts), chunk_size)]
+        api_url = os.environ.get("CWC_API_URL")
+        api_key = os.environ.get("CWC_API_KEY")
         
-        for chunk in chunks:
-            lats = ",".join(str(d.centroid_lat) for d in chunk)
-            lons = ",".join(str(d.centroid_lon) for d in chunk)
-            
-            url = f"https://flood-api.open-meteo.com/v1/flood?latitude={lats}&longitude={lons}&daily=river_discharge&forecast_days=1"
+        if api_url and api_key:
+            logger.info("CWC: Fetching from official API...")
             try:
-                logger.info(f"CWC: Batch fetching flood data for {len(chunk)} districts...")
-                payload = safe_get_json(url)
+                headers = {"Authorization": f"Bearer {api_key}"}
+                req = urllib.request.Request(api_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    payload = json.loads(response.read().decode('utf-8'))
                 
-                if isinstance(payload, dict):
-                    payload = [payload]
-                    
-                for idx, d in enumerate(chunk):
-                    results.append({
-                        "district_id": d.id,
-                        "payload": payload[idx] if idx < len(payload) else None
-                    })
+                for d in districts:
+                    district_data = payload.get(d.code)
+                    if district_data:
+                        results.append({"district_id": d.id, "payload": district_data, "dataset_version": "api-v1", "quality_status": "verified"})
+                    else:
+                        results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
+                return results
             except Exception as e:
-                logger.error(f"CWC: Batch fetch failed: {e}")
-                for d in chunk:
-                    results.append({
-                        "district_id": d.id,
-                        "payload": None
-                    })
-            # Add delay to prevent HTTP 429 rate limit errors
-            time.sleep(1.0)
-        return results
-
+                logger.error(f"CWC: API fetch failed: {e}")
+                
+        logger.info("CWC: Falling back to local dataset cwc_data.json...")
+        dataset = load_local_dataset("cwc_data.json")
+        if dataset:
+            for d in districts:
+                district_data = dataset.get(d.code)
+                if district_data:
+                    results.append({"district_id": d.id, "payload": district_data, "dataset_version": "local-dataset-v1", "quality_status": "verified"})
+                else:
+                    results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
+            return results
+            
+        logger.error("CWC: Both API and local dataset fetch failed. No data to ingest.")
+        return []
 
     def validate(self, raw_data: list[dict]) -> list[dict]:
         validated = []
@@ -64,53 +67,48 @@ class CWCConnector(BaseConnector):
             district_id = item["district_id"]
             payload = item["payload"]
             
-            discharge = None
-            if payload and "daily" in payload:
-                daily = payload["daily"]
-                discharges = daily.get("river_discharge", [])
-                if len(discharges) > 0 and discharges[0] is not None:
-                    discharge = discharges[0]
-                    
-            validated.append({
-                "district_id": district_id,
-                "river_discharge": discharge
-            })
+            if not payload:
+                continue
+                
+            try:
+                river_level_m = payload.get("river_level_m")
+                
+                if river_level_m is not None:
+                    validated.append({
+                        "district_id": district_id,
+                        "river_level_m": float(river_level_m),
+                        "dataset_version": item.get("dataset_version"),
+                        "quality_status": item.get("quality_status")
+                    })
+                else:
+                    logger.warning(f"CWC: Missing required fields for district {district_id}")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"CWC: Invalid data format for district {district_id}: {e}")
+                
         return validated
 
     def normalize(self, validated_data: list[dict]) -> list[dict]:
-        normalized = []
-        for item in validated_data:
-            discharge = item["river_discharge"]
-            
-            level_m = None
-            if discharge is not None and discharge >= 0:
-                val = float(discharge) * 0.05 + 1.2
-                level_m = round(min(80.0, max(0.5, val)), 1)
-                
-            normalized.append({
-                "district_id": item["district_id"],
-                "river_level_m": level_m
-            })
-        return normalized
+        return validated_data
 
     def save(self, db: Session, normalized_data: list[dict]) -> int:
         count = 0
         today = date.today()
+        now = datetime.now(timezone.utc)
         
         for item in normalized_data:
             district_id = item["district_id"]
-            level_m = item["river_level_m"]
             
-            if level_m is None:
-                level_m = round(random.uniform(1.5, 8.5), 1)
-                
             wd = db.query(WeatherData).filter(
                 WeatherData.district_id == district_id,
                 WeatherData.observed_on == today
             ).first()
             
             if wd:
-                wd.river_level_m = level_m
+                wd.river_level_m = item["river_level_m"]
+                wd.dataset_version = item["dataset_version"]
+                wd.last_updated = now
+                wd.ingestion_time = now
+                wd.quality_status = item["quality_status"]
             else:
                 wd = WeatherData(
                     district_id=district_id,
@@ -118,8 +116,12 @@ class CWCConnector(BaseConnector):
                     rainfall_mm=0.0,
                     temperature_c=25.0,
                     humidity_pct=60.0,
-                    river_level_m=level_m,
-                    source=self.source_tag
+                    river_level_m=item["river_level_m"],
+                    source=self.source_tag,
+                    dataset_version=item["dataset_version"],
+                    last_updated=now,
+                    ingestion_time=now,
+                    quality_status=item["quality_status"]
                 )
                 db.add(wd)
             count += 1

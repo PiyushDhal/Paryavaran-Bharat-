@@ -3,10 +3,11 @@ import json
 import urllib.request
 import random
 import time
-from datetime import date
+import os
+from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.climate import WeatherData, District
-from app.ingestion.base import BaseConnector, safe_get_json
+from app.ingestion.base import BaseConnector, safe_get_json, load_local_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -25,37 +26,45 @@ class IMDConnector(BaseConnector):
         districts = db.query(District).all()
         results = []
         
-        chunk_size = 50
-        chunks = [districts[i:i + chunk_size] for i in range(0, len(districts), chunk_size)]
+        api_url = os.environ.get("IMD_API_URL")
+        api_key = os.environ.get("IMD_API_KEY")
         
-        for chunk in chunks:
-            lats = ",".join(str(d.centroid_lat) for d in chunk)
-            lons = ",".join(str(d.centroid_lon) for d in chunk)
-            
-            url = f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}&daily=temperature_2m_max,precipitation_sum,relative_humidity_2m_max&forecast_days=1&timezone=GMT"
+        # Try fetching from API if configured
+        if api_url and api_key:
+            logger.info("IMD: Fetching from official API...")
             try:
-                logger.info(f"IMD: Batch fetching weather data for {len(chunk)} districts...")
-                payload = safe_get_json(url)
+                # Mock implementation of an official API fetch
+                headers = {"Authorization": f"Bearer {api_key}"}
+                req = urllib.request.Request(api_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    payload = json.loads(response.read().decode('utf-8'))
                 
-                if isinstance(payload, dict):
-                    payload = [payload]
-                    
-                for idx, d in enumerate(chunk):
-                    results.append({
-                        "district_id": d.id,
-                        "payload": payload[idx] if idx < len(payload) else None
-                    })
+                # Assume payload maps district codes to data
+                for d in districts:
+                    district_data = payload.get(d.code)
+                    if district_data:
+                        results.append({"district_id": d.id, "payload": district_data, "dataset_version": "api-v1", "quality_status": "verified"})
+                    else:
+                        results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
+                return results
             except Exception as e:
-                logger.error(f"IMD: Batch fetch failed: {e}")
-                for d in chunk:
-                    results.append({
-                        "district_id": d.id,
-                        "payload": None
-                    })
-            # Add delay to prevent HTTP 429 rate limit errors
-            time.sleep(1.0)
-        return results
-
+                logger.error(f"IMD: API fetch failed: {e}")
+        
+        # Fallback to local dataset
+        logger.info("IMD: Falling back to local dataset imd_data.json...")
+        dataset = load_local_dataset("imd_data.json")
+        if dataset:
+            # Assume dataset is a dict mapping district_code to data
+            for d in districts:
+                district_data = dataset.get(d.code)
+                if district_data:
+                    results.append({"district_id": d.id, "payload": district_data, "dataset_version": "local-dataset-v1", "quality_status": "verified"})
+                else:
+                    results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
+            return results
+            
+        logger.error("IMD: Both API and local dataset fetch failed. No data to ingest.")
+        return []
 
     def validate(self, raw_data: list[dict]) -> list[dict]:
         validated = []
@@ -63,29 +72,29 @@ class IMDConnector(BaseConnector):
             district_id = item["district_id"]
             payload = item["payload"]
             
-            temp = None
-            precip = None
-            humidity = None
-            
-            if payload and "daily" in payload:
-                daily = payload["daily"]
-                temps = daily.get("temperature_2m_max", [])
-                precips = daily.get("precipitation_sum", [])
-                humids = daily.get("relative_humidity_2m_max", [])
+            if not payload:
+                continue
                 
-                if len(temps) > 0 and temps[0] is not None:
-                    temp = temps[0]
-                if len(precips) > 0 and precips[0] is not None:
-                    precip = precips[0]
-                if len(humids) > 0 and humids[0] is not None:
-                    humidity = humids[0]
-                    
-            validated.append({
-                "district_id": district_id,
-                "temperature_c": temp,
-                "rainfall_mm": precip,
-                "humidity_pct": humidity
-            })
+            try:
+                # IMD payload structure (expected)
+                temp = payload.get("temperature_c")
+                precip = payload.get("rainfall_mm")
+                humidity = payload.get("humidity_pct")
+                
+                if temp is not None and precip is not None and humidity is not None:
+                    validated.append({
+                        "district_id": district_id,
+                        "temperature_c": float(temp),
+                        "rainfall_mm": float(precip),
+                        "humidity_pct": float(humidity),
+                        "dataset_version": item.get("dataset_version"),
+                        "quality_status": item.get("quality_status")
+                    })
+                else:
+                    logger.warning(f"IMD: Missing required fields for district {district_id}")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"IMD: Invalid data format for district {district_id}: {e}")
+                
         return validated
 
     def normalize(self, validated_data: list[dict]) -> list[dict]:
@@ -94,19 +103,10 @@ class IMDConnector(BaseConnector):
     def save(self, db: Session, normalized_data: list[dict]) -> int:
         count = 0
         today = date.today()
+        now = datetime.now(timezone.utc)
         
         for item in normalized_data:
             district_id = item["district_id"]
-            temp = item["temperature_c"]
-            precip = item["rainfall_mm"]
-            humidity = item["humidity_pct"]
-            
-            if temp is None:
-                temp = round(random.uniform(22.0, 42.0), 1)
-            if precip is None:
-                precip = round(random.uniform(0.0, 12.0), 1)
-            if humidity is None:
-                humidity = round(random.uniform(40.0, 90.0), 1)
             
             wd = db.query(WeatherData).filter(
                 WeatherData.district_id == district_id,
@@ -114,18 +114,26 @@ class IMDConnector(BaseConnector):
             ).first()
             
             if wd:
-                wd.temperature_c = temp
-                wd.rainfall_mm = precip
-                wd.humidity_pct = humidity
+                wd.temperature_c = item["temperature_c"]
+                wd.rainfall_mm = item["rainfall_mm"]
+                wd.humidity_pct = item["humidity_pct"]
                 wd.source = self.source_tag
+                wd.dataset_version = item["dataset_version"]
+                wd.last_updated = now
+                wd.ingestion_time = now
+                wd.quality_status = item["quality_status"]
             else:
                 wd = WeatherData(
                     district_id=district_id,
                     observed_on=today,
-                    rainfall_mm=precip,
-                    temperature_c=temp,
-                    humidity_pct=humidity,
-                    source=self.source_tag
+                    rainfall_mm=item["rainfall_mm"],
+                    temperature_c=item["temperature_c"],
+                    humidity_pct=item["humidity_pct"],
+                    source=self.source_tag,
+                    dataset_version=item["dataset_version"],
+                    last_updated=now,
+                    ingestion_time=now,
+                    quality_status=item["quality_status"]
                 )
                 db.add(wd)
             count += 1

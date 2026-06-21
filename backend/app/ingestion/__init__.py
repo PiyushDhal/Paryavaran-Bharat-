@@ -4,7 +4,7 @@ from .nrsc import NRSCConnector
 from .cpcb import CPCBConnector
 from .cwc import CWCConnector
 from .wris import WRISConnector
-from .scheduler import run_all_ingestions
+from .scheduler import run_scheduler
 
 __all__ = [
     "IMDConnector",
@@ -12,5 +12,5 @@ __all__ = [
     "CPCBConnector",
     "CWCConnector",
     "WRISConnector",
-    "run_all_ingestions",
+    "run_scheduler",
 ]

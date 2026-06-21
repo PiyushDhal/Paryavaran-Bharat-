@@ -74,6 +74,10 @@ def district_history(
             aqi=w.aqi,
             ndvi=s.ndvi,
             reservoir_level_pct=s.reservoir_level_pct,
+            data_source=w.source,
+            last_updated=w.last_updated,
+            dataset_version=w.dataset_version,
+            confidence=w.quality_status,
         )
         for w, s in rows
     ]

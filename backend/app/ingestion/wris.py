@@ -3,10 +3,11 @@ import json
 import urllib.request
 import random
 import time
-from datetime import date
+import os
+from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.climate import SatelliteData, District
-from app.ingestion.base import BaseConnector, safe_get_json
+from app.ingestion.base import BaseConnector, safe_get_json, load_local_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -25,38 +26,40 @@ class WRISConnector(BaseConnector):
         districts = db.query(District).all()
         results = []
         
-        # Batch coordinates in chunks of 50
-        chunk_size = 50
-        chunks = [districts[i:i + chunk_size] for i in range(0, len(districts), chunk_size)]
+        api_url = os.environ.get("WRIS_API_URL")
+        api_key = os.environ.get("WRIS_API_KEY")
         
-        for chunk in chunks:
-            lats = ",".join(str(d.centroid_lat) for d in chunk)
-            lons = ",".join(str(d.centroid_lon) for d in chunk)
-            
-            url = f"https://api.open-meteo.com/v1/forecast?latitude={lats}&longitude={lons}&daily=precipitation_sum&forecast_days=1&timezone=GMT"
+        if api_url and api_key:
+            logger.info("WRIS: Fetching from official API...")
             try:
-                logger.info(f"WRIS: Batch fetching reservoir precipitation proxies for {len(chunk)} districts...")
-                payload = safe_get_json(url)
+                headers = {"Authorization": f"Bearer {api_key}"}
+                req = urllib.request.Request(api_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    payload = json.loads(response.read().decode('utf-8'))
                 
-                if isinstance(payload, dict):
-                    payload = [payload]
-                    
-                for idx, d in enumerate(chunk):
-                    results.append({
-                        "district_id": d.id,
-                        "payload": payload[idx] if idx < len(payload) else None
-                    })
+                for d in districts:
+                    district_data = payload.get(d.code)
+                    if district_data:
+                        results.append({"district_id": d.id, "payload": district_data, "dataset_version": "api-v1", "quality_status": "verified"})
+                    else:
+                        results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
+                return results
             except Exception as e:
-                logger.error(f"WRIS: Batch fetch failed: {e}")
-                for d in chunk:
-                    results.append({
-                        "district_id": d.id,
-                        "payload": None
-                    })
-            # Add delay to prevent HTTP 429 rate limit errors
-            time.sleep(1.0)
-        return results
-
+                logger.error(f"WRIS: API fetch failed: {e}")
+                
+        logger.info("WRIS: Falling back to local dataset wris_data.json...")
+        dataset = load_local_dataset("wris_data.json")
+        if dataset:
+            for d in districts:
+                district_data = dataset.get(d.code)
+                if district_data:
+                    results.append({"district_id": d.id, "payload": district_data, "dataset_version": "local-dataset-v1", "quality_status": "verified"})
+                else:
+                    results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
+            return results
+            
+        logger.error("WRIS: Both API and local dataset fetch failed. No data to ingest.")
+        return []
 
     def validate(self, raw_data: list[dict]) -> list[dict]:
         validated = []
@@ -64,64 +67,63 @@ class WRISConnector(BaseConnector):
             district_id = item["district_id"]
             payload = item["payload"]
             
-            precip = None
-            if payload and "daily" in payload:
-                daily = payload["daily"]
-                precips = daily.get("precipitation_sum", [])
-                if len(precips) > 0 and precips[0] is not None:
-                    precip = precips[0]
-                    
-            validated.append({
-                "district_id": district_id,
-                "precip": precip
-            })
+            if not payload:
+                continue
+                
+            try:
+                reservoir_level_pct = payload.get("reservoir_level_pct")
+                
+                if reservoir_level_pct is not None:
+                    validated.append({
+                        "district_id": district_id,
+                        "reservoir_level_pct": float(reservoir_level_pct),
+                        "dataset_version": item.get("dataset_version"),
+                        "quality_status": item.get("quality_status")
+                    })
+                else:
+                    logger.warning(f"WRIS: Missing required fields for district {district_id}")
+            except (ValueError, TypeError) as e:
+                logger.warning(f"WRIS: Invalid data format for district {district_id}: {e}")
+                
         return validated
 
     def normalize(self, validated_data: list[dict]) -> list[dict]:
-        normalized = []
-        for item in validated_data:
-            precip = item["precip"]
-            
-            res_level = None
-            if precip is not None:
-                val = 45.0 + float(precip) * 2.5
-                res_level = round(min(100.0, max(10.0, val)), 1)
-                
-            normalized.append({
-                "district_id": item["district_id"],
-                "reservoir_level_pct": res_level
-            })
-        return normalized
+        return validated_data
 
     def save(self, db: Session, normalized_data: list[dict]) -> int:
         count = 0
         today = date.today()
+        now = datetime.now(timezone.utc)
         
         for item in normalized_data:
             district_id = item["district_id"]
-            res_level = item["reservoir_level_pct"]
             
-            if res_level is None:
-                res_level = round(random.uniform(35.0, 85.0), 1)
-                
             sd = db.query(SatelliteData).filter(
                 SatelliteData.district_id == district_id,
                 SatelliteData.observed_on == today
             ).first()
             
             if sd:
-                sd.reservoir_level_pct = res_level
+                sd.reservoir_level_pct = item["reservoir_level_pct"]
                 sd.source = self.source_tag
+                sd.dataset_version = item["dataset_version"]
+                sd.last_updated = now
+                sd.ingestion_time = now
+                sd.quality_status = item["quality_status"]
             else:
                 sd = SatelliteData(
                     district_id=district_id,
                     observed_on=today,
-                    ndvi=0.4,
-                    land_surface_temp_c=28.0,
-                    soil_moisture_pct=40.0,
-                    water_body_index=0.1,
-                    reservoir_level_pct=res_level,
-                    source=self.source_tag
+                    ndvi=0.0,
+                    land_surface_temp_c=25.0,
+                    soil_moisture_pct=0.0,
+                    water_body_index=0.0,
+                    reservoir_level_pct=item["reservoir_level_pct"],
+                    source=self.source_tag,
+                    dataset_version=item["dataset_version"],
+                    last_updated=now,
+                    ingestion_time=now,
+                    quality_status=item["quality_status"]
                 )
                 db.add(sd)
             count += 1
