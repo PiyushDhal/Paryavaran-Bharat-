@@ -1224,7 +1224,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               });
               map.fitBounds(
                 [[minLon, minLat], [maxLon, maxLat]],
-                { padding: 80, maxZoom: 6.5, duration: 1200, essential: true }
+                { padding: { top: 80, bottom: 80, left: 80, right: 350 }, maxZoom: 9, duration: 1200, essential: true }
               );
             } else {
               map.flyTo({ center: e.lngLat, zoom: 5.5, duration: 1000, essential: true });
@@ -1249,7 +1249,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         if (!(e as any)._stateClick) {
           setClickedStateName(null);
           setTooltipCoords(null);
-          map.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
+          map.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, offset: [compact ? 0 : -100, 0], duration: 1000 });
         }
       });
     });
@@ -1410,6 +1410,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       mapRef.current.flyTo({
         center: [d.centroid_lon, d.centroid_lat],
         zoom: compact ? 6.5 : 7.8,
+        offset: [compact ? 0 : -175, 0], // shift left to account for sidebar
         duration: 1500,
         essential: true
       });
@@ -1799,7 +1800,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     setClickedStateName(null);
                     setTooltipCoords(null);
                     if (mapRef.current) {
-                      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
+                      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, offset: [compact ? 0 : -100, 0], duration: 1000 });
                     }
                   }}
                   className="text-muted-foreground hover:text-white transition"
