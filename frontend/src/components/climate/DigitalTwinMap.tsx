@@ -1110,6 +1110,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     });
     mapRef.current = map;
 
+    map.on("load", () => {
       if (!map.getSource("mapbox-dem")) {
         map.addSource("mapbox-dem", {
           type: "raster-dem",
