@@ -921,7 +921,8 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const baseScale = Math.min((SVG_W - 80) / stateW, (SVG_H - 80) / stateH);
     const scale = Math.min(Math.max(baseScale, 1.8), 5.5);
     
-    const tx = (SVG_W / 2) - cx * scale;
+    // Shift slightly to the left to avoid the right telemetry sidebar
+    const tx = (SVG_W / 2 - 150) - cx * scale;
     const ty = (SVG_H / 2) - cy * scale;
     
     return `translate(${tx}px, ${ty}px) scale(${scale})`;
@@ -1416,6 +1417,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         mapRef.current.flyTo({
           center: [d.centroid_lon, d.centroid_lat],
           zoom: compact ? 6.5 : 7.8,
+          offset: [compact ? 0 : -150, 0], // Account for sidebar
           duration: 1500,
           essential: true
         });
@@ -1434,11 +1436,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         });
         mapRef.current.fitBounds(
           [[minLon, minLat], [maxLon, maxLat]],
-          { padding: 80, maxZoom: 8.5, duration: 1200, essential: true }
+          { padding: { top: 60, bottom: 60, left: 60, right: compact ? 60 : 350 }, maxZoom: 8.5, duration: 1200, essential: true }
         );
       }
     } else {
-      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
+      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, offset: [compact ? 0 : -100, 0], duration: 1000 });
     }
   }, [selectedDistrictId, selectedStateName, allDistricts, compact]);
 
@@ -1526,7 +1528,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               }}
               onMouseLeave={() => setHoverCoords(null)}
             >
-              <g style={{ transform: zoomTransform, transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)', transformOrigin: 'center' }}>
+              <g style={{ transform: zoomTransform, transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)', transformOrigin: '0 0' }}>
               {/* SVG Map Projection Grid Lines */}
               {[70, 75, 80, 85, 90, 95].map((lon) => {
                 const x = lonToX(lon, 22.5);
