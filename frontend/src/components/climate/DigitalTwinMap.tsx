@@ -1110,7 +1110,16 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     });
     mapRef.current = map;
 
-    map.on("load", () => {
+      if (!map.getSource("mapbox-dem")) {
+        map.addSource("mapbox-dem", {
+          type: "raster-dem",
+          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+          tileSize: 512,
+          maxzoom: 14
+        });
+        map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      }
+
       map.addSource("state-boundaries", {
         type: "geojson",
         data: statesGeoJson
@@ -1193,13 +1202,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             setTooltipCoords({ x: e.point.x, y: e.point.y });
             // Prevent map general click handler from running
             (e as any)._stateClick = true;
-            
-            map.flyTo({
-              center: e.lngLat,
-              zoom: 5.5,
-              duration: 1000,
-              essential: true
-            });
+            // Calculate precise bounds for the state to fit the viewport perfectly
+            const stateObj = INDIA_STATES.find(s => s.name === name);
+            if (stateObj) {
+              let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+              stateObj.paths.forEach(path => {
+                path.forEach(pt => {
+                  if (pt.lon < minLon) minLon = pt.lon;
+                  if (pt.lon > maxLon) maxLon = pt.lon;
+                  if (pt.lat < minLat) minLat = pt.lat;
+                  if (pt.lat > maxLat) maxLat = pt.lat;
+                });
+              });
+              map.fitBounds(
+                [[minLon, minLat], [maxLon, maxLat]],
+                { padding: { top: 50, bottom: 50, left: 50, right: 300 }, duration: 1200 }
+              );
+            } else {
+              map.flyTo({ center: e.lngLat, zoom: 5.5, duration: 1000, essential: true });
+            }
           }
         }
       });
@@ -1294,16 +1315,84 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     }
   }, [hoveredStateName]);
 
-  // Update Mapbox style when mapMode changes
+  // Handle dynamic map mode (style) changes for Mapbox
+  const currentModeRef = useRef<string>(mapMode);
   useEffect(() => {
-    if (!mapRef.current) return;
-    let styleUrl = "mapbox://styles/mapbox/dark-v11";
-    if (mapMode === "satellite") styleUrl = "mapbox://styles/mapbox/satellite-v9";
-    else if (mapMode === "terrain") styleUrl = "mapbox://styles/mapbox/outdoors-v12";
-    else if (mapMode === "hybrid") styleUrl = "mapbox://styles/mapbox/satellite-streets-v12";
+    if (!mapRef.current || !token) return;
+    if (currentModeRef.current === mapMode) return;
+    currentModeRef.current = mapMode;
 
-    mapRef.current.setStyle(styleUrl);
-  }, [mapMode]);
+    const map = mapRef.current;
+    let newStyle = "mapbox://styles/mapbox/dark-v11";
+    if (mapMode === "satellite") newStyle = "mapbox://styles/mapbox/satellite-v9";
+    else if (mapMode === "terrain") newStyle = "mapbox://styles/mapbox/outdoors-v12";
+    else if (mapMode === "hybrid") newStyle = "mapbox://styles/mapbox/satellite-streets-v12";
+
+    map.once("style.load", () => {
+      const { activeLayer, mappedFeatures, statesGeoJson, compact } = latestMapData.current;
+      
+      if (!map.getSource("mapbox-dem")) {
+        map.addSource("mapbox-dem", {
+          type: "raster-dem",
+          url: "mapbox://mapbox.mapbox-terrain-dem-v1",
+          tileSize: 512,
+          maxzoom: 14
+        });
+        map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      }
+
+      if (!map.getSource("state-boundaries")) {
+        map.addSource("state-boundaries", { type: "geojson", data: statesGeoJson });
+        map.addLayer({
+          id: "state-fill",
+          type: "fill",
+          source: "state-boundaries",
+          paint: {
+            "fill-color": [
+              "step",
+              ["get", "active_val"],
+              ...getMapboxColorSteps(activeLayer)
+            ],
+            "fill-opacity": 0.25
+          }
+        });
+        map.addLayer({
+          id: "state-line",
+          type: "line",
+          source: "state-boundaries",
+          paint: {
+            "line-color": "rgba(52, 211, 153, 0.15)",
+            "line-width": 0.6
+          }
+        });
+      }
+
+      if (!map.getSource("district-risk")) {
+        map.addSource("district-risk", {
+          type: "geojson",
+          data: { type: "FeatureCollection", features: mappedFeatures }
+        });
+        map.addLayer({
+          id: "district-risk-fill",
+          type: "circle",
+          source: "district-risk",
+          paint: {
+            "circle-color": [
+              "step",
+              ["get", "active_val"],
+              ...getMapboxColorSteps(activeLayer)
+            ],
+            "circle-radius": compact ? 7 : 9,
+            "circle-opacity": 0.8,
+            "circle-stroke-width": 1.5,
+            "circle-stroke-color": "#ffffff"
+          }
+        });
+      }
+    });
+
+    map.setStyle(newStyle);
+  }, [mapMode, token]);
 
   // Reactive panning to global selected district
   useEffect(() => {
