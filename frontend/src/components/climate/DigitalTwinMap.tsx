@@ -1087,6 +1087,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   }, [features, activeLayer, rankings, allDistricts, timelineStep]);
 
   // Mapbox GL initialization and updates
+  const latestMapData = useRef({ activeLayer, mappedFeatures, statesGeoJson, compact });
+  useEffect(() => {
+    latestMapData.current = { activeLayer, mappedFeatures, statesGeoJson, compact };
+  }, [activeLayer, mappedFeatures, statesGeoJson, compact]);
+
   useEffect(() => {
     if (!token || !mapNode.current || !data || mapRef.current) return;
     mapboxgl.accessToken = token;
