@@ -1,13 +1,11 @@
 import logging
 import json
 import urllib.request
-import random
 import time
-import os
 from datetime import date, datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.climate import WeatherData, District
-from app.ingestion.base import BaseConnector, safe_get_json, load_local_dataset
+from app.ingestion.base import BaseConnector, safe_get_json
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +13,7 @@ class CPCBConnector(BaseConnector):
     """Central Pollution Control Board (CPCB) Connector for Air Quality."""
 
     name: str = "CPCB Air Quality Data"
-    source_tag: str = "cpcb-aqi"
+    source_tag: str = "cpcb-open-meteo"
 
     def fetch(self, **kwargs) -> list[dict]:
         db = kwargs.get("db")
@@ -26,40 +24,41 @@ class CPCBConnector(BaseConnector):
         districts = db.query(District).all()
         results = []
         
-        api_url = os.environ.get("CPCB_API_URL")
-        api_key = os.environ.get("CPCB_API_KEY")
+        # Batch coordinates in chunks of 50
+        chunk_size = 50
+        chunks = [districts[i:i + chunk_size] for i in range(0, len(districts), chunk_size)]
         
-        if api_url and api_key:
-            logger.info("CPCB: Fetching from official API...")
-            try:
-                headers = {"Authorization": f"Bearer {api_key}"}
-                req = urllib.request.Request(api_url, headers=headers)
-                with urllib.request.urlopen(req, timeout=15) as response:
-                    payload = json.loads(response.read().decode('utf-8'))
-                
-                for d in districts:
-                    district_data = payload.get(d.code)
-                    if district_data:
-                        results.append({"district_id": d.id, "payload": district_data, "dataset_version": "api-v1", "quality_status": "verified"})
-                    else:
-                        results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
-                return results
-            except Exception as e:
-                logger.error(f"CPCB: API fetch failed: {e}")
-                
-        logger.info("CPCB: Falling back to local dataset cpcb_data.json...")
-        dataset = load_local_dataset("cpcb_data.json")
-        if dataset:
-            for d in districts:
-                district_data = dataset.get(d.code)
-                if district_data:
-                    results.append({"district_id": d.id, "payload": district_data, "dataset_version": "local-dataset-v1", "quality_status": "verified"})
-                else:
-                    results.append({"district_id": d.id, "payload": None, "dataset_version": None, "quality_status": "missing"})
-            return results
+        for chunk in chunks:
+            lats = ",".join(str(d.centroid_lat) for d in chunk)
+            lons = ",".join(str(d.centroid_lon) for d in chunk)
             
-        logger.error("CPCB: Both API and local dataset fetch failed. No data to ingest.")
-        return []
+            url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lats}&longitude={lons}&current=us_aqi&timezone=GMT"
+            try:
+                logger.info(f"CPCB: Batch fetching AQI data from Open-Meteo for {len(chunk)} districts...")
+                payload = safe_get_json(url)
+                
+                if isinstance(payload, (dict, list)):
+                    payload_list = payload if isinstance(payload, list) else [payload]
+                    
+                    for idx, d in enumerate(chunk):
+                        results.append({
+                            "district_id": d.id,
+                            "payload": payload_list[idx] if idx < len(payload_list) else None,
+                            "dataset_version": "open-meteo-v1",
+                            "quality_status": "verified"
+                        })
+            except Exception as e:
+                logger.error(f"CPCB: Batch fetch failed: {e}")
+                for d in chunk:
+                    results.append({
+                        "district_id": d.id,
+                        "payload": None,
+                        "dataset_version": None,
+                        "quality_status": "missing"
+                    })
+            # Add delay to prevent HTTP 429 rate limit errors
+            time.sleep(1.0)
+        return results
 
     def validate(self, raw_data: list[dict]) -> list[dict]:
         validated = []
@@ -67,11 +66,12 @@ class CPCBConnector(BaseConnector):
             district_id = item["district_id"]
             payload = item["payload"]
             
-            if not payload:
+            if not payload or "current" not in payload:
                 continue
                 
             try:
-                aqi = payload.get("aqi")
+                current = payload["current"]
+                aqi = current.get("us_aqi")
                 
                 if aqi is not None:
                     validated.append({
