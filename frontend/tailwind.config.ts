@@ -11,7 +11,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", ...defaultTheme.fontFamily.sans]
+        sans: ["var(--font-inter)", ...defaultTheme.fontFamily.sans],
+        orbitron: ["var(--font-orbitron)", ...defaultTheme.fontFamily.sans],
+        rajdhani: ["var(--font-rajdhani)", ...defaultTheme.fontFamily.sans]
       },
       colors: {
         border: "hsl(var(--border))",

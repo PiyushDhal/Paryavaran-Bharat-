@@ -254,3 +254,70 @@ input[type="range"]::-moz-range-thumb {
     opacity: 0;
   }
 }
+
+/* ─── Space Mission HUD Cinematic Animations ────────────────── */
+@keyframes fadeInLogo {
+  0% { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeInTitle {
+  0% { opacity: 0; filter: blur(12px); transform: scale(0.96); }
+  100% { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+@keyframes fadeInSubtitle {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInCTA {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slowOrbit {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 15px rgba(77, 168, 218, 0.15); }
+  50% { opacity: 0.95; box-shadow: 0 0 25px rgba(77, 168, 218, 0.35); }
+}
+
+.animate-fade-in-logo {
+  animation: fadeInLogo 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-title {
+  opacity: 0;
+  animation: fadeInTitle 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.8s forwards;
+}
+
+.animate-fade-in-subtitle {
+  opacity: 0;
+  animation: fadeInSubtitle 1.2s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
+}
+
+.animate-fade-in-cta {
+  opacity: 0;
+  animation: fadeInCTA 1s cubic-bezier(0.16, 1, 0.3, 1) 2.4s forwards;
+}
+
+.animate-slow-orbit {
+  animation: slowOrbit 12s linear infinite;
+}
+
+.glow-space-blue {
+  text-shadow: 0 0 20px rgba(77, 168, 218, 0.4), 0 0 40px rgba(77, 168, 218, 0.2);
+}
+
+.glow-titanium-blue {
+  text-shadow: 0 0 15px rgba(192, 200, 212, 0.35);
+}
+
+.hud-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+

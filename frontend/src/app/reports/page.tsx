@@ -699,7 +699,7 @@ export default function ReportsPage() {
           <Badge className="bg-surface-elevated text-brand-titanium border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             Strategic Decision Cockpit
           </Badge>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
+          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-orbitron tracking-[0.12em] uppercase">
             Reports & Decision Intelligence Center
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">

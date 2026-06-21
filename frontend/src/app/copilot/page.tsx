@@ -198,7 +198,7 @@ export default function CopilotPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <Badge>AI Climate Copilot</Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">Climate Decision Support Cockpit</h1>
+          <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">Climate Decision Support Cockpit</h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Enterprise decision-support assistant. Ask questions on vulnerability metrics, execute cross-page map actions, simulate scenarios, and download risk reports.
           </p>

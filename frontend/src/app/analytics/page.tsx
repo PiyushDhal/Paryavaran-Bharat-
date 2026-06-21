@@ -392,7 +392,7 @@ export default function AnalyticsPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <Badge className="border-white/[0.08] bg-brand-blue/10 text-brand-titanium">Climate Intelligence Workspace</Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">National Climate & Sustainability Analytics</h1>
+          <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">National Climate & Sustainability Analytics</h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Unified Climate Trends, Risk Models, Sustainability Indexes, and Cognitive Recommendations workspace.
           </p>

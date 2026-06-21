@@ -160,7 +160,7 @@ export default function ComparePage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <Badge>Climate Intelligence Toolkit</Badge>
-          <h1 className="mt-3 text-3xl font-semibold tracking-normal text-white">Cross-District Risk Comparison</h1>
+          <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">Cross-District Risk Comparison</h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Compare two district risk matrices side-by-side to understand relative vulnerabilities, exposures, and policy requirements.
           </p>

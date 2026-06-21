@@ -473,7 +473,7 @@ export default function SimulatorPage() {
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Badge className="mb-2">Future Conditions Lab</Badge>
-          <h1 className="text-3xl font-bold tracking-tight text-white">
+          <h1 className="text-3xl font-bold text-white font-orbitron tracking-[0.12em] uppercase">
             AI Climate Simulation Engine
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">

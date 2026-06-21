@@ -58,7 +58,7 @@ export default function ArchitecturePage() {
           <Cpu className="w-4 h-4" />
           Core AI Architecture
         </div>
-        <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
+        <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight font-orbitron tracking-[0.12em] uppercase">
           Climate Digital Twin <span className="text-brand-blue">Workflow</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">

@@ -84,7 +84,7 @@ export default function PredictionsPage() {
             <TrendingUp className="w-4 h-4" />
             AI Prediction Engine
           </div>
-          <h1 className="text-4xl font-bold tracking-tight text-white">Hazard Predictions</h1>
+          <h1 className="text-4xl font-bold text-white font-orbitron tracking-[0.12em] uppercase">Hazard Predictions</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
             Multi-hazard probability forecasts powered by RandomForest, XGBoost, and scikit-learn pipelines for district-level risk assessment.
           </p>

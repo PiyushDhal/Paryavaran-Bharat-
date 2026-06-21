@@ -126,11 +126,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover" />
             </span>
             {!isCollapsed && (
-              <span className="whitespace-nowrap overflow-hidden">
-                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-brand-titanium">
+              <span className="whitespace-nowrap overflow-hidden font-orbitron">
+                <span className="block text-[9px] font-bold uppercase tracking-[0.22em] text-brand-titanium leading-none mb-1">
                   Bharat
                 </span>
-                <span className="block text-base font-bold tracking-tight text-white leading-tight">
+                <span className="block text-sm font-bold tracking-[0.08em] text-white leading-none">
                   Climate Twin
                 </span>
               </span>

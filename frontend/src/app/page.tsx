@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -63,7 +63,7 @@ const stats = [
   { value: "24/7", label: "Real-time Feeds" }
 ];
 
-// ── Floating Particles Canvas (Optimized) ───────────────────────
+// ── Floating Particles Canvas (Optimized for Space Theme) ──────
 function FloatingParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -128,7 +128,8 @@ function FloatingParticles() {
         const alpha = p.alpha * pulse;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(52, 211, 153, ${alpha})`;
+        // Swapped emerald to Space Cyan-Blue
+        ctx.fillStyle = `rgba(77, 168, 218, ${alpha})`;
         ctx.fill();
       });
 
@@ -144,7 +145,8 @@ function FloatingParticles() {
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
             ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(52, 211, 153, ${lineAlpha})`;
+            // Swapped emerald to Space Cyan-Blue
+            ctx.strokeStyle = `rgba(77, 168, 218, ${lineAlpha})`;
             ctx.lineWidth = 0.4;
             ctx.stroke();
           }
@@ -173,14 +175,14 @@ function FloatingParticles() {
   );
 }
 
-// ── Scanning Radar Sweep Overlay ────────────────────────────────
+// ── Scanning Radar Sweep Overlay (Space Cyan-Blue) ─────────────
 function RadarSweep() {
   return (
     <div className="absolute inset-0 pointer-events-none z-[4] overflow-hidden">
       <div
         className="absolute left-0 right-0 h-[1px]"
         style={{
-          background: "linear-gradient(to right, transparent, rgba(52, 211, 153, 0.4), transparent)",
+          background: "linear-gradient(to right, transparent, rgba(77, 168, 218, 0.4), transparent)",
           animation: "scanLineV 8s linear infinite"
         }}
       />
@@ -192,7 +194,7 @@ function RadarSweep() {
           width: "300px",
           height: "300px",
           borderRadius: "50%",
-          border: "1px solid rgba(52, 211, 153, 0.15)",
+          border: "1px solid rgba(77, 168, 218, 0.15)",
           animation: "radarPulse 4s ease-out infinite"
         }}
       />
@@ -204,7 +206,7 @@ function RadarSweep() {
           width: "300px",
           height: "300px",
           borderRadius: "50%",
-          border: "1px solid rgba(52, 211, 153, 0.12)",
+          border: "1px solid rgba(77, 168, 218, 0.12)",
           animation: "radarPulse 4s ease-out 1.3s infinite"
         }}
       />
@@ -216,7 +218,7 @@ function RadarSweep() {
           width: "300px",
           height: "300px",
           borderRadius: "50%",
-          border: "1px solid rgba(52, 211, 153, 0.08)",
+          border: "1px solid rgba(77, 168, 218, 0.08)",
           animation: "radarPulse 4s ease-out 2.6s infinite"
         }}
       />
@@ -289,7 +291,7 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
     if (shine) {
       const sX = ((e.clientX - rect.left) / width) * 100;
       const sY = ((e.clientY - rect.top) / height) * 100;
-      shine.style.background = `radial-gradient(circle at ${sX.toFixed(0)}% ${sY.toFixed(0)}%, rgba(52, 211, 153, 0.15) 0%, transparent 60%)`;
+      shine.style.background = `radial-gradient(circle at ${sX.toFixed(0)}% ${sY.toFixed(0)}%, rgba(77, 168, 218, 0.15) 0%, transparent 60%)`;
       shine.style.opacity = "1";
     }
   };
@@ -332,13 +334,45 @@ function TiltCard({ icon: Icon, title, detail, index }: { icon: any; title: stri
   );
 }
 
-// ── Main Optimized Landing Page Component ───────────────────────
+// ── Main Landing Page Component with Loading Screen ────────────
 export default function LandingPage() {
+  const [loading, setLoading] = useState(true);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [fadeOut, setFadeOut] = useState(false);
+
   const heroRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const telemetryRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Elegant mission readiness load sequence (approx 3s)
+    const steps = [
+      { duration: 700 }, // BHARAT CLIMATE TWIN
+      { duration: 600 }, // Initializing Climate Intelligence...
+      { duration: 600 }, // Connecting Digital Twin...
+      { duration: 600 }, // Loading Government Datasets...
+      { duration: 500 }  // Mission Ready
+    ];
+    
+    let currentStep = 0;
+    const nextStep = () => {
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        setLoadingStep(currentStep);
+        setTimeout(nextStep, steps[currentStep].duration);
+      } else {
+        setFadeOut(true);
+        setTimeout(() => {
+          setLoading(false);
+        }, 800);
+      }
+    };
+    
+    const timer = setTimeout(nextStep, steps[0].duration);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!heroRef.current) return;
@@ -394,6 +428,64 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen relative overflow-hidden bg-[#020617]">
+      {/* ── Space HUD Loading Screen ─────────────────────────────── */}
+      {loading && (
+        <div 
+          className={`fixed inset-0 z-50 bg-[#020617] flex flex-col items-center justify-center transition-opacity duration-700 ${
+            fadeOut ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
+        >
+          {/* Subtle grid lines background overlay for HUD feel */}
+          <div className="absolute inset-0 bg-radar-grid bg-[size:44px_44px] opacity-10 pointer-events-none" />
+          
+          <div className="relative w-36 h-36 mb-10 flex items-center justify-center">
+            {/* Outer rotating ring */}
+            <div className="absolute inset-0 rounded-full border border-dashed border-brand-blue/30 animate-slow-orbit" />
+            {/* Inner pulsing ring */}
+            <div className="absolute inset-2.5 rounded-full border border-brand-highlight/20 hud-pulse-glow" />
+            {/* Mission core icon */}
+            <Satellite className="w-10 h-10 text-brand-blue animate-pulse" />
+          </div>
+
+          <div className="text-center font-mono space-y-4 relative z-10 px-6">
+            <h2 className="font-orbitron text-2xl md:text-3xl font-bold tracking-[0.25em] text-white glow-space-blue uppercase">
+              Bharat Climate Twin
+            </h2>
+            <div className="h-6 flex items-center justify-center">
+              <p className="font-rajdhani text-brand-titanium tracking-[0.18em] text-xs md:text-sm uppercase font-semibold">
+                {loadingStep === 0 && "Initializing Climate Intelligence..."}
+                {loadingStep === 1 && "Connecting Digital Twin..."}
+                {loadingStep === 2 && "Loading Government Datasets..."}
+                {loadingStep === 3 && "Synchronizing Satellite Feeds..."}
+                {loadingStep === 4 && "Mission Ready"}
+              </p>
+            </div>
+            
+            {/* Simulated tech system state bars */}
+            <div className="w-48 h-0.5 mx-auto bg-white/5 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-brand-blue transition-all duration-500 rounded-full" 
+                style={{ width: `${(loadingStep + 1) * 20}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Side HUD Telemetry Logs */}
+          <div className="absolute bottom-8 left-8 right-8 justify-between font-mono text-[9px] text-brand-titanium/40 hidden md:flex w-[calc(100%-4rem)] select-none">
+            <div className="space-y-1">
+              <div>[SECURE CHANNEL] ESTABLISHED TO ISRO SYSTEM</div>
+              <div>[DATASTREAM] FEED: INSAT-3DR gridded data</div>
+              <div>[STATUS] SYSTEM OPERATIONAL : OK</div>
+            </div>
+            <div className="text-right space-y-1">
+              <div>PLATFORM ADDR: BCT_HUD_LND_V2</div>
+              <div>RESOLUTION ACC: 0.25d x 0.25d GRID</div>
+              <div>GEOLOCATION: 20.5937° N, 78.9629° E</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Dynamic Keyframe Injection */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes slowDrift {
@@ -450,7 +542,7 @@ export default function LandingPage() {
         {/* Telemetry Digital Stream Overlay */}
         <div
           ref={telemetryRef}
-          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-brand-titanium/80 hidden xl:block z-10 leading-relaxed shadow-glow"
+          className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-brand-titanium/80 hidden xl:block z-10 leading-relaxed shadow-glow animate-fade-in-cta"
         >
           <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 mb-2 font-bold text-brand-titanium">
             <span>TELEMETRY STREAM</span>
@@ -473,28 +565,53 @@ export default function LandingPage() {
           <div className="max-w-2xl">
             <div
               ref={contentRef}
-              className="space-y-6 lg:space-y-8 animate-fade-in"
+              className="space-y-6 lg:space-y-8"
             >
+              {/* Premium Cinematic Logo Badge */}
+              <div className="flex justify-start animate-fade-in-logo">
+                <div className="flex items-center gap-3 bg-surface/50 border border-white/5 pl-3 pr-4 py-2 rounded-2xl backdrop-blur-md">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-blue shadow-[0_0_20px_rgba(77,168,218,0.25)] border border-white/10 overflow-hidden">
+                    <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover animate-spin-slow" />
+                  </span>
+                  <div className="font-mono text-[9px] tracking-[0.16em] text-brand-titanium uppercase leading-tight">
+                    BCT CORE UNIT<br/>
+                    <span className="text-brand-blue font-bold">ACTIVE COMMAND</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h1 className="font-orbitron text-5xl lg:text-7xl font-bold tracking-[0.24em] text-white leading-tight uppercase animate-fade-in-title glow-space-blue">
+                  Bharat Climate<br />Twin
+                </h1>
+
+                {/* Subtitle & Tagline Section */}
+                <div className="space-y-2 animate-fade-in-subtitle">
+                  <div className="font-rajdhani font-semibold tracking-[0.18em] text-brand-blue uppercase text-sm sm:text-base glow-titanium-blue">
+                    AI Powered Climate Intelligence Platform
+                  </div>
+                  <div className="font-rajdhani font-medium tracking-[0.22em] text-brand-titanium/80 uppercase text-[10px] sm:text-xs">
+                    Insights • Action • Resilience
+                  </div>
+                </div>
+              </div>
+
               <div
                 ref={badgeRef}
-                className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1.5 text-sm font-medium text-brand-titanium backdrop-blur-sm shadow-glow"
+                className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1.5 text-xs font-medium text-brand-titanium backdrop-blur-sm shadow-glow animate-fade-in-subtitle"
               >
                 <ShieldAlert className="w-4 h-4 text-brand-blue animate-pulse" />
                 Government-tech climate command layer
               </div>
 
-              <h1 className="text-6xl lg:text-8xl font-bold tracking-tight text-white leading-none" style={{ textShadow: "0 0 60px rgba(2, 6, 23, 0.8)" }}>
-                Bharat Climate<br />Twin
-              </h1>
-
-              <p className="text-xl text-secondary-foreground leading-relaxed max-w-xl" style={{ textShadow: "0 0 30px rgba(2, 6, 23, 0.9)" }}>
+              <p className="text-base text-secondary-foreground leading-relaxed max-w-xl animate-fade-in-subtitle font-sans" style={{ textShadow: "0 0 30px rgba(2, 6, 23, 0.9)" }}>
                 An AI-powered digital twin of India&apos;s climate system for prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks.
               </p>
 
-              <div className="pt-4 flex flex-wrap gap-4">
+              <div className="pt-4 flex flex-wrap gap-4 animate-fade-in-cta">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
+                  className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue/90 hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
                 >
                   Open Command Center
                   <ArrowRight className="w-5 h-5" />
@@ -525,8 +642,8 @@ export default function LandingPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center p-8 rounded-2xl border border-white/[0.08] bg-background/30">
-              <p className="text-4xl lg:text-5xl font-bold text-brand-blue glow-blue">{stat.value}</p>
-              <p className="mt-2 text-sm text-muted-foreground font-medium">{stat.label}</p>
+              <p className="text-4xl lg:text-5xl font-bold text-brand-blue glow-blue font-orbitron tracking-wider">{stat.value}</p>
+              <p className="mt-2 text-sm text-muted-foreground font-medium font-rajdhani tracking-widest uppercase">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -539,8 +656,8 @@ export default function LandingPage() {
             <Database className="w-4 h-4" />
             National Climate Datasets
           </div>
-          <h2 className="mt-6 text-4xl lg:text-5xl font-bold text-white">Powered by India&apos;s Climate Data Infrastructure</h2>
-          <p className="mt-6 text-lg text-muted-foreground max-w-2xl">
+          <h2 className="mt-6 text-3xl lg:text-5xl font-bold text-white font-orbitron tracking-[0.12em] uppercase leading-tight">Powered by India&apos;s Climate Data Infrastructure</h2>
+          <p className="mt-6 text-lg text-muted-foreground max-w-2xl font-sans">
             Bharat Climate Twin integrates meteorological observations, satellite products, and national climate datasets to power AI-driven forecasting and risk assessment.
           </p>
         </div>
@@ -567,11 +684,11 @@ export default function LandingPage() {
 
         {/* Pipeline visualization */}
         <div className="mt-12 glass-card p-8 rounded-2xl bg-background/20">
-          <h3 className="text-xl font-semibold text-white mb-8">Climate Data Fusion Pipeline</h3>
+          <h3 className="text-lg font-semibold text-white mb-8 font-orbitron tracking-[0.1em] uppercase">Climate Data Fusion Pipeline</h3>
           <div className="flex flex-wrap items-center gap-4">
             {pipeline.map((step, i) => (
               <div key={step} className="flex items-center gap-4">
-                <div className={`px-4 py-2 rounded-lg border text-sm ${
+                <div className={`px-4 py-2 rounded-lg border text-xs font-mono tracking-wider ${
                   i === pipeline.length - 1
                     ? "border-white/[0.08] bg-brand-blue/10 text-brand-titanium font-semibold"
                     : "border-white/[0.08] bg-brand-blue/10 text-emerald-200"
@@ -610,9 +727,9 @@ export default function LandingPage() {
                 <div className="grid h-10 w-10 place-items-center rounded-md bg-brand-blue/10 border border-white/[0.08]">
                   <Satellite className="h-5 w-5 text-brand-blue" />
                 </div>
-                <span className="text-lg font-bold text-white">Bharat Climate Twin</span>
+                <span className="text-lg font-bold text-white font-orbitron tracking-wider">Bharat Climate Twin</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-md font-sans">
                 AI-powered digital twin of India&apos;s climate system. Built for national resilience with indigenous data sources from IMD, ISRO, NRSC, India-WRIS, and CPCB.
               </p>
             </div>

@@ -153,7 +153,7 @@ export default function DashboardPage() {
           <Badge className="bg-surface-elevated text-brand-titanium hover:bg-brand-blue/10 border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             National Climate Mission Control
           </Badge>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-white md:text-4xl">
+          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-orbitron tracking-[0.12em] uppercase">
             Operations Center
           </h1>
         </div>

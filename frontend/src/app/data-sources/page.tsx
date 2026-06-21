@@ -79,7 +79,7 @@ export default function DataSourcesPage() {
     <div className="mx-auto max-w-7xl">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Data Provenance</h1>
+          <h1 className="text-3xl font-bold text-white sm:text-4xl font-orbitron tracking-[0.12em] uppercase">Data Provenance</h1>
           <p className="mt-2 text-muted-foreground">Official Government integration endpoints powering the Bharat Climate Twin.</p>
         </div>
         <div className="flex items-center gap-2 rounded-md bg-brand-blue/10 border border-white/[0.08] px-4 py-2">
