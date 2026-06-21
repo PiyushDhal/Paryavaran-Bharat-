@@ -1168,6 +1168,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           const name = feature.properties?.name;
           if (name) {
             setHoveredStateName(name);
+            setHoverCoords({ x: e.point.x, y: e.point.y });
           }
         }
       });
@@ -1175,6 +1176,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       map.on("mouseleave", "state-fill", () => {
         map.getCanvas().style.cursor = "";
         setHoveredStateName(null);
+        setHoverCoords(null);
       });
 
       map.on("click", "state-fill", (e) => {
@@ -1186,6 +1188,13 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             setTooltipCoords({ x: e.point.x, y: e.point.y });
             // Prevent map general click handler from running
             (e as any)._stateClick = true;
+            
+            map.flyTo({
+              center: e.lngLat,
+              zoom: 5.5,
+              duration: 1000,
+              essential: true
+            });
           }
         }
       });
@@ -1206,6 +1215,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         if (!(e as any)._stateClick) {
           setClickedStateName(null);
           setTooltipCoords(null);
+          map.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
         }
       });
     });
@@ -1685,6 +1695,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   onClick={() => {
                     setClickedStateName(null);
                     setTooltipCoords(null);
+                    if (mapRef.current) {
+                      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
+                    }
                   }}
                   className="text-muted-foreground hover:text-white transition"
                   aria-label="Close state tooltip"
