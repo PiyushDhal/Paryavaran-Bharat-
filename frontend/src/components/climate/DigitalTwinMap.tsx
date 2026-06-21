@@ -877,13 +877,12 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
   // Interactive State hover & click telemetry
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
-  const [clickedStateName, setClickedStateName] = useState<string | null>(null);
   const [tooltipCoords, setTooltipCoords] = useState<{ x: number; y: number } | null>(null);
   const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
 
   const zoomTransform = useMemo(() => {
-    if (!clickedStateName) return "";
-    const state = INDIA_STATES.find(s => s.name === clickedStateName);
+    if (!selectedStateName) return "";
+    const state = INDIA_STATES.find(s => s.name === selectedStateName);
     if (!state) return "";
     
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -911,7 +910,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const ty = (SVG_H / 2) - cy * scale;
     
     return `translate(${tx}px, ${ty}px) scale(${scale})`;
-  }, [clickedStateName, lonToX, latToY]);
+  }, [selectedStateName, lonToX, latToY]);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -927,6 +926,8 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const setTimelineStep = climateContext?.setTimelineStep ?? (() => undefined);
   const mapMode = climateContext?.mapMode ?? "streets";
   const setMapMode = climateContext?.setMapMode ?? (() => undefined);
+  const selectedStateName = climateContext?.selectedStateName ?? null;
+  const setSelectedStateName = climateContext?.setSelectedStateName ?? (() => undefined);
 
   const statesGeoJson = useMemo(() => {
     return {
@@ -1156,6 +1157,28 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         }
       });
 
+      map.addLayer({
+        id: "state-highlight-fill",
+        type: "fill",
+        source: "state-boundaries",
+        paint: {
+          "fill-color": "rgba(34, 211, 238, 0.12)",
+        },
+        filter: ["==", "name", ""]
+      });
+
+      map.addLayer({
+        id: "state-highlight-line",
+        type: "line",
+        source: "state-boundaries",
+        paint: {
+          "line-color": "rgba(34, 211, 238, 0.8)",
+          "line-width": 2.5,
+          "line-blur": 1.5
+        },
+        filter: ["==", "name", ""]
+      });
+
       map.addSource("district-risk", {
         type: "geojson",
         data: {
@@ -1205,29 +1228,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           const feature = e.features[0];
           const name = feature.properties?.name;
           if (name) {
-            setClickedStateName(name);
+            setSelectedStateName(name);
             setTooltipCoords({ x: e.point.x, y: e.point.y });
             // Prevent map general click handler from running
             (e as any)._stateClick = true;
-            // Calculate precise bounds for the state to fit the viewport perfectly
-            const stateObj = INDIA_STATES.find(s => s.name === name);
-            if (stateObj) {
-              let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
-              stateObj.paths.forEach(path => {
-                path.forEach(pt => {
-                  if (pt.lon < minLon) minLon = pt.lon;
-                  if (pt.lon > maxLon) maxLon = pt.lon;
-                  if (pt.lat < minLat) minLat = pt.lat;
-                  if (pt.lat > maxLat) maxLat = pt.lat;
-                });
-              });
-              map.fitBounds(
-                [[minLon, minLat], [maxLon, maxLat]],
-                { padding: 40, maxZoom: 8.5, duration: 1200, essential: true }
-              );
-            } else {
-              map.flyTo({ center: e.lngLat, zoom: 5.5, duration: 1000, essential: true });
-            }
+            // Zooming is now handled by the global useEffect
           }
         }
       });
@@ -1238,7 +1243,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           const props = feature.properties as Record<string, number | string>;
           setSelectedDistrictId(Number(props.district_id));
           // Close state tooltip when selecting a district
-          setClickedStateName(null);
+          setSelectedStateName(null);
           setTooltipCoords(null);
           (event as any)._stateClick = true;
         }
@@ -1246,9 +1251,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
       map.on("click", (e) => {
         if (!(e as any)._stateClick) {
-          setClickedStateName(null);
+          setSelectedStateName(null);
+          setSelectedDistrictId(undefined);
           setTooltipCoords(null);
-          map.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
         }
       });
     });
@@ -1401,19 +1406,50 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     map.setStyle(newStyle);
   }, [mapMode, token]);
 
-  // Reactive panning to global selected district
+  // Reactive panning to global selected district or state
   useEffect(() => {
-    if (!mapRef.current || !selectedDistrictId || allDistricts.length === 0) return;
-    const d = allDistricts.find((dist) => dist.id === selectedDistrictId);
-    if (d) {
-      mapRef.current.flyTo({
-        center: [d.centroid_lon, d.centroid_lat],
-        zoom: compact ? 6.5 : 7.8,
-        duration: 1500,
-        essential: true
-      });
+    if (!mapRef.current) return;
+
+    if (selectedDistrictId && allDistricts.length > 0) {
+      const d = allDistricts.find((dist) => dist.id === selectedDistrictId);
+      if (d) {
+        mapRef.current.flyTo({
+          center: [d.centroid_lon, d.centroid_lat],
+          zoom: compact ? 6.5 : 7.8,
+          duration: 1500,
+          essential: true
+        });
+      }
+    } else if (selectedStateName) {
+      const stateObj = INDIA_STATES.find(s => s.name === selectedStateName);
+      if (stateObj) {
+        let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+        stateObj.paths.forEach(path => {
+          path.forEach(pt => {
+            if (pt.lon < minLon) minLon = pt.lon;
+            if (pt.lon > maxLon) maxLon = pt.lon;
+            if (pt.lat < minLat) minLat = pt.lat;
+            if (pt.lat > maxLat) maxLat = pt.lat;
+          });
+        });
+        mapRef.current.fitBounds(
+          [[minLon, minLat], [maxLon, maxLat]],
+          { padding: 80, maxZoom: 8.5, duration: 1200, essential: true }
+        );
+      }
+    } else {
+      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
     }
-  }, [selectedDistrictId, allDistricts, compact]);
+  }, [selectedDistrictId, selectedStateName, allDistricts, compact]);
+
+  // Reactive Mapbox state highlighting
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (mapRef.current.getLayer("state-highlight-fill")) {
+      mapRef.current.setFilter("state-highlight-fill", ["==", "name", selectedStateName || ""]);
+      mapRef.current.setFilter("state-highlight-line", ["==", "name", selectedStateName || ""]);
+    }
+  }, [selectedStateName]);
 
   const themeConfig = useMemo(() => {
     switch (mapMode) {
@@ -1467,7 +1503,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           /* Premium Fallback Geographic Vector Map */
           <div 
             onClick={() => {
-              setClickedStateName(null);
+              setSelectedStateName(null);
               setTooltipCoords(null);
             }}
             className={`relative w-full h-full overflow-hidden ${themeConfig.bg} select-none transition-colors duration-700`}
@@ -1480,7 +1516,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               viewBox={`0 0 ${SVG_W} ${SVG_H}`}
               className="absolute inset-0 w-full h-full p-6 transition-colors duration-700"
               onMouseMove={(e) => {
-                if (!clickedStateName) {
+                if (!selectedStateName) {
                   const rect = e.currentTarget.getBoundingClientRect();
                   setHoverCoords({
                     x: e.clientX - rect.left,
@@ -1568,9 +1604,10 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           key={idx}
                           d={pathData}
                           fill={stateColor}
-                          fillOpacity={hoveredStateName === state.name ? 0.65 : 0.25}
-                          stroke={hoveredStateName === state.name ? "#4DA8DA" : themeConfig.stateStroke}
-                          strokeWidth={hoveredStateName === state.name ? 1.5 : 0.6}
+                          fillOpacity={hoveredStateName === state.name ? 0.65 : (selectedStateName === state.name ? 0.8 : 0.25)}
+                          stroke={hoveredStateName === state.name ? "#4DA8DA" : (selectedStateName === state.name ? "#22d3ee" : themeConfig.stateStroke)}
+                          strokeWidth={hoveredStateName === state.name ? 1.5 : (selectedStateName === state.name ? 2.5 : 0.6)}
+                          filter={selectedStateName === state.name ? "drop-shadow(0px 0px 4px rgba(34, 211, 238, 0.6))" : "none"}
                           strokeLinejoin="round"
                           className="transition-all duration-300 cursor-pointer"
                           onMouseEnter={() => setHoveredStateName(state.name)}
@@ -1581,7 +1618,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                             e.stopPropagation();
                             const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
                             if (rect) {
-                              setClickedStateName(state.name);
+                              setSelectedStateName(state.name);
                               setTooltipCoords({
                                 x: e.clientX - rect.left,
                                 y: e.clientY - rect.top
@@ -1683,7 +1720,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedDistrictId(d.id);
-                      setClickedStateName(null);
+                      setSelectedStateName(null);
                       setTooltipCoords(null);
                     }} 
                     className="cursor-pointer"
@@ -1746,7 +1783,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         )}
 
         {/* Hover Tooltip (Instant Preview) */}
-        {!clickedStateName && hoveredStateName && hoverCoords && (
+        {!selectedStateName && hoveredStateName && hoverCoords && (
           <div 
             className="absolute z-[1000] pointer-events-none transition-all duration-75 ease-out select-none"
             style={{ 
@@ -1779,7 +1816,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         )}
 
         {/* Floating Tooltip Cloud for State Click */}
-        {clickedStateName && tooltipCoords && (
+        {selectedStateName && tooltipCoords && (
           <div 
             className="absolute z-[1000] pointer-events-auto transition-all duration-75 ease-out select-none"
             style={{ 
@@ -1792,14 +1829,12 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             <div className="glass-panel backdrop-blur-md bg-background/90 border border-white/[0.08] rounded-2xl p-3.5 shadow-2xl shadow-black/50 shadow-none w-[210px] space-y-2.5">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5">
-                <span className="font-bold text-xs text-white leading-none tracking-wide">{clickedStateName}</span>
+                <span className="font-bold text-xs text-white leading-none tracking-wide">{selectedStateName}</span>
                 <button
                   onClick={() => {
-                    setClickedStateName(null);
+                    setSelectedStateName(null);
+                    setSelectedDistrictId(undefined);
                     setTooltipCoords(null);
-                    if (mapRef.current) {
-                      mapRef.current.flyTo({ center: [78.9629, 22.5937], zoom: compact ? 3.2 : 4.2, duration: 1000 });
-                    }
                   }}
                   className="text-muted-foreground hover:text-white transition"
                   aria-label="Close state tooltip"
@@ -1813,25 +1848,25 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Temperature</span>
                   <span className="font-mono font-bold text-brand-titanium mt-0.5">
-                    {getStateMetricValue(clickedStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
+                    {getStateMetricValue(selectedStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Rainfall</span>
                   <span className="font-mono font-bold text-brand-titanium mt-0.5">
-                    {getStateMetricValue(clickedStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
+                    {getStateMetricValue(selectedStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">AQI</span>
                   <span className="font-mono font-bold text-brand-titanium mt-0.5">
-                    {getStateMetricValue(clickedStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
+                    {getStateMetricValue(selectedStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Risk Index</span>
                   <span className="font-mono font-bold text-rose-400 mt-0.5">
-                    {getStateMetricValue(clickedStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
+                    {getStateMetricValue(selectedStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
                   </span>
                 </div>
               </div>
@@ -1839,9 +1874,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               {/* Dynamic Forecast Summary */}
               <div className="border-t border-white/[0.08] pt-2 text-[9px] text-secondary-foreground leading-normal font-sans italic">
                 {getStateForecastText(
-                  clickedStateName,
+                  selectedStateName,
                   activeLayer,
-                  getStateMetricValue(clickedStateName, activeLayer, rankings, allDistricts, timelineStep, features),
+                  getStateMetricValue(selectedStateName, activeLayer, rankings, allDistricts, timelineStep, features),
                   activeYear
                 )}
               </div>

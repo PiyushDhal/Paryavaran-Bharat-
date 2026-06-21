@@ -18,6 +18,8 @@ type ClimateContextType = {
   setMapMode: (mode: string) => void;
   activeSimulation: SimulationResult | null;
   setActiveSimulation: (result: SimulationResult | null) => void;
+  selectedStateName: string | null;
+  setSelectedStateName: (name: string | null) => void;
 };
 
 const ClimateContext = createContext<ClimateContextType | undefined>(undefined);
@@ -30,6 +32,7 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [timelineStep, setTimelineStep] = useState<string>("today");
   const [mapMode, setMapMode] = useState<string>("streets");
   const [activeSimulation, setActiveSimulation] = useState<SimulationResult | null>(null);
+  const [selectedStateName, setSelectedStateName] = useState<string | null>(null);
 
   useEffect(() => {
     if (timelineStep === "2030") {
@@ -59,6 +62,8 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
         setMapMode,
         activeSimulation,
         setActiveSimulation,
+        selectedStateName,
+        setSelectedStateName,
       }}
     >
       {children}
