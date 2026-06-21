@@ -886,26 +886,33 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const state = INDIA_STATES.find(s => s.name === clickedStateName);
     if (!state) return "";
     
-    let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     state.paths.forEach(path => {
       path.forEach(pt => {
-        if (pt.lon < minLon) minLon = pt.lon;
-        if (pt.lon > maxLon) maxLon = pt.lon;
-        if (pt.lat < minLat) minLat = pt.lat;
-        if (pt.lat > maxLat) maxLat = pt.lat;
+        const x = lonToX(pt.lon, pt.lat);
+        const y = latToY(pt.lat);
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
       });
     });
     
-    const cx = lonToX((minLon + maxLon) / 2, (minLat + maxLat) / 2);
-    const cy = latToY((minLat + maxLat) / 2);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
     
-    const scale = 2.4;
+    const stateW = maxX - minX;
+    const stateH = maxY - minY;
+    
+    const baseScale = Math.min((SVG_W - 350) / stateW, (SVG_H - 100) / stateH);
+    const scale = Math.min(Math.max(baseScale, 1.8), 4.5);
+    
     // shift slightly to left so sidebar doesn't cover it
-    const tx = (SVG_W / 2 - 80) - cx * scale;
+    const tx = (SVG_W / 2 - 120) - cx * scale;
     const ty = (SVG_H / 2) - cy * scale;
     
     return `translate(${tx}px, ${ty}px) scale(${scale})`;
-  }, [clickedStateName]);
+  }, [clickedStateName, lonToX, latToY]);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -1217,7 +1224,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               });
               map.fitBounds(
                 [[minLon, minLat], [maxLon, maxLat]],
-                { padding: { top: 50, bottom: 50, left: 50, right: 300 }, duration: 1200 }
+                { padding: 80, maxZoom: 6.5, duration: 1200, essential: true }
               );
             } else {
               map.flyTo({ center: e.lngLat, zoom: 5.5, duration: 1000, essential: true });
@@ -1400,10 +1407,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     if (!mapRef.current || !selectedDistrictId || allDistricts.length === 0) return;
     const d = allDistricts.find((dist) => dist.id === selectedDistrictId);
     if (d) {
-      mapRef.current.easeTo({
+      mapRef.current.flyTo({
         center: [d.centroid_lon, d.centroid_lat],
-        zoom: compact ? 4.5 : 5.8,
-        duration: 1200
+        zoom: compact ? 6.5 : 7.8,
+        duration: 1500,
+        essential: true
       });
     }
   }, [selectedDistrictId, allDistricts, compact]);
