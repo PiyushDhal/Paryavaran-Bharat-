@@ -880,6 +880,21 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const [tooltipCoords, setTooltipCoords] = useState<{ x: number; y: number } | null>(null);
   const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
 
+  // Extract rankings, timeline, and layers from global context store
+  const climateContext = useClimate();
+  const activeLayer = climateContext?.activeLayer ?? "composite_risk";
+  const setActiveLayer = climateContext?.setActiveLayer ?? (() => undefined);
+  const selectedDistrictId = climateContext?.selectedDistrictId;
+  const setSelectedDistrictId = climateContext?.setSelectedDistrictId ?? (() => undefined);
+  const rankings = climateContext?.rankings ?? [];
+  const activeYear = climateContext?.activeYear ?? 2026;
+  const timelineStep = climateContext?.timelineStep ?? "today";
+  const setTimelineStep = climateContext?.setTimelineStep ?? (() => undefined);
+  const mapMode = climateContext?.mapMode ?? "streets";
+  const setMapMode = climateContext?.setMapMode ?? (() => undefined);
+  const selectedStateName = climateContext?.selectedStateName ?? null;
+  const setSelectedStateName = climateContext?.setSelectedStateName ?? (() => undefined);
+
   const zoomTransform = useMemo(() => {
     if (!selectedStateName) return "";
     const state = INDIA_STATES.find(s => s.name === selectedStateName);
@@ -913,21 +928,6 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   }, [selectedStateName, lonToX, latToY]);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-  // Extract rankings, timeline, and layers from global context store
-  const climateContext = useClimate();
-  const activeLayer = climateContext?.activeLayer ?? "composite_risk";
-  const setActiveLayer = climateContext?.setActiveLayer ?? (() => undefined);
-  const selectedDistrictId = climateContext?.selectedDistrictId;
-  const setSelectedDistrictId = climateContext?.setSelectedDistrictId ?? (() => undefined);
-  const rankings = climateContext?.rankings ?? [];
-  const activeYear = climateContext?.activeYear ?? 2026;
-  const timelineStep = climateContext?.timelineStep ?? "today";
-  const setTimelineStep = climateContext?.setTimelineStep ?? (() => undefined);
-  const mapMode = climateContext?.mapMode ?? "streets";
-  const setMapMode = climateContext?.setMapMode ?? (() => undefined);
-  const selectedStateName = climateContext?.selectedStateName ?? null;
-  const setSelectedStateName = climateContext?.setSelectedStateName ?? (() => undefined);
 
   const statesGeoJson = useMemo(() => {
     return {
