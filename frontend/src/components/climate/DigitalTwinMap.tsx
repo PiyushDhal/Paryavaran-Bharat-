@@ -879,6 +879,33 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
   const [clickedStateName, setClickedStateName] = useState<string | null>(null);
   const [tooltipCoords, setTooltipCoords] = useState<{ x: number; y: number } | null>(null);
+  const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
+
+  const zoomTransform = useMemo(() => {
+    if (!clickedStateName) return "";
+    const state = INDIA_STATES.find(s => s.name === clickedStateName);
+    if (!state) return "";
+    
+    let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+    state.paths.forEach(path => {
+      path.forEach(pt => {
+        if (pt.lon < minLon) minLon = pt.lon;
+        if (pt.lon > maxLon) maxLon = pt.lon;
+        if (pt.lat < minLat) minLat = pt.lat;
+        if (pt.lat > maxLat) maxLat = pt.lat;
+      });
+    });
+    
+    const cx = lonToX((minLon + maxLon) / 2, (minLat + maxLat) / 2);
+    const cy = latToY((minLat + maxLat) / 2);
+    
+    const scale = 2.4;
+    // shift slightly to left so sidebar doesn't cover it
+    const tx = (SVG_W / 2 - 80) - cx * scale;
+    const ty = (SVG_H / 2) - cy * scale;
+    
+    return `translate(${tx}px, ${ty}px) scale(${scale})`;
+  }, [clickedStateName]);
 
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -1340,7 +1367,18 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               height="100%"
               viewBox={`0 0 ${SVG_W} ${SVG_H}`}
               className="absolute inset-0 w-full h-full p-6 transition-colors duration-700"
+              onMouseMove={(e) => {
+                if (!clickedStateName) {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setHoverCoords({
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                  });
+                }
+              }}
+              onMouseLeave={() => setHoverCoords(null)}
             >
+              <g style={{ transform: zoomTransform, transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)', transformOrigin: 'center' }}>
               {/* SVG Map Projection Grid Lines */}
               {[70, 75, 80, 85, 90, 95].map((lon) => {
                 const x = lonToX(lon, 22.5);
@@ -1538,6 +1576,19 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     }} 
                     className="cursor-pointer"
                   >
+                    {/* Animated High-Risk Radar Ping */}
+                    {val > 75 && (
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={isSelected ? 11 : 6.5}
+                        fill="transparent"
+                        stroke={color}
+                        strokeWidth={1}
+                        className="animate-ping opacity-75"
+                        style={{ animationDuration: '2.5s' }}
+                      />
+                    )}
                     <circle
                       cx={x}
                       cy={y}
@@ -1554,10 +1605,64 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       fill={color}
                       className="transition-all duration-300"
                     />
+                    
+                    {/* Weather Condition Icons (Only show for a few major cities to prevent clutter) */}
+                    {(!isSelected && [1, 2, 3, 5, 8, 12, 16, 21].includes(d.id)) && (() => {
+                      const rain = getTimelineMetricValue(d.id, "rainfall", rankings, allDistricts, [], timelineStep);
+                      const temp = getTimelineMetricValue(d.id, "temperature", rankings, allDistricts, [], timelineStep);
+                      let Icon = CloudRain;
+                      let iconColor = "#3b82f6";
+                      if (rain < 10) {
+                        if (temp > 35) { Icon = Thermometer; iconColor = "#ef4444"; }
+                        else if (temp > 25) { Icon = Sun; iconColor = "#fbbf24"; }
+                        else { Icon = Sun; iconColor = "#fde047"; }
+                      }
+                      return (
+                        <foreignObject x={x - 12} y={y - 18} width={12} height={12}>
+                          <div className="flex items-center justify-center w-full h-full bg-background/80 backdrop-blur rounded-full border border-white/[0.08] shadow-sm">
+                            <Icon color={iconColor} size={7} strokeWidth={3} />
+                          </div>
+                        </foreignObject>
+                      );
+                    })()}
                   </g>
                 );
               })}
+              </g>
             </svg>
+          </div>
+        )}
+
+        {/* Hover Tooltip (Instant Preview) */}
+        {!clickedStateName && hoveredStateName && hoverCoords && (
+          <div 
+            className="absolute z-[1000] pointer-events-none transition-all duration-75 ease-out select-none"
+            style={{ 
+              left: `${hoverCoords.x + 15}px`, 
+              top: `${hoverCoords.y + 15}px`,
+            }}
+          >
+            <div className="glass-panel backdrop-blur-md bg-background/90 border border-white/[0.08] rounded-xl p-2.5 shadow-xl w-[140px]">
+              <span className="font-bold text-[10px] text-white block mb-1.5">{hoveredStateName}</span>
+              <div className="grid grid-cols-2 gap-1.5 text-[8px]">
+                <div>
+                  <span className="text-muted-foreground block text-[7px] uppercase">Temp</span>
+                  <span className="font-mono text-brand-titanium">{getStateMetricValue(hoveredStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[7px] uppercase">Rain</span>
+                  <span className="font-mono text-brand-titanium">{getStateMetricValue(hoveredStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[7px] uppercase">AQI</span>
+                  <span className="font-mono text-brand-titanium">{getStateMetricValue(hoveredStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[7px] uppercase">Risk</span>
+                  <span className="font-mono text-rose-400">{getStateMetricValue(hoveredStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1669,51 +1774,57 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                         <button
                           key={lyr}
                           onClick={() => setActiveLayer(lyr)}
-                          className={`w-full text-left px-2 py-1 rounded transition ${
+                          title={`Display ${layerMeta[lyr]?.label} distribution map`}
+                          className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
                               ? "bg-brand-blue/10 text-brand-titanium font-semibold"
                               : "text-secondary-foreground hover:bg-white/5"
                           }`}
                         >
-                          {layerMeta[lyr]?.label}
+                          <span>{layerMeta[lyr]?.label}</span>
+                          {activeLayer === lyr && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   <div>
-                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest">Climate Observations</p>
+                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Climate Observations</p>
                     <div className="mt-0.5 space-y-0.5">
                       {["rainfall", "temperature", "aqi", "humidity", "soil_moisture", "ndvi"].map((lyr) => (
                         <button
                           key={lyr}
                           onClick={() => setActiveLayer(lyr)}
-                          className={`w-full text-left px-2 py-1 rounded transition ${
+                          title={`Display real-time ${layerMeta[lyr]?.label} data layer`}
+                          className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
                               ? "bg-brand-blue/10 text-brand-titanium font-semibold"
                               : "text-secondary-foreground hover:bg-white/5"
                           }`}
                         >
-                          {layerMeta[lyr]?.label}
+                          <span>{layerMeta[lyr]?.label}</span>
+                          {activeLayer === lyr && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   <div>
-                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest">Infrastructures</p>
+                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Infrastructures</p>
                     <div className="mt-0.5 space-y-0.5">
                       {["reservoir_level", "river_level", "population_density"].map((lyr) => (
                         <button
                           key={lyr}
                           onClick={() => setActiveLayer(lyr)}
-                          className={`w-full text-left px-2 py-1 rounded transition ${
+                          title={`Display ${layerMeta[lyr]?.label} infrastructure layer`}
+                          className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
                               ? "bg-brand-blue/10 text-brand-titanium font-semibold"
                               : "text-secondary-foreground hover:bg-white/5"
                           }`}
                         >
-                          {layerMeta[lyr]?.label}
+                          <span>{layerMeta[lyr]?.label}</span>
+                          {activeLayer === lyr && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
                         </button>
                       ))}
                     </div>
