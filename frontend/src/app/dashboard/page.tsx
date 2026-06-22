@@ -318,7 +318,7 @@ export default function DashboardPage() {
                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <Clock className="w-3 h-3 text-muted-foreground" /> Updated 1m ago
                 </span>
-                <Link href="/copilot">
+                <Link href={selectedDistrictId ? `/copilot?query=Analyse%20current%20district` : "/copilot"}>
                   <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-brand-titanium border-white/[0.08] hover:border-white/[0.08] hover:bg-surface-elevated font-bold transition-all">
                     Ask AI Copilot <ArrowRight className="w-3 h-3" />
                   </Button>

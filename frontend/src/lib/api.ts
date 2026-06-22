@@ -113,13 +113,13 @@ export const api = {
       active_year?: number;
       timeline_step?: string;
       map_mode?: string;
+      active_simulation?: any;
     }
   ) =>
     apiFetch<CopilotResponse>("/copilot/chat", {
       method: "POST",
       body: JSON.stringify({ prompt, ...context })
     }),
-
   adminOverview: () =>
     apiFetch<{
       users: number;

@@ -1,354 +1,796 @@
 from __future__ import annotations
+import os
+import json
+import urllib.request
+import logging
+from datetime import date, datetime
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
-from app.models.climate import District, State, RiskScore, ClimateAlert
+from sqlalchemy import func, desc, extract
+from app.models.climate import District, State, RiskScore, ClimateAlert, WeatherData, SatelliteData, Prediction, SimulationResult
 from app.schemas.climate import CopilotRequest
-from typing import Any
+from app.services.prediction import DisasterPredictionService
+from app.services.simulation import ScenarioSimulator
+
+logger = logging.getLogger(__name__)
 
 class ClimateCopilot:
+    def __init__(self):
+        self.prediction_service = DisasterPredictionService()
+        self.simulator = ScenarioSimulator()
+
     def answer(self, payload: CopilotRequest, rankings: list[dict], db: Session) -> dict:
         prompt = payload.prompt
         text = prompt.lower()
-        active_district_id = payload.selected_district_id
-        active_layer = payload.active_layer
+        
+        # Load active district if present
+        active_district = None
+        active_state = None
+        if payload.selected_district_id:
+            active_district = db.query(District).filter(District.id == payload.selected_district_id).first()
+            if active_district:
+                active_state = active_district.state
 
-        # Fallbacks/Defaults
-        explanation = ""
-        risk_analysis = ""
-        recommended_actions = []
-        chart_type = "bar"
-        chart_data = []
-        focus_districts = []
-        action = None
-        suggestions = []
-        explainable_risk = None
-        insights = []
-
-        # Get list of all districts in memory to search for mentions
-        db_districts = db.query(District).all()
+        # Resolve mentioned district or state
         mentioned_district = None
+        mentioned_state = None
+        
+        # Look for state mentions
+        db_states = db.query(State).all()
+        for s in db_states:
+            if s.name.lower() in text or (s.code and s.code.lower() in text.split()):
+                mentioned_state = s
+                break
+                
+        # Look for district mentions
+        db_districts = db.query(District).all()
         for d in db_districts:
             if d.name.lower() in text:
                 mentioned_district = d
                 break
 
-        # Safest states query
-        if "safest states" in text or "safest state" in text:
-            state_risks = (
-                db.query(State.name, func.avg(RiskScore.composite_risk).label("avg_risk"))
-                .join(District, District.state_id == State.id)
-                .join(RiskScore, RiskScore.district_id == District.id)
-                .group_by(State.name)
-                .order_by("avg_risk")
-                .all()
-            )
-            explanation = "By analyzing the composite risk score of all districts grouped under each state, we can determine the safest states across India. (Data sourced from IMD observations and NRSC satellite products)."
-            risk_analysis = "States with lower composite risk averages benefit from favorable precipitation patterns, lower thermal stress indexes, and resilient local water reservoirs."
-            chart_data = [{"district": r[0], "risk": round(float(r[1]), 1)} for r in state_risks[:5]]
-            recommended_actions = [
-                "Document environmental best practices in these safest zones.",
-                "Review inter-state water sharing arrangements from safe to vulnerable basins.",
-                "Maintain active background monitoring grids."
-            ]
-            suggestions = ["Compare Odisha and Maharashtra", "Which districts have the highest flood risk?", "Explain current climate trends"]
-            insights = [f"{state_risks[0][0]} has the lowest average composite risk at {round(float(state_risks[0][1]), 1)}/100."]
+        # Check for Gemini API key
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if api_key:
+            # Let's try calling Gemini first
+            response_data = self._call_gemini_api(payload, active_district, active_state, mentioned_district, mentioned_state, rankings, db, api_key)
+            if response_data:
+                return response_data
 
-        # Compare Odisha and Maharashtra / Compare Odisha and Telangana
-        elif "compare" in text:
-            # Find states mentioned
-            mentioned_states = []
+        # Fallback to local expert engine if Gemini is not configured or fails
+        return self._generate_offline_answer(payload, active_district, active_state, mentioned_district, mentioned_state, rankings, db)
+
+    def _call_gemini_api(self, payload: CopilotRequest, active_district, active_state, mentioned_district, mentioned_state, rankings, db: Session, api_key: str) -> dict | None:
+        try:
+            # Retrieve some telemetry data from DB to include in LLM context
+            district_context = ""
+            target_district = mentioned_district or active_district
+            if target_district:
+                weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+                sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+                
+                if weather and sat and risk:
+                    district_context = (
+                        f"Target District Telemetry ({target_district.name}, {target_district.state.name}):\n"
+                        f"- Temp: {weather.temperature_c}°C, Rainfall: {weather.rainfall_mm}mm, Deficit: {weather.rainfall_deficit_pct}%\n"
+                        f"- Soil Moisture: {weather.soil_moisture_pct}%, AQI: {weather.aqi}, NDVI: {sat.ndvi}\n"
+                        f"- Reservoir Level: {sat.reservoir_level_pct}%, Water Body Index: {sat.water_body_index}\n"
+                        f"- Composite Risk: {risk.composite_risk}/100, Flood Risk: {risk.flood_risk}/100, Drought Risk: {risk.drought_risk}/100\n"
+                        f"- Heatwave Risk: {risk.heatwave_risk}/100, Water Stress Risk: {risk.water_stress_risk}/100\n"
+                        f"- Risk Trend: {risk.trend}\n"
+                    )
+
+            # Build rankings summary
+            rankings_summary = "Current High-Risk Districts Rankings:\n"
+            for r in rankings[:5]:
+                rankings_summary += f"- {r.get('district_name') or r.get('district')} ({r.get('state_name') or r.get('state')}): Composite Risk {r.get('composite_risk')}/100 (Flood: {r.get('flood_risk')}, Drought: {r.get('drought_risk')})\n"
+
+            system_instruction = (
+                "You are the **Bharat Climate Intelligence Officer**—an enterprise-grade decision-support agent working inside ISRO, NDMA, IMD, and NRSC.\n"
+                "Your tone is highly analytical, evidence-based, context-aware, actionable, and professional. Do not use generic chat language.\n"
+                "You must strictly output a valid JSON block containing the fields listed below. Do not wrap the JSON in ```json or any other text.\n"
+                "JSON Schema required:\n"
+                "{\n"
+                '  "explanation": "Markdown description of the analysis and answers. Address the prompt directly. Incorporate telemetry data.",\n'
+                '  "risk_analysis": "Explanation of what the risk values mean, explaining the drivers (soil moisture, temperature, reservoir levels).",\n'
+                '  "recommended_actions": ["List of 2 to 4 immediate, short-term, or long-term policy interventions."],\n'
+                '  "chart": { "type": "bar", "data": [{"district": "Region A", "risk": 45}] },\n'
+                '  "districts": [],\n'
+                '  "action": null,\n'
+                '  "suggestions": ["Follow-up suggestion 1", "Follow-up suggestion 2"],\n'
+                '  "explainable_risk": { "confidence": 92, "drivers": ["Driver 1"], "actions": ["Action 1"], "sources": ["IMD", "NRSC"] },\n'
+                '  "insights": ["Takeaway 1", "Takeaway 2"]\n'
+                "}\n\n"
+                f"Active Context:\n"
+                f"- Selected District: {active_district.name if active_district else 'None'}\n"
+                f"- Selected State: {active_state.name if active_state else 'None'}\n"
+                f"- Active Layer: {payload.active_layer}\n"
+                f"- Active Year: {payload.active_year}\n"
+                f"- Timeline Step: {payload.timeline_step}\n"
+                f"- Map Mode: {payload.map_mode}\n"
+                f"- Active Simulation Inputs/Outputs: {payload.active_simulation}\n\n"
+                f"{district_context}\n"
+                f"{rankings_summary}\n\n"
+                "Generate the response for user prompt: " + payload.prompt
+            )
+
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            body = {
+                "contents": [{"parts": [{"text": system_instruction}]}],
+                "generationConfig": {
+                    "responseMimeType": "application/json"
+                }
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(body).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=10) as response:
+                res_body = json.loads(response.read().decode("utf-8"))
+                text_out = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
+                # Remove any markdown formatting
+                if text_out.startswith("```"):
+                    text_out = text_out.split("\n", 1)[1].rsplit("\n", 1)[0]
+                ans_dict = json.loads(text_out)
+                
+                # Make sure districts list is populated if missing
+                if not ans_dict.get("districts") and rankings:
+                    ans_dict["districts"] = rankings[:6]
+                return ans_dict
+        except Exception as e:
+            logger.error(f"Error calling Gemini API: {e}")
+            return None
+
+    def _generate_offline_answer(self, payload: CopilotRequest, active_district, active_state, mentioned_district, mentioned_state, rankings, db: Session) -> dict:
+        prompt = payload.prompt
+        text = prompt.lower()
+
+        # Initialize defaults
+        explanation = ""
+        risk_analysis = ""
+        recommended_actions = []
+        chart_type = "bar"
+        chart_data = []
+        focus_districts = rankings[:6] if rankings else []
+        action = None
+        suggestions = []
+        explainable_risk = None
+        insights = []
+
+        # Target location context resolver
+        target_district = mentioned_district or active_district
+        target_state = mentioned_state or (active_state if not mentioned_district else None)
+
+        # -------------------------------------------------------------
+        # INTENT 1: Comparisons (PHASE 6)
+        # -------------------------------------------------------------
+        if "compare" in text or "versus" in text or " vs " in text:
+            regions = []
+            
+            # Check for two states
+            matched_states = []
             db_states = db.query(State).all()
             for s in db_states:
                 if s.name.lower() in text:
-                    mentioned_states.append(s)
+                    matched_states.append(s)
+            
+            # Check for two districts
+            matched_districts = []
+            db_districts = db.query(District).all()
+            for d in db_districts:
+                if d.name.lower() in text:
+                    matched_districts.append(d)
 
-            if len(mentioned_states) >= 2:
-                s1, s2 = mentioned_states[0], mentioned_states[1]
-                avg1 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == s1.id).scalar() or 50
-                avg2 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == s2.id).scalar() or 50
-                explanation = f"Comparative risk analysis between {s1.name} and {s2.name} based on integrated environmental telemetry."
-                risk_analysis = f"{s1.name} displays an average composite risk of {round(float(avg1), 1)}/100, while {s2.name} averages {round(float(avg2), 1)}/100."
+            # If comparing states
+            if len(matched_states) >= 2:
+                s1, s2 = matched_states[0], matched_states[1]
+                avg1 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == s1.id).scalar() or 50.0
+                avg2 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == s2.id).scalar() or 50.0
+                
+                # Fetch details for their capital districts
+                d1 = db.query(District).filter(District.state_id == s1.id).first()
+                d2 = db.query(District).filter(District.state_id == s2.id).first()
+                
+                f1 = db.query(func.avg(RiskScore.flood_risk)).join(District).filter(District.state_id == s1.id).scalar() or 40.0
+                f2 = db.query(func.avg(RiskScore.flood_risk)).join(District).filter(District.state_id == s2.id).scalar() or 40.0
+                
+                dr1 = db.query(func.avg(RiskScore.drought_risk)).join(District).filter(District.state_id == s1.id).scalar() or 40.0
+                dr2 = db.query(func.avg(RiskScore.drought_risk)).join(District).filter(District.state_id == s2.id).scalar() or 40.0
+                
+                better = s1.name if avg1 < avg2 else s2.name
+                worse = s2.name if avg1 < avg2 else s1.name
+                
+                explanation = (
+                    f"### Comparative Risk Assessment: {s1.name} vs {s2.name}\n\n"
+                    f"A multi-district composite risk evaluation reveals key differences in environmental telemetry between the two regions.\n\n"
+                    f"| Parameter (State Average) | {s1.name} | {s2.name} | Variance |\n"
+                    f"| :--- | :---: | :---: | :---: |\n"
+                    f"| **Composite Risk** | {round(avg1, 1)}/100 | {round(avg2, 1)}/100 | {round(abs(avg1-avg2), 1)} |\n"
+                    f"| **Flood Risk Index** | {round(f1, 1)}/100 | {round(f2, 1)}/100 | {round(abs(f1-f2), 1)} |\n"
+                    f"| **Drought Risk Index** | {round(dr1, 1)}/100 | {round(dr2, 1)}/100 | {round(abs(dr1-dr2), 1)} |\n\n"
+                    f"**Analytical Summary:** {better} exhibits a more resilient profile than {worse}, primarily driven by lower composite scores across flood corridors and vegetative moisture stability."
+                )
+                
+                risk_analysis = f"{worse} exhibits high risk markers due to climate anomalies. Run a future conditions simulation to test mitigation strategies."
                 chart_data = [
-                    {"district": s1.name, "risk": round(float(avg1), 1)},
-                    {"district": s2.name, "risk": round(float(avg2), 1)}
+                    {"district": f"{s1.name} Avg", "risk": round(avg1, 1)},
+                    {"district": f"{s2.name} Avg", "risk": round(avg2, 1)}
                 ]
                 action = {"type": "open_compare", "state1": s1.name, "state2": s2.name}
                 recommended_actions = [
-                    f"Perform high-resolution sub-district audits for {s1.name if avg1 > avg2 else s2.name}.",
-                    "Review cross-border catchment area runoff metrics."
+                    f"Initiate cross-district water transfers and catchment monitoring in {worse}.",
+                    f"Standardize early warning frameworks using IMD weather feeds across {s1.name} and {s2.name}."
                 ]
-                suggestions = ["Show Flood Layer", "Which states are safest?", "Run Simulation"]
-                insights = [f"Risk discrepancy between states is {round(abs(float(avg1) - float(avg2)), 1)} points."]
-            else:
-                # Compare two districts if mentioned in context
-                d1_name, d2_name = None, None
-                for d in db_districts:
-                    if d.name.lower() in text:
-                        if not d1_name:
-                            d1_name = d
-                        elif d.name.lower() != d1_name.name.lower():
-                            d2_name = d
-                            break
-                if d1_name and d2_name:
-                    r1 = db.query(RiskScore).filter(RiskScore.district_id == d1_name.id).order_by(desc(RiskScore.valid_on)).first()
-                    r2 = db.query(RiskScore).filter(RiskScore.district_id == d2_name.id).order_by(desc(RiskScore.valid_on)).first()
-                    rc1 = r1.composite_risk if r1 else 50
-                    rc2 = r2.composite_risk if r2 else 50
-                    explanation = f"Comparative risk evaluation for {d1_name.name} ({d1_name.state.name}) and {d2_name.name} ({d2_name.state.name})."
-                    risk_analysis = f"{d1_name.name} composite risk is {rc1}/100 while {d2_name.name} composite risk is {rc2}/100."
-                    chart_data = [
-                        {"district": d1_name.name, "risk": rc1},
-                        {"district": d2_name.name, "risk": rc2}
-                    ]
-                    action = {"type": "open_compare", "districtA": d1_name.id, "districtB": d2_name.id}
-                    recommended_actions = ["Examine historical reservoir charts for both districts."]
-                    suggestions = ["Which states are safest?", "Explain current climate trends"]
-                    insights = [f"{d1_name.name} composite risk is {rc1}/100", f"{d2_name.name} composite risk is {rc2}/100"]
-                else:
-                    explanation = "To perform a side-by-side comparison, please mention two states or two districts in your query (e.g., 'Compare Odisha and Maharashtra' or 'Compare Guwahati and Kutch')."
-                    risk_analysis = "Our models support multi-region matrices evaluating temperature, flood indexes, and NDVI factors."
-                    chart_data = []
-
-        # Worsening AQI
-        elif "aqi" in text or "air quality" in text:
-            worst_aqi = (
-                db.query(District.name, RiskScore.drivers["aqi"].astext.cast(Integer).label("aqi_val"))
-                .join(RiskScore)
-                .order_by(desc("aqi_val"))
-                .limit(5)
-                .all()
-            )
-            explanation = "Worsening AQI patterns are correlated with thermal inversions, particulate matter accumulation, and low vegetative filtration. (Air quality indicators sourced from CPCB observations)."
-            risk_analysis = "Northwestern and highly urbanized districts exhibit the highest atmospheric stress metrics."
-            chart_data = [{"district": r[0], "risk": r[1]} for r in worst_aqi]
-            recommended_actions = [
-                "Issue air quality grid warnings to local health departments.",
-                "Enforce regional dust-control policies and construction shutdowns."
-            ]
-            suggestions = ["Show AQI Layer", "Explain Jodhpur risk drivers", "Safest states in India"]
-            insights = [f"{worst_aqi[0][0] if worst_aqi else 'Delhi'} reports the worst AQI level at {worst_aqi[0][1] if worst_aqi else 150}."]
-
-        # Predict rainfall or Precipitation forecast
-        elif "predict rainfall" in text or "rainfall forecast" in text or "monsoon prediction" in text:
-            explanation = "Monsoon precipitation projection for the next week shows dynamic positive anomalies along the Western Ghats and North-East basins. (Rainfall analysis based on IMD observations)."
-            risk_analysis = "Standard deviation calculations indicate normal distribution, though convective storm cells are increasing in frequency."
-            chart_data = rankings[:5]
-            recommended_actions = [
-                "Ensure drainage channels in critical districts are fully cleared.",
-                "Review reservoir spillway rules based on 7-day model runs."
-            ]
-            suggestions = ["Run Future Simulation", "Show Rainfall Layer", "Which states are safest?"]
-            insights = ["Monsoon precipitation forecast indicates localized intensity anomalies +15% over historical norms."]
-
-        # Explain Jodhpur risk drivers or "Why is this district high risk?"
-        elif "why is this district" in text or "explain" in text or mentioned_district:
-            target_district = mentioned_district
-            if not target_district and active_district_id:
-                target_district = db.get(District, active_district_id)
-
-            if target_district:
-                risk_rec = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
-                if risk_rec:
-                    comp = risk_rec.composite_risk
-                    flood = risk_rec.flood_risk
-                    drought = risk_rec.drought_risk
-                    heat = risk_rec.heatwave_risk
-                    water = risk_rec.water_stress_risk
-                    
-                    explanation = f"Risk analysis for {target_district.name} in {target_district.state.name}."
-                    risk_analysis = f"Vulnerability breakdown: Composite Risk is {comp}/100 ({risk_rec.trend}). Flood risk is {flood}/100, Drought risk is {drought}/100, Heatwave is {heat}/100, and Water Stress is {water}/100."
-                    chart_data = [
-                        {"district": "Flood", "risk": flood},
-                        {"district": "Drought", "risk": drought},
-                        {"district": "Heatwave", "risk": heat},
-                        {"district": "Water Stress", "risk": water},
-                        {"district": "Composite", "risk": comp}
-                    ]
-                    explainable_risk = {
-                        "confidence": 92,
-                        "drivers": [
-                            f"Surface Temperature Anomaly: {risk_rec.drivers.get('temperature_c', 30.0)}°C",
-                            f"Precipitation: {risk_rec.drivers.get('rainfall_mm', 100.0)}mm",
-                            f"Soil Moisture: {risk_rec.drivers.get('soil_moisture_pct', 45.0)}%"
-                        ],
-                        "actions": [
-                            "Coordinate regional water tables",
-                            "Deploy advisory channels to rural blocks"
-                        ],
-                        "sources": ["IMD Gridded Feed", "INSAT LST", "NRSC Soil Moisture", "CPCB AQI"]
-                    }
-                    action = {"type": "zoom_to_district", "district_id": target_district.id, "district_name": target_district.name, "lat": target_district.centroid_lat, "lon": target_district.centroid_lon}
-                    recommended_actions = [
-                        f"Optimize reservoir storage headroom for {target_district.name}.",
-                        "Verify localized crop vulnerability matrix."
-                    ]
-                    suggestions = ["Generate District Report", "Run Future Simulation", "Compare with neighbouring districts"]
-                    insights = [f"{target_district.name} reports {comp}/100 composite vulnerability.", f"Primary stress driver is {'Flood' if flood > drought else 'Drought'} risk."]
-                else:
-                    explanation = f"Found district {target_district.name}, but no risk score records are active."
-                    risk_analysis = "Database is synchronized but telemetry metrics are pending."
-            else:
-                explanation = "Please select a district on the map or specify the district name in your query (e.g. 'Explain risk for Jodhpur') to view its risk drivers."
-                risk_analysis = "Context-aware lookup could not resolve the target district."
-
-        # Flood Layer / Zoom to Mumbai / Switch to layer
-        elif "show" in text and ("layer" in text or "risk" in text):
-            target_layer = "composite"
-            layer_name = "Composite Risk"
-            if "flood" in text:
-                target_layer = "flood"
-                layer_name = "Flood Risk"
-            elif "drought" in text:
-                target_layer = "drought"
-                layer_name = "Drought Risk"
-            elif "heat" in text:
-                target_layer = "heatwave"
-                layer_name = "Heatwave Risk"
-            elif "water" in text:
-                target_layer = "water_stress"
-                layer_name = "Water Stress Risk"
-            elif "aqi" in text or "air" in text:
-                target_layer = "aqi"
-                layer_name = "Air Quality Index"
-
-            explanation = f"Switching map visualization to the {layer_name} layer."
-            risk_analysis = f"The {layer_name} maps spatial distributions across all 748 districts."
-            action = {"type": "set_layer", "layer": target_layer}
-            recommended_actions = [
-                f"Analyze regional disparities on the active {layer_name} map.",
-                "Compare high-density zones against vulnerability parameters."
-            ]
-            suggestions = ["Which districts have the highest flood risk?", "Safest states in India"]
-            insights = [f"Active map layer command captured: {layer_name}."]
-
-        # Generate report / Download report
-        elif "report" in text or "pdf" in text or "summary" in text:
-            target_district = mentioned_district
-            if not target_district and active_district_id:
-                target_district = db.get(District, active_district_id)
-
-            if target_district:
-                explanation = f"Generating professional PDF Risk Analysis Report for {target_district.name}."
-                risk_analysis = f"The report details demographics, telemetry observations, composite risk breakdowns, and AI action logs."
-                action = {"type": "download_report", "report_type": "district", "id": target_district.id, "name": target_district.name}
+                suggestions = ["Which states are safest?", "Analyse Rajasthan", "What is the biggest threat?"]
+                insights = [f"{better} is the best performing region.", f"{worse} is the highest risk region."]
+                explainable_risk = {
+                    "confidence": 88,
+                    "drivers": ["Atmospheric Temperature Anomaly", "Monsoon Precipitation Deficit"],
+                    "actions": ["Establish joint command channels", "Integrate state-wide telemetry grids"],
+                    "sources": ["IMD Observations", "NRSC Soil Moisture Index"]
+                }
+                
+            elif len(matched_districts) >= 2 or (target_district and len(matched_districts) == 1):
+                d1 = matched_districts[0]
+                d2 = matched_districts[1] if len(matched_districts) >= 2 else active_district
+                
+                r1 = db.query(RiskScore).filter(RiskScore.district_id == d1.id).order_by(desc(RiskScore.valid_on)).first()
+                r2 = db.query(RiskScore).filter(RiskScore.district_id == d2.id).order_by(desc(RiskScore.valid_on)).first()
+                
+                rc1 = r1.composite_risk if r1 else 50.0
+                rc2 = r2.composite_risk if r2 else 50.0
+                
+                f1 = r1.flood_risk if r1 else 40.0
+                f2 = r2.flood_risk if r2 else 40.0
+                
+                dr1 = r1.drought_risk if r1 else 40.0
+                dr2 = r2.drought_risk if r2 else 40.0
+                
+                h1 = r1.heatwave_risk if r1 else 40.0
+                h2 = r2.heatwave_risk if r2 else 40.0
+                
+                ws1 = r1.water_stress_risk if r1 else 40.0
+                ws2 = r2.water_stress_risk if r2 else 40.0
+                
+                better = d1.name if rc1 < rc2 else d2.name
+                worse = d2.name if rc1 < rc2 else d1.name
+                
+                explanation = (
+                    f"### District Risk Comparison: {d1.name} vs {d2.name}\n\n"
+                    f"Side-by-side geospatial risk evaluation using integrated telemetry sensors:\n\n"
+                    f"| Risk Parameter | {d1.name} ({d1.state.name}) | {d2.name} ({d2.state.name}) | Variance |\n"
+                    f"| :--- | :---: | :---: | :---: |\n"
+                    f"| **Composite Risk** | {rc1}/100 | {rc2}/100 | {round(abs(rc1-rc2), 1)} |\n"
+                    f"| **Flood Risk** | {f1}/100 | {f2}/100 | {round(abs(f1-f2), 1)} |\n"
+                    f"| **Drought Risk** | {dr1}/100 | {dr2}/100 | {round(abs(dr1-dr2), 1)} |\n"
+                    f"| **Heatwave Risk** | {h1}/100 | {h2}/100 | {round(abs(h1-h2), 1)} |\n"
+                    f"| **Water Stress** | {ws1}/100 | {ws2}/100 | {round(abs(ws1-ws2), 1)} |\n\n"
+                    f"**Analysis:** {worse} displays higher vulnerabilities compared to {better}, indicating localized environmental strain."
+                )
+                risk_analysis = f"Primary stress driver for {worse} is {'Flood' if (f1 if worse == d1.name else f2) > (dr1 if worse == d1.name else dr2) else 'Drought'} risk. Sourced from CWC and NRSC telemetry."
+                chart_data = [
+                    {"district": d1.name, "risk": rc1},
+                    {"district": d2.name, "risk": rc2}
+                ]
+                action = {"type": "open_compare", "districtA": d1.id, "districtB": d2.id}
                 recommended_actions = [
-                    f"Download and print the generated {target_district.name} risk report.",
-                    "Submit executive analysis summary to state command officers."
+                    f"Deploy local emergency advisories in {worse}.",
+                    "Analyze reservoir levels under current rainfall deficit."
                 ]
-                suggestions = ["Explain current climate trends", "Safest states in India"]
-                insights = [f"District report download ready for {target_district.name}."]
+                suggestions = ["Safest states in India", "Compare before and after simulation"]
+                insights = [f"{better} is the best performing region.", f"{worse} is the highest risk region."]
+                explainable_risk = {
+                    "confidence": 90,
+                    "drivers": ["Soil Moisture Deficit", "Reservoir Drawdown"],
+                    "actions": ["Verify water storage matrices"],
+                    "sources": ["India-WRIS", "CPCB AQI Feeds"]
+                }
             else:
-                explanation = "Generating professional National Climate Executive Summary."
-                risk_analysis = "This report covers multi-state composite trends, climate timelines, and top high-exposure districts."
-                action = {"type": "download_report", "report_type": "district", "id": 302, "name": "Jodhpur"}
-                recommended_actions = [
-                    "Download and inspect the Climate Executive Summary.",
-                    "Review timeline projection indicators."
-                ]
-                suggestions = ["Show Flood Layer", "Safest states in India"]
-                insights = ["Executive Summary report compiled successfully."]
+                explanation = "Please specify two regions (states or districts) to perform a comparative risk audit. E.g., 'Compare Rajasthan and Gujarat'."
+                suggestions = ["Compare Rajasthan and Gujarat", "Compare Jaipur and Gandhinagar"]
 
-        # Run simulation / Scenario Simulator
-        elif "simulate" in text or "simulation" in text:
-            temp_delta = 2
-            if "+3" in text or "3 degrees" in text:
-                temp_delta = 3
-            elif "+4" in text or "4 degrees" in text:
-                temp_delta = 4
-            elif "+1" in text or "1 degree" in text:
-                temp_delta = 1
-
-            rain_delta = -20
-            if "-10%" in text or "10 percent reduction" in text:
-                rain_delta = -10
-            elif "-30%" in text or "30 percent reduction" in text:
-                rain_delta = -30
-
-            dist_id = active_district_id or 302
-            explanation = "Preparing Future Conditions Lab simulation scenario."
-            risk_analysis = f"Modeling {temp_delta}°C temperature rise, {rain_delta}% rainfall delta, and -30% reservoir capacity."
-            action = {
-                "type": "open_simulator",
-                "params": {
-                    "district_id": dist_id,
+        # -------------------------------------------------------------
+        # INTENT 2: Scenario Simulator Interpretations (PHASE 5)
+        # -------------------------------------------------------------
+        elif "simulate" in text or "simulation" in text or payload.active_simulation:
+            # Determine delta inputs
+            temp_delta = 2.0
+            rain_delta = 10.0
+            res_delta = -15.0
+            
+            sim_source = "active simulation parameters" if payload.active_simulation else "detected query parameters"
+            
+            if payload.active_simulation:
+                sim = payload.active_simulation
+                temp_delta = sim.get("temperature_delta_c") or sim.get("adjusted_climate", {}).get("temperature_delta_c", 2.0)
+                rain_delta = sim.get("rainfall_delta_pct") or sim.get("adjusted_climate", {}).get("rainfall_delta_pct", 10.0)
+                res_delta = sim.get("reservoir_delta_pct") or sim.get("adjusted_climate", {}).get("reservoir_delta_pct", -15.0)
+                
+                # Retrieve outputs
+                water = sim.get("water_availability", 50)
+                crop = sim.get("crop_stress", 45)
+                f_risk = sim.get("flood_risk", 40)
+                d_risk = sim.get("drought_risk", 55)
+                comp = sim.get("composite_risk", 50)
+                pop_risk = sim.get("population_at_risk", 250000)
+                econ_loss = sim.get("economic_loss_m_inr", 85.5)
+                infra = sim.get("infrastructure_risk", 45)
+            else:
+                # Mock a simulator run on the active district
+                dist_id = target_district.id if target_district else 302
+                dist_name = target_district.name if target_district else "Jodhpur"
+                # Parse manual overrides from query
+                if "+3" in text or "3 degrees" in text: temp_delta = 3.0
+                elif "+4" in text: temp_delta = 4.0
+                if "-20" in text: rain_delta = -20.0
+                elif "+30" in text: rain_delta = 30.0
+                
+                # Fetch baseline
+                weather = db.query(WeatherData).filter(WeatherData.district_id == dist_id).order_by(desc(WeatherData.observed_on)).first()
+                sat = db.query(SatelliteData).filter(SatelliteData.district_id == dist_id).order_by(desc(SatelliteData.observed_on)).first()
+                
+                base_dict = {
+                    "rainfall_mm": weather.rainfall_mm if weather else 100.0,
+                    "rainfall_deficit_pct": weather.rainfall_deficit_pct if weather else 0.0,
+                    "temperature_c": weather.temperature_c if weather else 30.0,
+                    "humidity_pct": weather.humidity_pct if weather else 55.0,
+                    "river_level_m": weather.river_level_m if weather else 2.0,
+                    "soil_moisture_pct": weather.soil_moisture_pct if weather else 45.0,
+                    "ndvi": sat.ndvi if sat else 0.45,
+                    "reservoir_level_pct": sat.reservoir_level_pct if sat else 50.0
+                }
+                
+                sim_result = self.simulator.run(base_dict, {
                     "rainfall_delta_pct": rain_delta,
                     "temperature_delta_c": temp_delta,
-                    "reservoir_delta_pct": -30,
+                    "reservoir_delta_pct": res_delta,
                     "planning_horizon_years": 5
+                })
+                
+                water = sim_result["water_availability"]
+                crop = sim_result["crop_stress"]
+                f_risk = sim_result["flood_risk"]
+                d_risk = sim_result["drought_risk"]
+                comp = sim_result["composite_risk"]
+                pop_risk = sim_result["population_at_risk"]
+                econ_loss = sim_result["economic_loss_m_inr"]
+                infra = sim_result["infrastructure_risk"]
+                action = {
+                    "type": "open_simulator",
+                    "params": {
+                        "district_id": dist_id,
+                        "rainfall_delta_pct": rain_delta,
+                        "temperature_delta_c": temp_delta,
+                        "reservoir_delta_pct": res_delta,
+                        "planning_horizon_years": 5
+                    }
                 }
+
+            explanation = (
+                f"### Scenario Simulator Intelligence: {temp_delta:+.1f}°C Temp | {rain_delta:+.1f}% Rainfall\n\n"
+                f"Evaluation of simulated anomalies reveals compound climate risks across sectors:\n\n"
+                f"- **Flood & Hydrology Impact:** Simulated flood risk is **{f_risk}/100**. {'Elevated runoffs threaten low-lying channels (CWC monitoring).' if f_risk > 60 else 'River channels remain within baseline capacity.'}\n"
+                f"- **Vegetation & Soil Stress:** Crop stress index scales to **{crop}/100** due to rapid soil moisture decay (NRSC INSAT observation).\n"
+                f"- **Water Resource Balance:** Water availability is **{water}/100**, indicating reservoir storage drawdown.\n"
+                f"- **Asset & Civil Exposure:** Infrastructure risk rating is **{infra}/100**, with **{pop_risk:,}** people exposed to high heat/inundation limits.\n"
+                f"- **Financial Impact:** Projected local economic loss is **₹{econ_loss}M INR** due to agricultural yield drops and damage repairs."
+            )
+            
+            risk_analysis = (
+                f"Under the {sim_source}, the composite risk settles at **{comp}/100**. "
+                f"Thermal stress anomalies drive water evaporation, resulting in a {'drought alert' if d_risk > 60 else 'stable baseline'} status."
+            )
+            
+            chart_data = [
+                {"district": "Flood Risk", "risk": f_risk},
+                {"district": "Drought Risk", "risk": d_risk},
+                {"district": "Crop Stress", "risk": crop},
+                {"district": "Water Stress", "risk": water},
+                {"district": "Composite", "risk": comp}
+            ]
+            
+            recommended_actions = [
+                "Implement drought-contingency micro-irrigation layout plans.",
+                "Reinforce local urban storm drainage structures for flash floods.",
+                "Activate block-level cooling center guidelines."
+            ]
+            suggestions = ["Explain current climate trends", "Compare Rajasthan and Gujarat"]
+            insights = [f"Composite simulated risk stands at {comp}/100.", f"Estimated crop stress is {crop}/100."]
+            explainable_risk = {
+                "confidence": 85,
+                "drivers": [f"Simulated temperature anomaly: {temp_delta:+.1f}°C", f"Rainfall change: {rain_delta:+.1f}%"],
+                "actions": ["Activate state drought advisory grid", "Perform grid-load stress reviews"],
+                "sources": ["BCT Simulation Model v1.1", "IMD Gridded Pre-runs"]
             }
-            recommended_actions = [
-                "Execute the simulator model runs in the lab panel.",
-                "Review water availability and crop stress indicators under the simulated parameters."
-            ]
-            suggestions = ["Explain Jodhpur risk drivers", "Compare Odisha and Maharashtra"]
-            insights = [f"Simulation parameters set for district ID {dist_id}."]
 
-        # Worsening flood risk or highest flood risk
-        elif "flood" in text or "water" in text:
-            focus = sorted(rankings, key=lambda row: row["flood_risk"], reverse=True)[:5]
-            explanation = "Flood vulnerability is highest where rainfall, river levels, and soil saturation align. (River levels sourced from CWC telemetry)."
-            risk_analysis = "The current twin flags riverine and coastal districts for near-term watch conditions."
-            chart_data = [{"district": row["district_name"], "risk": row["flood_risk"]} for row in focus]
+        # -------------------------------------------------------------
+        # INTENT 3: Disaster Predictions (PHASE 7)
+        # -------------------------------------------------------------
+        elif "predict" in text or "forecast" in text or "drought first" in text or "monitoring" in text or "probability" in text:
+            # Let's run a prediction summary across the districts in database
+            districts = db.query(District).all()
+            drought_list = []
+            flood_list = []
+            
+            for d in districts:
+                # Get latest telemetry
+                weather = db.query(WeatherData).filter(WeatherData.district_id == d.id).order_by(desc(WeatherData.observed_on)).first()
+                sat = db.query(SatelliteData).filter(SatelliteData.district_id == d.id).order_by(desc(SatelliteData.observed_on)).first()
+                
+                inputs = {
+                    "rainfall_mm": weather.rainfall_mm if weather else 50.0,
+                    "river_level_m": weather.river_level_m if weather else 1.5,
+                    "soil_moisture_pct": weather.soil_moisture_pct if weather else 45.0,
+                    "reservoir_capacity_pct": sat.reservoir_level_pct if sat else 50.0,
+                    "rainfall_deficit_pct": weather.rainfall_deficit_pct if weather else 10.0,
+                    "temperature_c": weather.temperature_c if weather else 30.0,
+                    "ndvi": sat.ndvi if sat else 0.45,
+                    "humidity_pct": weather.humidity_pct if weather else 55.0
+                }
+                
+                pred_flood = self.prediction_service.flood(inputs)
+                pred_drought = self.prediction_service.drought(inputs)
+                
+                drought_list.append((d, pred_drought["probability"]))
+                flood_list.append((d, pred_flood["probability"]))
+                
+            drought_list.sort(key=lambda x: x[1], reverse=True)
+            flood_list.sort(key=lambda x: x[1], reverse=True)
+            
+            first_drought_state = drought_list[0][0].state.name if drought_list else "Rajasthan"
+            first_flood_state = flood_list[0][0].state.name if flood_list else "Assam"
+            
+            explanation = (
+                f"### Disaster Vulnerability and Predictive Modeling (7-Day Outlook)\n\n"
+                f"Analytical forecasting based on IMD grid anomalies, NRSC NDVI indices, and CWC hydrology markers:\n\n"
+                f"**1. Drought Hotspots (Highest Probability):**\n"
+                f"- **{drought_list[0][0].name} ({drought_list[0][0].state.name}):** **{drought_list[0][1]}%** probability. Sown oilseeds and cotton crops are highly vulnerable due to soil moisture deficit ({drought_list[0][0].name} baseline profile).\n"
+                f"- **{drought_list[1][0].name} ({drought_list[1][0].state.name}):** **{drought_list[1][1]}%** probability.\n\n"
+                f"**2. Flood Alert zones:**\n"
+                f"- **{flood_list[0][0].name} ({flood_list[0][0].state.name}):** **{flood_list[0][1]}%** probability. River runoff near critical limits.\n"
+                f"- **{flood_list[1][0].name} ({flood_list[1][0].state.name}):** **{flood_list[1][1]}%** probability."
+            )
+            
+            risk_analysis = (
+                f"Drought predictions indicate that **{first_drought_state}** is likely to experience moisture stress first, "
+                f"while **{first_flood_state}** registers elevated flood probabilities. Monitor these districts immediately."
+            )
+            
+            chart_data = [{"district": item[0].name, "risk": item[1]} for item in drought_list[:4]]
             recommended_actions = [
-                "Issue district-level advisories through state emergency operation centers.",
-                "Prioritize drainage clearances and emergency pumping grids.",
-                "Activate early warning feeds for Brahmaputra and coastal sectors."
+                "Deploy satellite-derived crop advice alerts to district agriculture blocks.",
+                "Verify water storage headroom rules in high-probability flood basins.",
+                "Pre-position drinking water tankers in drought-prone blocks."
             ]
-            suggestions = ["Show Flood Layer", "Safest states in India", "Compare Odisha and Maharashtra"]
-            insights = [f"{focus[0]['district_name']} has the highest flood risk at {focus[0]['flood_risk']}/100."]
+            suggestions = ["Show Drought Layer", "Prepare Rajasthan for Heatwave", "Explain current climate trends"]
+            insights = [f"{drought_list[0][0].name} has the highest drought probability.", f"{flood_list[0][0].name} has the highest flood probability."]
+            explainable_risk = {
+                "confidence": 89,
+                "drivers": ["Atmospheric Temperature Deficit", "Depleted Soil Saturation Index"],
+                "actions": ["Verify district telemetry sensors"],
+                "sources": ["IMD Forecast Feed", "NRSC INSAT NDVI"]
+            }
 
-        # Drought hotspots
-        elif "drought" in text or "dry" in text:
-            focus = sorted(rankings, key=lambda row: row["drought_risk"], reverse=True)[:5]
-            explanation = "Drought vulnerability is driven by rainfall deficit, low NDVI, and depleted reservoir storage. (Reservoir levels sourced from India-WRIS)."
-            risk_analysis = "Arid and rain-shadow districts require water budgeting and crop advisories."
-            chart_data = [{"district": row["district_name"], "risk": row["drought_risk"]} for row in focus]
+        # -------------------------------------------------------------
+        # INTENT 4: Science Explanations (PHASE 8)
+        # -------------------------------------------------------------
+        elif any(concept in text for concept in ["ndvi", "aqi", "heat index", "return period", "el nino", "la nina", "spi", "soil moisture", "groundwater", "monsoon", "urban heat"]):
+            concept_name = "Climate Index"
+            concept_desc = ""
+            citations = []
+            
+            if "ndvi" in text:
+                concept_name = "NDVI (Normalized Difference Vegetation Index)"
+                concept_desc = (
+                    "NDVI measures the density and greenness of vegetation from satellite observations. "
+                    "It scales from -1 to +1, where values below 0.15 indicate barren land or water, and values above 0.4 represent healthy vegetation. "
+                    "In our twin, declines in NDVI indicate crop stress or forest degradation."
+                )
+                citations = ["National Remote Sensing Centre (NRSC) LISS-III / Cartosat products"]
+            elif "aqi" in text:
+                concept_name = "AQI (Air Quality Index)"
+                concept_desc = (
+                    "AQI is an index used to report daily air quality. It runs from 0 to 500, combining pollutants like PM2.5, PM10, ozone, and NOx. "
+                    "Values over 150 require municipal warnings, while values over 300 indicate severe air hazards."
+                )
+                citations = ["Central Pollution Control Board (CPCB) grid monitoring"]
+            elif "heat index" in text:
+                concept_name = "Heat Index (Humidex)"
+                concept_desc = (
+                    "Heat Index represents the 'felt' air temperature by combining ambient temperature and relative humidity. "
+                    "High humidity retards sweat evaporation, raising heat stroke risk during thermal anomalies."
+                )
+                citations = ["IMD Gridded Daily Thermal telemetries"]
+            elif "monsoon" in text:
+                concept_name = "Monsoon Circulation"
+                concept_desc = (
+                    "The Indian summer monsoon represents the seasonal reversal of winds, delivering 75-90% of India's annual rainfall. "
+                    "Disruptions affect water availability and kharif crop sowing."
+                )
+                citations = ["IMD Monsoon Telemetry feeds"]
+            elif "soil moisture" in text:
+                concept_name = "Soil Moisture Saturation"
+                concept_desc = (
+                    "Soil moisture measures the volumetric water content in soil layers. "
+                    "It regulates agricultural yield, runoff generation, and aquifer percolation."
+                )
+                citations = ["NRSC Scatterometer observations"]
+            else:
+                concept_name = "Climate Science Indexes"
+                concept_desc = (
+                    "Geospatial climate indices measure soil moisture, precipitation deficits, and thermal exposure. "
+                    "The twin uses these to calculate composite district risk zones."
+                )
+                citations = ["IMD observations", "NRSC satellite products", "CWC river levels"]
+
+            explanation = (
+                f"### Climate Concept Briefing: {concept_name}\n\n"
+                f"{concept_desc}\n\n"
+                f"**Application in Bharat Climate Twin:**\n"
+                f"This index is dynamically retrieved from raw PostgreSQL tables, and fed into the risk engine formulas to compute composite ratings on a rolling daily basis."
+            )
+            risk_analysis = f"Vulnerabilities rise when {concept_name} deviates by 15%+ from historical averages."
             recommended_actions = [
-                "Establish taluka-level water conservation programs.",
-                "Deploy crop moisture advice guidelines to groundnut and cotton blocks.",
-                "Review reservoir release limits for irrigation."
+                f"Integrate {concept_name} into district emergency action guidelines.",
+                "Review baseline historical limits for this parameter."
             ]
-            suggestions = ["Show Drought Layer", "Safest states in India", "Run Simulation"]
-            insights = [f"{focus[0]['district_name']} has the highest drought risk at {focus[0]['drought_risk']}/100."]
+            suggestions = ["Show AQI Layer", "Explain Jodhpur risk drivers", "Compare Rajasthan and Gujarat"]
+            insights = [f"{concept_name} is fully integrated in BCT risk models."]
+            explainable_risk = {
+                "confidence": 95,
+                "drivers": ["Standard baseline calibration"],
+                "actions": ["Monitor sensor daily drift values"],
+                "sources": citations
+            }
 
-        # Heatwave / Temperature hotspots
-        elif "heat" in text or "temperature" in text:
-            focus = sorted(rankings, key=lambda row: row["heatwave_risk"], reverse=True)[:5]
-            explanation = "Heatwave exposure increases when maximum temperature anomalies persist with humidity stress."
-            risk_analysis = "Urban heat islands and desert districts show the highest occupational exposure risk."
-            chart_data = [{"district": row["district_name"], "risk": row["heatwave_risk"]} for row in focus]
+        # -------------------------------------------------------------
+        # INTENT 5: Mission Planning (PHASE 11)
+        # -------------------------------------------------------------
+        elif "prepare" in text or "mission" in text or "action plan" in text:
+            hazard = "Disaster Scenario"
+            districts_list = "Jaipur, Jaisalmer"
+            resources = "Water tankers, medical shelter units, power grid backups"
+            agencies = "NDMA, State Disaster Management Authority (SDMA), State Public Health Dept"
+            recovery = "Subsidy release for crop losses, infrastructure repair audits"
+            
+            if "heat" in text or "temp" in text:
+                hazard = "Severe Heatwave Mitigation"
+                resources = "Mobile cooling vans, cooling stations, water tankers, ORS packet grids"
+                agencies = "NDMA, State Health Ministry, Municipal Corporations, District collectors"
+                recovery = "Labor hours normalization, compensation for sunstroke casualties"
+            elif "flood" in text or "rain" in text:
+                hazard = "Flood Evacuation and Channeling"
+                districts_list = "Mumbai, Thiruvananthapuram, Bhubaneswar"
+                resources = "Inflatable boats, emergency shelter kits, water pumps, medical kits"
+                agencies = "NDMA, SDRF, CWC hydro-officers, Coast Guard"
+                recovery = "Drainage repairs, crop subsidy allocations, chlorination of wells"
+            elif "cyclone" in text or "wind" in text or "odisha" in text:
+                hazard = "Cyclone Early-Warning and Sheltering"
+                districts_list = "Puri, Chennai, East Godavari"
+                resources = "Cyclone shelters, satellite phones, wind-resistant tents, rations"
+                agencies = "NDMA, Indian Navy, SDMA, Coast Guard, IMD warning division"
+                recovery = "Power line reconstruction, tree clearing grids, saline soil treatments"
+
+            loc_name = target_state.name if target_state else (target_district.name if target_district else "Rajasthan")
+            
+            explanation = (
+                f"### Government Command Mission Plan: Prepare {loc_name} for {hazard}\n\n"
+                f"**1. Mission Objective:** Establish localized grid resilience and minimize civil exposure.\n\n"
+                f"**2. Risk Assessment:** High hazard anomalies with potential population exposure.\n\n"
+                f"**3. Target Districts under Watch:**\n"
+                f"- High vulnerability blocks: {districts_list}\n\n"
+                f"**4. Operations Action Plan:**\n"
+                f"| Phase | Timeline | Responsible Agencies | Key Interventions |\n"
+                f"| :--- | :--- | :--- | :--- |\n"
+                f"| **T-48h (Pre-impact)** | Immediate | IMD, NDMA, District collectors | Publish alerts, clear drainage/cooling grids |\n"
+                f"| **T-24h (Evacuation)** | Short-term | SDRF, Police, SDMA | Evacuate low-lying blocks, stock cooling shelters |\n"
+                f"| **Impact Phase** | Ongoing | SDMA, Health Departments | Dispatch mobile units, manage grid load margins |\n"
+                f"| **Post-impact** | Long-term | Municipalities, State Agr Dept | {recovery} |\n\n"
+                f"**5. Logistics and Resource Allocation:**\n"
+                f"- Priority resources: {resources}.\n"
+                f"- Recommended implementing agencies: {agencies}."
+            )
+            
+            risk_analysis = f"High priority disaster mission plan active for {loc_name}. Ensure data telemetry updates are monitored hourly."
             recommended_actions = [
-                "Publish thermal alert warnings via public health channels.",
-                "Advise utility layers to inspect transmission grids for thermal sag.",
-                "Establish public cooling rooms in high-density wards."
+                f"Issue direct operational mandates to local block units in {loc_name}.",
+                "Authorize emergency funding for cooling/evacuation infrastructure."
             ]
-            suggestions = ["Show Heatwave Layer", "Safest states in India", "Compare Odisha and Maharashtra"]
-            insights = [f"{focus[0]['district_name']} has the highest heatwave risk at {focus[0]['heatwave_risk']}/100."]
+            suggestions = ["Show active alerts", "Run future conditions simulation", "Explain risk drivers"]
+            insights = [f"Mitigation plan structured for {loc_name}.", f"Agencies involved: {agencies.split(',')[0]}."]
+            explainable_risk = {
+                "confidence": 91,
+                "drivers": ["Hazard Intensity projections", "Civic exposure metrics"],
+                "actions": ["Verify pre-position logs", "Deploy field monitors"],
+                "sources": ["IMD Warnings Index", "NRSC Vulnerability Atlas"]
+            }
 
-        # Default general response
+        # -------------------------------------------------------------
+        # INTENT 6: Explain Chart/Trends (PHASE 4)
+        # -------------------------------------------------------------
+        elif "explain" in text and ("chart" in text or "graph" in text or "trend" in text or "kpi" in text or "timeline" in text or "simulation" in text):
+            explanation = (
+                f"### AI Telemetry Interpretation: National & Regional Trends\n\n"
+                f"The active chart/timeline displays seasonal fluctuations in weather anomalies and satellite indices:\n\n"
+                f"1. **Precipitation Trends (IMD Observations):** Monsoon rain cycles peak between June and September, with localized anomalies becoming more severe in dry corridors.\n"
+                f"2. **Soil Moisture & NDVI Decay (NRSC Satellite):** Vegetative health indices lag rainfall peaks by 30 days, illustrating recharge latency. Rapid drying trends correlate with urban heat islands.\n"
+                f"3. **Reservoir Headrooms (India-WRIS):** Evaporative losses and runoff deficits cause a structural decline in storage capacity, requiring strict water budgeting."
+            )
+            risk_analysis = "High-risk zones indicate districts where high temperatures coincide with low soil moisture and depleted reservoirs."
+            recommended_actions = [
+                "Correlate local reservoir drawdown with agricultural yield metrics.",
+                "Review water release mandates for high stress blocks."
+            ]
+            suggestions = ["Safest states in India", "Compare Rajasthan and Gujarat"]
+            insights = ["Environmental trends show rising temperature anomalies.", "Soil moisture levels are declining in semi-arid zones."]
+            explainable_risk = {
+                "confidence": 93,
+                "drivers": ["Evaporation anomalies", "Runoff deficit scales"],
+                "actions": ["Verify telemetry calibration grids"],
+                "sources": ["IMD Telemetries", "NRSC Landsat products"]
+            }
+
+        # -------------------------------------------------------------
+        # DEFAULT INTENT: District/State Report Generation (PHASE 2 & 3)
+        # -------------------------------------------------------------
         else:
-            focus = rankings[:6]
-            explanation = "The national risk picture combines flood, drought, heatwave, and water stress indicators. (Data aggregated from IMD, NRSC, CPCB, CWC, and India-WRIS)."
-            risk_analysis = "Immediate interventions should prioritize districts with high composite risk and rising trends."
-            chart_data = [{"district": row["district_name"], "risk": row["composite_risk"]} for row in focus]
-            recommended_actions = [
-                "Monitor daily IMD gridded maximum temperature anomalies.",
-                "Review reservoir headroom margins across drought-prone basins.",
-                "Publish weekly advisory updates to localized command layers."
-            ]
-            suggestions = ["Which states are safest?", "Compare Odisha and Maharashtra", "Which districts have the highest flood risk?"]
-            insights = [
-                f"Analyzing {len(rankings)} districts across India.",
-                f"National average composite risk is {round(sum(r['composite_risk'] for r in rankings)/len(rankings), 1)}/100."
-            ]
+            loc_title = "National Overview"
+            
+            if target_district:
+                loc_title = f"{target_district.name} District ({target_district.state.name})"
+                # Fetch telemetry for this specific district
+                weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+                sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+                
+                # Check for active alerts
+                alert = db.query(ClimateAlert).filter(ClimateAlert.district_id == target_district.id).order_by(desc(ClimateAlert.issued_at)).first()
+                alert_text = f"\n> [!CAUTION]\n> **ACTIVE ALERT: {alert.title}** - {alert.message}\n" if alert else ""
 
-        # Populate focus districts ranking structure
+                temp = weather.temperature_c if weather else 31.5
+                rain = weather.rainfall_mm if weather else 115.0
+                deficit = weather.rainfall_deficit_pct if weather else -2.5
+                humidity = weather.humidity_pct if weather else 65.0
+                aqi = weather.aqi if weather else 75
+                river = weather.river_level_m if weather else 2.1
+                soil = weather.soil_moisture_pct if weather else 42.0
+                
+                ndvi = sat.ndvi if sat else 0.42
+                reservoir = sat.reservoir_level_pct if sat else 48.0
+                
+                comp_score = risk.composite_risk if risk else 45.0
+                f_score = risk.flood_risk if risk else 40.0
+                d_score = risk.drought_risk if risk else 50.0
+                h_score = risk.heatwave_risk if risk else 35.0
+                ws_score = risk.water_stress_risk if risk else 45.0
+                trend = risk.trend if risk else "stable"
+                
+                explanation = (
+                    f"### Climate Intelligence Audit: {loc_title}\n"
+                    f"{alert_text}\n"
+                    f"Assessment of localized weather observations and satellite telemetry:\n\n"
+                    f"**1. Meteorological Summary (IMD Observation Grid):**\n"
+                    f"- **Ambient Temperature:** {temp}°C (with anomaly deviations).\n"
+                    f"- **Rainfall:** {rain} mm (Deficit/Surplus: {deficit}%).\n"
+                    f"- **Relative Humidity:** {humidity}%, River Level: {river} m.\n\n"
+                    f"**2. Geospatial Assets & Air Quality:**\n"
+                    f"- **Vegetation Index (NDVI):** {ndvi} (indicating {'healthy' if ndvi > 0.4 else 'degraded'} canopy cover, NRSC Sentinel).\n"
+                    f"- **Soil Moisture:** {soil}% saturation, Reservoir Capacity: {reservoir}%.\n"
+                    f"- **CPCB Air Quality:** AQI of **{aqi}** ({'Healthy' if aqi <= 100 else 'Moderate' if aqi <= 200 else 'Poor'}).\n\n"
+                    f"**3. Downstream Policy Risk Matrix:**\n"
+                    f"- **Agricultural Impact:** Sowing capacity is at **{round(100 - crop_stress(ndvi, soil), 1)}%** efficiency.\n"
+                    f"- **Civil Infrastructure Risk:** Estimated exposure is **{'moderate' if f_score < 60 else 'high'}** under current drainage runoff rates."
+                )
+                
+                risk_analysis = (
+                    f"The composite vulnerability rating stands at **{comp_score}/100** ({trend}). "
+                    f"The primary stress indicator is **{'Drought' if d_score > f_score else 'Flood'}** risk. "
+                    f"This is driven by high atmospheric temperature and low soil moisture."
+                )
+                
+                chart_data = [
+                    {"district": "Flood Risk", "risk": f_score},
+                    {"district": "Drought Risk", "risk": d_score},
+                    {"district": "Heatwave Risk", "risk": h_score},
+                    {"district": "Water Stress", "risk": ws_score},
+                    {"district": "Composite Risk", "risk": comp_score}
+                ]
+                
+                action = {"type": "zoom_to_district", "district_id": target_district.id, "district_name": target_district.name, "lat": target_district.centroid_lat, "lon": target_district.centroid_lon}
+                recommended_actions = [
+                    f"Verify district water allocation plans matching {reservoir}% reservoir capacity.",
+                    f"Publish local crop irrigation advisories for drought-prone sub-blocks.",
+                    "Verify CPCB air monitoring calibration offsets."
+                ]
+                suggestions = ["Generate Report", "Show active alerts for this district", "Compare with neighbouring districts"]
+                insights = [f"Composite risk is {comp_score}/100.", f"Primary driver is {'Drought' if d_score > f_score else 'Flood'} risk."]
+                explainable_risk = {
+                    "confidence": 92,
+                    "drivers": [f"Surface Temperature anomaly: {temp}°C", f"Precipitation deficit: {deficit}%"],
+                    "actions": ["Authorize emergency micro-irrigation lines", "Deploy medical alert advisories"],
+                    "sources": ["IMD Gridded Feed", "NRSC Landsat sensor", "CPCB AQI sensors"]
+                }
+            elif target_state:
+                loc_title = f"{target_state.name} State"
+                districts_in_state = db.query(District).filter(District.state_id == target_state.id).all()
+                dist_ids = [d.id for d in districts_in_state]
+                
+                avg_risk = 50.0
+                avg_flood = 40.0
+                avg_drought = 40.0
+                
+                if dist_ids:
+                    avg_risk = db.query(func.avg(RiskScore.composite_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 50.0
+                    avg_flood = db.query(func.avg(RiskScore.flood_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
+                    avg_drought = db.query(func.avg(RiskScore.drought_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
+                
+                explanation = (
+                    f"### State-Level Climate Assessment: {loc_title}\n\n"
+                    f"Aggregate intelligence findings across the state's {len(districts_in_state)} monitored districts:\n\n"
+                    f"- **Mean State Composite Risk:** {round(avg_risk, 1)}/100.\n"
+                    f"- **Averaged Flood Vulnerability:** {round(avg_flood, 1)}/100 (CWC sensors).\n"
+                    f"- **Averaged Drought Vulnerability:** {round(avg_drought, 1)}/100 (NRSC satellite scatterometer).\n\n"
+                    f"**Mitigation Recommendation:** Sowing cycles show elevated stress signs in agricultural blocks. "
+                    f"Water release limits should be coordinated across municipal divisions."
+                )
+                
+                risk_analysis = f"The state composite risk of {round(avg_risk, 1)}/100 represents a {'moderate' if avg_risk < 60 else 'high'} regional threat landscape."
+                chart_data = [{"district": d.name, "risk": db.query(RiskScore.composite_risk).filter(RiskScore.district_id == d.id).order_by(desc(RiskScore.valid_on)).scalar() or 50.0} for d in districts_in_state[:5]]
+                
+                action = {"type": "download_report", "report_type": "state", "id": target_state.id, "name": target_state.name}
+                recommended_actions = [
+                    "Initiate inter-district catchment diversion channel cleanings.",
+                    "Review centralized crop subsidies for high risk districts."
+                ]
+                suggestions = ["Show Drought Layer", "Which states are safest?", "Compare before and after simulation"]
+                insights = [f"Average state risk is {round(avg_risk, 1)}/100.", f"Monitored districts: {len(districts_in_state)}."]
+                explainable_risk = {
+                    "confidence": 88,
+                    "drivers": ["Monsoon anomaly variations", "Central reservoir depletion"],
+                    "actions": ["Activate regional drought command panels"],
+                    "sources": ["IMD Grid Feed", "NRSC Landsat Atlas", "India-WRIS"]
+                }
+            else:
+                # National Overview
+                avg_national_risk = db.query(func.avg(RiskScore.composite_risk)).scalar() or 48.2
+                high_risk_districts = rankings[:4] if rankings else []
+                
+                explanation = (
+                    f"### National Climate Intelligence Summary\n\n"
+                    f"Aggregated observations from Indian weather grids, satellite platforms, and river telemetry networks:\n\n"
+                    f"- **Monitored districts:** {db.query(District).count()} across all States/UTs.\n"
+                    f"- **Mean National Composite Risk:** {round(avg_national_risk, 1)}/100.\n"
+                    f"- **Dominant Risk Markers:** Seasonal temperature anomalies drive localized drought risks in Northwestern sectors, while high precipitation volumes trigger flood alerts along Eastern river channels.\n\n"
+                    f"**Active Risk Hotspots:**\n"
+                    + "\n".join([f"- **{r['district_name']} ({r['state_name']}):** Composite risk {r['composite_risk']}/100" for r in high_risk_districts])
+                )
+                
+                risk_analysis = f"The average national composite risk index is stabilized at {round(avg_national_risk, 1)}/100. Watch alert districts require direct field validation."
+                chart_data = [{"district": r["district_name"], "risk": r["composite_risk"]} for r in high_risk_districts]
+                
+                recommended_actions = [
+                    "Verify reservoir headrooms across major river basins.",
+                    "Review weekly IMD anomalies and soil moisture grids.",
+                    "Deploy district agricultural advisories for Kharif sowing."
+                ]
+                suggestions = ["Which states are safest?", "Which districts have high flood risk?", "Compare Rajasthan and Gujarat"]
+                insights = [f"National average risk is {round(avg_national_risk, 1)}/100.", f"Total states monitored: {db.query(State).count()}."]
+                explainable_risk = {
+                    "confidence": 94,
+                    "drivers": ["Global ENSO trends", "Monsoon moisture drift anomalies"],
+                    "actions": ["Verify telemetry data aggregation latency"],
+                    "sources": ["IMD gridded data", "NRSC INSAT products", "CWC telemetry", "CPCB AQI grid"]
+                }
+
+        # Populate districts mapping list for frontend
         focus_districts = []
-        for r in rankings:
-            if any(c["district"] == r["district_name"] for c in chart_data):
-                focus_districts.append(r)
-        if not focus_districts:
+        if rankings:
+            for r in rankings:
+                if any(c["district"] == r["district_name"] for c in chart_data):
+                    focus_districts.append(r)
+        if not focus_districts and rankings:
             focus_districts = rankings[:6]
 
         return {
@@ -365,3 +807,10 @@ class ClimateCopilot:
             "explainable_risk": explainable_risk,
             "insights": insights
         }
+
+def crop_stress(ndvi: float, soil_moisture: float) -> float:
+    # Estimate crop stress from 0 to 100 based on NDVI and soil moisture
+    # Lower NDVI and soil moisture = higher stress
+    ndvi_stress = max(0.0, 1.0 - ndvi) * 60.0
+    soil_stress = max(0.0, 100.0 - soil_moisture) * 0.4
+    return min(100.0, ndvi_stress + soil_stress)

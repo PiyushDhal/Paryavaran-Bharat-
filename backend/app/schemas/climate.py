@@ -114,6 +114,8 @@ class CopilotRequest(BaseModel):
     active_year: int | None = None
     timeline_step: str | None = None
     map_mode: str | None = None
+    active_simulation: dict[str, Any] | None = None
+
 
 
 class CopilotResponse(BaseModel):

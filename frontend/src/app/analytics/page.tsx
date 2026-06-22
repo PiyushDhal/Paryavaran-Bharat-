@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import { 
   BarChart3, 
   CloudRain, 
@@ -645,6 +646,17 @@ export default function AnalyticsPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+              <div className="flex justify-end pt-3 border-t border-white/[0.08] mt-4">
+                <Link href={`/copilot?query=${encodeURIComponent("Explain ecological and sustainability indicators")}`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1.5 border-brand-blue/30 text-brand-titanium bg-brand-blue/5 hover:bg-brand-blue/15 hover:border-brand-blue"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Deep Dive with Climate Officer
+                  </Button>
+                </Link>
               </div>
             </Card>
           </div>
@@ -1396,6 +1408,17 @@ export default function AnalyticsPage() {
                   : `${compMetrics.distB.name} leads in adaptation indicators, backed by healthier local reservoir capacities (+${compMetrics.dataB.water - compMetrics.dataA.water}% storage).`
               } Local planners should prioritize carbon reduction grids in {compMetrics.dataA.carbon > compMetrics.dataB.carbon ? compMetrics.distA.name : compMetrics.distB.name}.
             </p>
+            <div className="flex justify-end pt-3 border-t border-white/[0.08] mt-3">
+              <Link href={`/copilot?query=${encodeURIComponent(`Compare ${compMetrics.distA.name} and ${compMetrics.distB.name}`)}`}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5 border-brand-blue/30 text-brand-titanium bg-brand-blue/5 hover:bg-brand-blue/15 hover:border-brand-blue font-bold"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Ask Officer to Compare in Chat
+                </Button>
+              </Link>
+            </div>
           </Card>
         </div>
       )}

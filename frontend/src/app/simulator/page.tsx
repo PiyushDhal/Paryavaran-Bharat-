@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   Play, RotateCcw, Save, FolderOpen, Download, FileText,
   ChevronDown, ChevronUp, Zap, AlertTriangle, TrendingUp,
   Users, DollarSign, Building2, Leaf, Wind, Droplets,
   Thermometer, CloudRain, Mountain, TreePine, Wheat,
   Activity, BarChart3, ArrowUpRight, ArrowDownRight, Minus,
-  Layers, Clock, Copy, Trash2, Check, Info, X
+  Layers, Clock, Copy, Trash2, Check, Info, X, Sparkles
 } from "lucide-react";
 
 import { DistrictSelector } from "@/components/climate/DistrictSelector";
@@ -285,6 +286,7 @@ function formatLargeNum(n: number) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SimulatorPage() {
+  const router = useRouter();
   const { setActiveSimulation } = useClimate();
 
   const [districtId, setDistrictId] = useState<number | undefined>(101);
@@ -893,6 +895,19 @@ export default function SimulatorPage() {
                           </li>
                         ))}
                       </ol>
+                    </div>
+                    <div className="flex justify-end pt-4 border-t border-white/[0.08] mt-3">
+                      <Button
+                        onClick={() => {
+                          const query = `Explain simulation: temperature rise +${payload.temperature_delta_c ?? 0}°C, rainfall change ${payload.rainfall_delta_pct ?? 0}%, reservoir capacity change ${payload.reservoir_delta_pct ?? 0}%`;
+                          router.push(`/copilot?query=${encodeURIComponent(query)}`);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs gap-1.5 border-brand-blue/30 text-brand-titanium bg-brand-blue/5 hover:bg-brand-blue/15 hover:border-brand-blue"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Deep Dive with Climate Officer
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
