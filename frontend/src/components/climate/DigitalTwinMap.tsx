@@ -862,6 +862,21 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [isLayerPanelExpanded, setIsLayerPanelExpanded] = useState(true);
   const [showSelector, setShowSelector] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setIsDark(document.documentElement.classList.contains("dark"));
+
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+    return () => observer.disconnect();
+  }, []);
 
   // Local state for selected district observations
   const [districtHistory, setDistrictHistory] = useState<ClimateObservation[]>([]);
@@ -1104,7 +1119,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     if (!token || !mapNode.current || !data || mapRef.current) return;
     mapboxgl.accessToken = token;
     
-    let initialStyle = "mapbox://styles/mapbox/dark-v11";
+    let initialStyle = isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11";
     if (mapMode === "satellite") initialStyle = "mapbox://styles/mapbox/satellite-v9";
     else if (mapMode === "terrain") initialStyle = "mapbox://styles/mapbox/outdoors-v12";
     else if (mapMode === "hybrid") initialStyle = "mapbox://styles/mapbox/satellite-streets-v12";
@@ -1328,15 +1343,17 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     }
   }, [hoveredStateName]);
 
-  // Handle dynamic map mode (style) changes for Mapbox
-  const currentModeRef = useRef<string>(mapMode);
+  // Handle dynamic map mode (style) and theme changes for Mapbox
+  const lastThemeAndModeRef = useRef({ theme: isDark ? "dark" : "light", mode: mapMode });
   useEffect(() => {
     if (!mapRef.current || !token) return;
-    if (currentModeRef.current === mapMode) return;
-    currentModeRef.current = mapMode;
+    
+    const themeStr = isDark ? "dark" : "light";
+    if (lastThemeAndModeRef.current.theme === themeStr && lastThemeAndModeRef.current.mode === mapMode) return;
+    lastThemeAndModeRef.current = { theme: themeStr, mode: mapMode };
 
     const map = mapRef.current;
-    let newStyle = "mapbox://styles/mapbox/dark-v11";
+    let newStyle = isDark ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/light-v11";
     if (mapMode === "satellite") newStyle = "mapbox://styles/mapbox/satellite-v9";
     else if (mapMode === "terrain") newStyle = "mapbox://styles/mapbox/outdoors-v12";
     else if (mapMode === "hybrid") newStyle = "mapbox://styles/mapbox/satellite-streets-v12";
@@ -1405,7 +1422,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     });
 
     map.setStyle(newStyle);
-  }, [mapMode, token]);
+  }, [mapMode, token, isDark]);
 
   // Reactive panning to global selected district or state
   useEffect(() => {
@@ -1456,44 +1473,72 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const themeConfig = useMemo(() => {
     switch (mapMode) {
       case "satellite":
-        return {
+        return isDark ? {
           bg: "bg-[radial-gradient(circle_at_center,rgba(11,35,30,0.60),transparent_60%),linear-gradient(135deg,#051009,#0a1b12)]",
           grid: "rgba(52,211,153,0.08)",
           gridText: "rgba(52,211,153,0.3)",
           boundaryStroke: "rgba(52, 211, 153, 0.45)",
           boundaryGlow: "rgba(52, 211, 153, 0.1)",
           stateStroke: "rgba(52, 211, 153, 0.18)"
+        } : {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.15),transparent_60%),linear-gradient(135deg,#f0fdf4,#dcfce7)]",
+          grid: "rgba(16,185,129,0.04)",
+          gridText: "rgba(16,185,129,0.25)",
+          boundaryStroke: "rgba(16, 185, 129, 0.5)",
+          boundaryGlow: "rgba(16, 185, 129, 0.15)",
+          stateStroke: "rgba(16, 185, 129, 0.25)"
         };
       case "terrain":
-        return {
+        return isDark ? {
           bg: "bg-[radial-gradient(circle_at_center,rgba(50,40,20,0.40),transparent_60%),linear-gradient(135deg,#120f09,#1e1810)]",
           grid: "rgba(217,119,6,0.06)",
           gridText: "rgba(217,119,6,0.25)",
           boundaryStroke: "rgba(217, 119, 6, 0.45)",
           boundaryGlow: "rgba(217, 119, 6, 0.1)",
           stateStroke: "rgba(217, 119, 6, 0.18)"
+        } : {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.15),transparent_60%),linear-gradient(135deg,#fdf8f2,#fef3c7)]",
+          grid: "rgba(245,158,11,0.04)",
+          gridText: "rgba(245,158,11,0.25)",
+          boundaryStroke: "rgba(245, 158, 11, 0.5)",
+          boundaryGlow: "rgba(245, 158, 11, 0.15)",
+          stateStroke: "rgba(245, 158, 11, 0.25)"
         };
       case "hybrid":
-        return {
+        return isDark ? {
           bg: "bg-[radial-gradient(circle_at_center,rgba(30,20,50,0.50),transparent_60%),linear-gradient(135deg,#0a0512,#140a24)]",
           grid: "rgba(167,139,250,0.06)",
           gridText: "rgba(167,139,250,0.25)",
           boundaryStroke: "rgba(167, 139, 250, 0.45)",
           boundaryGlow: "rgba(167, 139, 250, 0.1)",
           stateStroke: "rgba(167, 139, 250, 0.18)"
+        } : {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.15),transparent_60%),linear-gradient(135deg,#faf5ff,#f3e8ff)]",
+          grid: "rgba(139,92,246,0.04)",
+          gridText: "rgba(139,92,246,0.25)",
+          boundaryStroke: "rgba(139, 92, 246, 0.5)",
+          boundaryGlow: "rgba(139, 92, 246, 0.15)",
+          stateStroke: "rgba(139, 92, 246, 0.25)"
         };
       case "streets":
       default:
-        return {
+        return isDark ? {
           bg: "bg-[radial-gradient(circle_at_center,rgba(6,25,44,0.60),transparent_48%),linear-gradient(135deg,#030914,#081c2e)]",
           grid: "rgba(34,211,238,0.04)",
           gridText: "rgba(34,211,238,0.2)",
           boundaryStroke: "rgba(52, 211, 153, 0.35)", // Using the existing emerald color for default boundary
           boundaryGlow: "rgba(52, 211, 153, 0.08)",
           stateStroke: "rgba(52, 211, 153, 0.12)"     // Using the existing emerald color for default state
+        } : {
+          bg: "bg-[radial-gradient(circle_at_center,rgba(200,220,240,0.50),transparent_50%),linear-gradient(135deg,#f1f5f9,#cbd5e1)]",
+          grid: "rgba(30,41,59,0.04)",
+          gridText: "rgba(30,41,59,0.2)",
+          boundaryStroke: "rgba(16, 185, 129, 0.45)",
+          boundaryGlow: "rgba(16, 185, 129, 0.1)",
+          stateStroke: "rgba(16, 185, 129, 0.18)"
         };
     }
-  }, [mapMode]);
+  }, [mapMode, isDark]);
 
   return (
     <div className={`relative w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-background ${compact ? "h-full" : "h-[calc(100vh-112px)]"}`}>

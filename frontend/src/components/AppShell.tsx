@@ -29,7 +29,9 @@ import {
   LogOut,
   UserCheck,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Sun,
+  Moon
 } from "lucide-react";
 
 import {
@@ -89,6 +91,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState("Dr. Amit Sharma");
   const [userRole, setUserRole] = useState("Director (Operations)");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedTheme = window.localStorage.getItem("theme") as "light" | "dark" | null;
+      if (storedTheme) {
+        setTheme(storedTheme);
+        if (storedTheme === "dark") {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      } else {
+        const isDark = document.documentElement.classList.contains("dark");
+        setTheme(isDark ? "dark" : "light");
+      }
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("theme", nextTheme);
+      if (nextTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  };
 
   const toggleSidebar = () => {
     const newState = !isCollapsed;
@@ -119,7 +152,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-radar-grid bg-[size:44px_44px]">
       {/* ── Desktop sidebar ────────────────────────────────────── */}
-      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-white/5 bg-background py-5 lg:flex lg:flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)]", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
+      <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-border bg-background py-5 lg:flex lg:flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)]", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
         <div className="flex items-center justify-between px-2 mb-6">
           <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-blue shadow-[0_4px_14px_0_rgba(77,168,218,0.25)] overflow-hidden">
@@ -171,7 +204,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       title={isCollapsed ? item.label : undefined}
                       className={cn(
                         "flex items-center gap-4 text-sm transition-all duration-200 whitespace-nowrap overflow-hidden group p-2 rounded-[16px]",
-                        active ? "bg-card-bg shadow-md border border-white/[0.04]" : "hover:bg-surface-elevated",
+                        active ? "bg-card-bg shadow-md border border-border" : "hover:bg-surface-elevated",
                         isCollapsed ? "justify-center" : "px-3"
                       )}
                     >
@@ -195,7 +228,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="border-t border-white/5 pt-4 mt-2 text-center overflow-hidden">
+        <div className="border-t border-border pt-4 mt-2 text-center overflow-hidden">
           {!isCollapsed ? (
             <p className="text-[10px] uppercase tracking-[0.15em] text-brand-blue/50 font-bold whitespace-nowrap">
               IMD & ISRO Connected
@@ -256,7 +289,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* ── Top header bar ─────────────────────────────────────── */}
-      <header className={cn("sticky top-0 z-30 border-b border-white/[0.08] bg-background/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
+      <header className={cn("sticky top-0 z-30 border-b border-border bg-background/84 px-4 py-3 backdrop-blur-2xl transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
@@ -300,6 +333,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Live feeds active
             </div>
 
+
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="grid h-9 w-9 place-items-center rounded-md border border-border bg-surface/40 hover:bg-surface-elevated text-secondary-foreground transition-all duration-200 cursor-pointer"
+              title={theme === "dark" ? "Switch to Light Theme" : "Switch to Dark Theme"}
+            >
+              {theme === "dark" ? (
+                <Sun className="h-4.5 w-4.5 text-amber-400" />
+              ) : (
+                <Moon className="h-4.5 w-4.5 text-indigo-600" />
+              )}
+            </button>
 
             {/* Profile / Auth Relocation */}
             <div className="h-8 w-px bg-surface-elevated" />

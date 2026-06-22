@@ -45,12 +45,12 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))"
         },
-        surface: "#0F1723",
-        "surface-elevated": "#182534",
-        "card-bg": "#1B2B3D",
+        surface: "hsl(var(--surface))",
+        "surface-elevated": "hsl(var(--surface-elevated))",
+        "card-bg": "hsl(var(--card-bg))",
         "brand-blue": "#4DA8DA",
-        "brand-titanium": "#C0C8D4",
-        "brand-highlight": "#74C7EC"
+        "brand-titanium": "hsl(var(--brand-titanium))",
+        "brand-highlight": "hsl(var(--brand-highlight))"
       },
       borderRadius: {
         "2xl": "20px"

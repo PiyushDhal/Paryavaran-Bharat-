@@ -24,8 +24,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} font-sans bg-background text-slate-100 min-h-screen antialiased`}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                  document.documentElement.classList.remove('dark')
+                } else {
+                  document.documentElement.classList.add('dark')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} font-sans bg-background text-foreground min-h-screen antialiased`}>
         <ClimateProvider>
           <AppShell>{children}</AppShell>
         </ClimateProvider>
