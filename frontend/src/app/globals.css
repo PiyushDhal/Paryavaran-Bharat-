@@ -309,13 +309,13 @@ input[type="range"]::-moz-range-thumb {
   animation: radar-spin 10s linear infinite;
 }
 
-@keyframes telemetry-ping {
+@keyframes observation-ping {
   0% { transform: scale(0.6); opacity: 0.3; }
   50% { opacity: 0.9; }
   100% { transform: scale(2.2); opacity: 0; }
 }
-.telemetry-ping {
-  animation: telemetry-ping 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+.observation-ping {
+  animation: observation-ping 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 .neon-glow-blue {

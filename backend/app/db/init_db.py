@@ -105,7 +105,7 @@ def init_db(db: Session) -> None:
     logger.info("Seeding system users...")
     admin = User(
         email="admin@bharatclimatetwin.in",
-        full_name="Mission Administrator",
+        full_name="System Administrator",
         role="admin",
         hashed_password=get_password_hash("ChangeMe123!"),
     )

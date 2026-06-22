@@ -452,7 +452,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
     pdf = canvas.Canvas(buffer, pagesize=A4)
     
     title = f"{theme.upper()} ASSESSMENT REPORT: {district.name.upper()}"
-    subtitle = f"Department of Environmental Observations | District: {district.name}, State: {district.state.name}"
+    subtitle = f"Department of Earth Observations | District: {district.name}, State: {district.state.name}"
     pdf.setTitle(f"{district.name} {theme.capitalize()} Report")
     
     draw_pdf_header(pdf, title, subtitle)
@@ -713,7 +713,7 @@ def executive_pdf_report(db: Session = Depends(get_db)) -> StreamingResponse:
     pdf = canvas.Canvas(buffer, pagesize=A4)
     pdf.setTitle("National Climate Executive Summary Report")
     
-    draw_pdf_header(pdf, "NATIONAL CLIMATE EXECUTIVE SUMMARY", "India National Risk Atlas | Compiled from Multi-Agency Ground Observation Telemetries")
+    draw_pdf_header(pdf, "NATIONAL CLIMATE EXECUTIVE SUMMARY", "India National Risk Atlas | Compiled from Multi-Agency Ground Observations")
     
     avg_national_risk = db.query(func.avg(RiskScore.composite_risk)).scalar() or 48.5
     avg_national_flood = db.query(func.avg(RiskScore.flood_risk)).scalar() or 42.1
@@ -740,7 +740,7 @@ def executive_pdf_report(db: Session = Depends(get_db)) -> StreamingResponse:
     y = draw_pdf_table(pdf, 54, y - 10, headers_hot, rows_hot, [130, 110, 85, 85, 87])
     
     # Strategic Directions
-    y = draw_section_header(pdf, y - 20, "Priority Mission Recommendations")
+    y = draw_section_header(pdf, y - 20, "Priority Action Recommendations")
     directions = [
         "Audit reservoir headroom margins across drought-threatened basins (India-WRIS observations).",
         "Deploy SDRF rescue assets to districts with flood risk probabilities exceeding 65/100.",

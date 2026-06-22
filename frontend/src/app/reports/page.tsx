@@ -747,10 +747,10 @@ export default function ReportsPage() {
           "Integrate real-time IoT water monitoring tools across municipal grids"
         ];
         keyFindings = [
-          `Composite command risk is calculated at ${ranking.composite_risk}/100.`,
+          `Composite regional risk is calculated at ${ranking.composite_risk}/100.`,
           `Operational area population exposure limits stand at ${Math.round(ranking.composite_risk * 1.8)}k citizens.`,
           `Resource availability index matches high-alert drawdown states.`,
-          `Communication channel status is active and verified by Central Command.`
+          `Communication channel status is active and verified by Operations Center.`
         ];
       }
     }
@@ -787,7 +787,7 @@ export default function ReportsPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
         <div>
           <Badge className="bg-surface-elevated text-brand-titanium border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
-            Strategic Decision Cockpit
+            Strategic Decision Dashboard
           </Badge>
           <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-orbitron tracking-[0.12em] uppercase">
             Reports & Decision Intelligence Center
@@ -934,7 +934,7 @@ export default function ReportsPage() {
                   <option value="agriculture_impact">Agriculture Impact Report</option>
                   <option value="disaster_preparedness">Disaster Preparedness Report</option>
                   <option value="executive_summary">Executive Summary Report</option>
-                  <option value="mission_brief">Operational Mission Brief</option>
+                  <option value="mission_brief">Operational Response Brief</option>
                 </select>
               </div>
 
@@ -1250,7 +1250,7 @@ export default function ReportsPage() {
 
                     <div>
                       <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
-                        <Activity className="w-3.5 h-3.5 text-brand-blue" /> II. Telemetry & Current Conditions
+                        <Activity className="w-3.5 h-3.5 text-brand-blue" /> II. Observations & Current Conditions
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.condition}</p>
                     </div>

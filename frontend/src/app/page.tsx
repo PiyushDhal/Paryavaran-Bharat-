@@ -342,7 +342,7 @@ export default function LandingPage() {
 
   const heroRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
-  const telemetryRef = useRef<HTMLDivElement>(null);
+  const observationRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
 
@@ -388,9 +388,9 @@ export default function LandingPage() {
       bgRef.current.style.transform = `translate3d(${(x * 24).toFixed(1)}px, ${(y * 16).toFixed(1)}px, 0) scale(1.08)`;
       bgRef.current.style.transition = "transform 0.1s ease-out";
     }
-    if (telemetryRef.current) {
-      telemetryRef.current.style.transform = `translate3d(${(x * 12).toFixed(1)}px, ${(y * 12).toFixed(1)}px, 0)`;
-      telemetryRef.current.style.transition = "transform 0.08s ease-out";
+    if (observationRef.current) {
+      observationRef.current.style.transform = `translate3d(${(x * 12).toFixed(1)}px, ${(y * 12).toFixed(1)}px, 0)`;
+      observationRef.current.style.transition = "transform 0.08s ease-out";
     }
     if (contentRef.current) {
       contentRef.current.style.transform = `translate3d(${(x * -10).toFixed(1)}px, ${(y * -10).toFixed(1)}px, 0)`;
@@ -412,9 +412,9 @@ export default function LandingPage() {
         }
       }, 1800);
     }
-    if (telemetryRef.current) {
-      telemetryRef.current.style.transform = "";
-      telemetryRef.current.style.transition = "transform 0.8s ease-out";
+    if (observationRef.current) {
+      observationRef.current.style.transform = "";
+      observationRef.current.style.transition = "transform 0.8s ease-out";
     }
     if (contentRef.current) {
       contentRef.current.style.transform = "";
@@ -541,7 +541,7 @@ export default function LandingPage() {
 
         {/* Observation Digital Stream Overlay */}
         <div
-          ref={telemetryRef}
+          ref={observationRef}
           className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-brand-titanium/80 hidden xl:block z-10 leading-relaxed shadow-glow animate-fade-in-cta"
         >
           <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 mb-2 font-bold text-brand-titanium">

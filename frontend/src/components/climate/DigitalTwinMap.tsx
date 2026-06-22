@@ -890,7 +890,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Interactive State hover & click telemetry
+  // Interactive State hover & click handling
   const [hoveredStateName, setHoveredStateName] = useState<string | null>(null);
   const [tooltipCoords, setTooltipCoords] = useState<{ x: number; y: number } | null>(null);
   const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null);
@@ -936,7 +936,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const baseScale = Math.min((SVG_W - 80) / stateW, (SVG_H - 80) / stateH);
     const scale = Math.min(Math.max(baseScale, 1.8), 5.5);
     
-    // Shift slightly to the left to avoid the right telemetry sidebar
+    // Shift slightly to the left to avoid the right observations sidebar
     const tx = (SVG_W / 2 - 150) - cx * scale;
     const ty = (SVG_H / 2) - cy * scale;
     
@@ -2080,7 +2080,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           </div>
         )}
 
-        {/* 5. Live Telemetry Status Card */}
+        {/* 5. Live Observation Status Card */}
         {!compact && (
           <div className="absolute bottom-4 right-4 z-20 p-2.5 bg-background/85 backdrop-blur border border-white/[0.08] rounded-lg text-[9px] shadow-lg max-w-[150px] pointer-events-auto">
             <div className="flex items-center gap-1.5 font-bold uppercase text-brand-titanium">
@@ -2173,7 +2173,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         <div className="flex items-center justify-between border-b border-white/[0.08] p-4 shrink-0">
           <div>
             <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-blue">
-              District Cockpit ({activeYear})
+              District Dashboard ({activeYear})
             </span>
             <h3 className="text-lg font-bold text-white mt-0.5">
               {selectedDistrict?.name || "Select District"}
@@ -2292,7 +2292,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             {/* AI Climate Analysis Panel */}
             {aiLoading ? (
               <div className="text-xs text-muted-foreground py-6 text-center animate-pulse">
-                Consulting AI Command Core...
+                Consulting Climate Intelligence Officer...
               </div>
             ) : aiAnalysis ? (
               <div className="space-y-2">
