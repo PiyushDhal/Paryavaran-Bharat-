@@ -190,7 +190,7 @@ export default function TimelinePage() {
               <CalendarRange className="h-5 w-5 animate-pulse" />
               <CardTitle>Milestone: {activeEvent.year}</CardTitle>
             </div>
-            <CardDescription>Synthesized telemetry parameters.</CardDescription>
+            <CardDescription>Synthesized climate parameters.</CardDescription>
           </CardHeader>
           <CardContent className="pt-6 space-y-6 flex-1">
             <div className="space-y-4">

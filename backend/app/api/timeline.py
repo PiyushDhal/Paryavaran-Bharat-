@@ -43,7 +43,7 @@ def get_timeline(district_id: int, db: Session = Depends(get_db)):
         type_str = "historical" if is_hist else ("current" if y == 2026 else "predicted")
         
         label = "Baseline Transition Year"
-        description = "Stabilized monsoon indicators with localized temperature rises. Current ground telemetry aligns with long-term climate baselines."
+        description = "Stabilized monsoon indicators with localized temperature rises. Current ground observations align with long-term climate baselines."
         
         if y == 2010:
             label = "Cooler Climate Baseline"

@@ -50,16 +50,16 @@ interface ChatMessage {
 }
  
 const quickActions = [
-  { label: "🛰 Analyse Current District", query: "Analyse current district risk drivers", desc: "Telemetry assessment", icon: Compass },
-  { label: "🌧 Flood Assessment", query: "Show flood risk probability and river status", desc: "Hydro-telemetry check", icon: Waves },
+  { label: "Analyze Current District", query: "Analyze current district risk drivers", desc: "Examine active local risk metrics", icon: Compass },
+  { label: "🌧 Flood Assessment", query: "Show flood risk probability and river status", desc: "Check streamflow and flooding alerts", icon: Waves },
   { label: "🔥 Heatwave Assessment", query: "Show heatwave risk probability and thermal anomaly", desc: "Temperature audit", icon: Thermometer },
   { label: "🌾 Agriculture Analysis", query: "Assess vegetation health and crop stress index", desc: "NDVI vegetation review", icon: Leaf },
-  { label: "💧 Water Resources", query: "Audit active reservoir storage levels", desc: "WRIS reservoir status", icon: Droplet },
-  { label: "🌫 Air Quality", query: "Assess CPCB AQI and atmospheric stress drivers", desc: "Ambient grid indicators", icon: Wind },
-  { label: "⚠ Risk Assessment", query: "Explain composite risk scores and trends", desc: "Hazard weight audit", icon: AlertCircle },
+  { label: "💧 Water Resources", query: "Audit active reservoir storage levels", desc: "WRIS reservoir level status", icon: Droplet },
+  { label: "🌫 Air Quality", query: "Assess CPCB AQI and atmospheric stress drivers", desc: "Check gridded AQI and air quality sensors", icon: Wind },
+  { label: "⚠ Risk Assessment", query: "Explain composite risk scores and trends", desc: "Assess hazard weights and risk drivers", icon: AlertCircle },
   { label: "📊 Executive Summary", query: "Show national climate executive summary", desc: "IMD/NRSC aggregate indices", icon: FileText },
   { label: "📄 Generate Report", query: "Generate risk report for selected location", desc: "PDF dossier compiler", icon: Download },
-  { label: "📈 Future Outlook", query: "Predict drought hotspots and crop vulnerabilities", desc: "Disaster prediction models", icon: TrendingUp }
+  { label: "📈 Future Outlook", query: "Predict drought hotspots and crop vulnerabilities", desc: "Review disaster prediction models", icon: TrendingUp }
 ];
  
 const initialExamples = [
@@ -135,7 +135,7 @@ function CopilotPageContent() {
             id: "past-1",
             prompt: "What is the biggest climate threat in Rajasthan?",
             response: {
-              explanation: "### Desert Aridity Anomaly\n\nGeospatial telemetry over Rajasthan indicate agricultural drought vulnerability scores peaking at **65/100** due to severe rainfall deficits and root zone dehydration.",
+              explanation: "### Desert Aridity Anomaly\n\nGeospatial observations over Rajasthan indicate agricultural drought vulnerability scores peaking at **65/100** due to severe rainfall deficits and root zone dehydration.",
               risk_analysis: "High heat and low precipitation levels.",
               explainable_risk: { confidence: 92, drivers: ["Precipitation Deficit Anomaly"], actions: ["Micro-irrigation layouts"], sources: ["IMD Observations"] }
             }
@@ -177,7 +177,7 @@ function CopilotPageContent() {
     const updated = historyList.filter(item => item.id !== id);
     setHistoryList(updated);
     localStorage.setItem("bct_copilot_history", JSON.stringify(updated));
-    triggerToast("Mission log removed from command index.");
+    triggerToast("Chat session removed from index.");
   };
 
   const filteredHistory = historyList.filter((item) => {
@@ -189,7 +189,7 @@ function CopilotPageContent() {
     if (typeof window !== "undefined") {
       const shareUrl = `${window.location.origin}/copilot?query=${encodeURIComponent(msg.text.substring(0, 100))}`;
       navigator.clipboard.writeText(shareUrl);
-      triggerToast("Shareable advisory command link copied.");
+      triggerToast("Shareable advisory link copied.");
     }
   };
  
@@ -206,20 +206,20 @@ function CopilotPageContent() {
     switch (action.type) {
       case "set_layer":
         setActiveLayer(action.layer);
-        triggerToast(`Command executed: Map layer updated to "${action.layer}". Redirecting to map view...`);
+        triggerToast(`Map layer updated to "${action.layer}". Redirecting to map view...`);
         setTimeout(() => router.push("/map"), 1500);
         break;
       case "zoom_to_district":
         setSelectedDistrictId(action.district_id);
-        triggerToast(`Command executed: Centered map on ${action.district_name || "District"}. Redirecting to map...`);
+        triggerToast(`Centered map on ${action.district_name || "District"}. Redirecting to map...`);
         setTimeout(() => router.push(`/map?district_id=${action.district_id}`), 1500);
         break;
       case "open_compare":
         if (action.districtA && action.districtB) {
-          triggerToast(`Command executed: Loading comparative dashboard. Redirecting...`);
+          triggerToast(`Loading comparative dashboard. Redirecting...`);
           setTimeout(() => router.push(`/compare?districtA=${action.districtA}&districtB=${action.districtB}`), 1200);
         } else if (action.state1 && action.state2) {
-          triggerToast(`Command executed: Navigating to state comparison module...`);
+          triggerToast(`Navigating to state comparison module...`);
           setTimeout(() => router.push(`/compare?state1=${action.state1}&state2=${action.state2}`), 1200);
         } else {
           setTimeout(() => router.push(`/compare`), 1200);
@@ -227,12 +227,12 @@ function CopilotPageContent() {
         break;
       case "open_simulator":
         const params = action.params || {};
-        triggerToast(`Command executed: Prefilling simulation variables. Opening Future Conditions Lab...`);
+        triggerToast(`Prefilling simulation variables. Opening Scenario Simulator...`);
         const query = `district_id=${params.district_id || ""}&rainfall=${params.rainfall_delta_pct || ""}&temp=${params.temperature_delta_c || ""}&reservoir=${params.reservoir_delta_pct || ""}`;
         setTimeout(() => router.push(`/simulator?${query}`), 1500);
         break;
       case "download_report":
-        triggerToast(`Command executed: Requesting official PDF report compiler...`);
+        triggerToast(`Requesting official PDF report...`);
         const repType = action.report_type || "district";
         window.open(`${API_BASE_URL}/api/v1/climate/reports/${repType}/${action.id}.pdf`, "_blank");
         break;
@@ -314,7 +314,7 @@ function CopilotPageContent() {
       const fallbackMsg: ChatMessage = {
         id: "bot-error-" + Date.now(),
         sender: "bot",
-        text: "Command execution encountered a communications timeout. Re-establishing telemetry connection with central database. Sourced observations indicate stable rainfall deficits but localized thermal deviations in Northwestern sectors.",
+        text: "The connection to the climate database encountered a timeout. Attempting to re-establish connection. Connected local indicators suggest stable rainfall deficits but localized temperature deviations in the Northwestern sectors.",
         timestamp: new Date()
       };
       
@@ -366,7 +366,7 @@ function CopilotPageContent() {
  
   const clearChat = () => {
     setMessages([]);
-    triggerToast("Operational log cleared.");
+    triggerToast("Conversation history cleared.");
   };
  
   const exportConversation = () => {
@@ -448,11 +448,11 @@ function CopilotPageContent() {
           IMPORTANT: "border-cyan-500/40 bg-cyan-950/15 text-cyan-200"
         };
         const titleMap: Record<string, string> = {
-          NOTE: "OPERATIONAL NOTICE",
-          WARNING: "COMMAND WARNING",
-          CAUTION: "CRITICAL HAZARD ALERT",
-          TIP: "CLIMATE POLICY STRATEGY",
-          IMPORTANT: "MISSION OBJECTIVE"
+          NOTE: "EXECUTIVE BRIEF",
+          WARNING: "HAZARD ADVISORY",
+          CAUTION: "CRITICAL RISK WARNING",
+          TIP: "MITIGATION POLICY GUIDANCE",
+          IMPORTANT: "PLANNING OBJECTIVE"
         };
         
         return (
@@ -497,30 +497,30 @@ function CopilotPageContent() {
           <div className="flex items-center gap-2">
             <Badge className="bg-brand-blue/20 text-brand-titanium border-brand-blue/30 uppercase tracking-widest text-[9px]">ISRO Hackathon Version</Badge>
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest">MISSION TELEMETRY SYNCHRONIZED</span>
+            <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest">CLIMATE DATA BASELINE SYNCHRONIZED</span>
           </div>
           <h1 className="mt-2 text-2xl font-bold text-white font-orbitron tracking-widest uppercase flex items-center gap-2">
             <Bot className="h-6 w-6 text-brand-blue animate-pulse" />
-            Climate Intelligence Cockpit
+            Climate Intelligence Workspace
           </h1>
           <p className="mt-1 max-w-3xl text-xs text-muted-foreground leading-relaxed">
-            Autonomous decision-support agent. Parses active spatial datasets, simulates dynamic future stress horizons, and generates official NDMA policy reports.
+            Professional climate intelligence officer. Analyzes gridded weather databases and satellite indices, evaluates scenario simulations, and compiles decision-support reports.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {!historyOpen && (
             <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)} className="border-slate-800 hover:bg-slate-900 text-slate-300 text-xs">
               <History className="h-3.5 w-3.5 mr-1.5 text-brand-blue" />
-              Show mission logs
+              Show history log
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={clearChat} className="border-slate-800 hover:bg-slate-900 text-slate-300 text-xs">
             <Trash2 className="h-3.5 w-3.5 mr-1.5 text-rose-400" />
-            Clear logs
+            Clear chat
           </Button>
           <Button variant="outline" size="sm" onClick={exportConversation} className="border-slate-800 hover:bg-slate-900 text-slate-300 text-xs">
             <FileJson className="h-3.5 w-3.5 mr-1.5 text-brand-blue" />
-            Export logs
+            Export chat
           </Button>
         </div>
       </div>
@@ -532,12 +532,12 @@ function CopilotPageContent() {
           <div className="w-full xl:w-[250px] flex flex-col gap-4 border border-white/[0.08] bg-slate-950/40 rounded-2xl p-4 animate-fade-in no-print">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
               <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-orbitron">
-                <History className="h-3.5 w-3.5 text-brand-blue animate-pulse" /> Past Mission Logs
+                <History className="h-3.5 w-3.5 text-brand-blue animate-pulse" /> Chat Session History
               </span>
               <button 
                 onClick={() => setHistoryOpen(false)}
                 className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-900"
-                title="Hide Logs"
+                title="Hide History"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -557,7 +557,7 @@ function CopilotPageContent() {
             <div className="flex-1 overflow-y-auto space-y-2 max-h-[55vh] pr-1 scrollbar-thin">
               {filteredHistory.length === 0 ? (
                 <div className="text-center py-6 text-slate-500 text-[10px]">
-                  No past missions logged.
+                  No past sessions found.
                 </div>
               ) : (
                 filteredHistory.map((item) => (
@@ -577,7 +577,7 @@ function CopilotPageContent() {
                       <button 
                         onClick={(e) => { e.stopPropagation(); deleteHistoryItem(item.id); }}
                         className="opacity-0 group-hover:opacity-100 p-0.5 text-rose-400 hover:bg-rose-500/10 rounded transition-opacity"
-                        title="Delete Log"
+                        title="Delete Session"
                       >
                         <Trash2 className="w-2.5 h-2.5" />
                       </button>
@@ -595,9 +595,9 @@ function CopilotPageContent() {
             <CardTitle className="flex items-center justify-between text-white text-xs tracking-widest uppercase">
               <span className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-brand-blue animate-pulse" />
-                COMMAND COMMUNICATIONS INFLOW
+                CLIMATE CONSULTATION SESSION
               </span>
-              <span className="font-mono text-[9px] text-slate-400">SESSION ID: BCT-COP-748</span>
+              <span className="font-mono text-[9px] text-slate-400">SESSION ID: BCT-CIO-748</span>
             </CardTitle>
           </CardHeader>
           
@@ -612,9 +612,9 @@ function CopilotPageContent() {
                       <Bot className="h-10 w-10 text-brand-blue animate-bounce" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white tracking-widest uppercase font-orbitron">Welcome back, Commander</h3>
+                  <h3 className="text-lg font-bold text-white tracking-widest uppercase font-orbitron">Welcome to the Climate Intelligence Workspace</h3>
                   <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-                    BCT Operations Control Room is online. Session: **Chief Officer (Level-3 Permissions)**. Select a telemetry action below to initiate regional sweeps:
+                    The Climate Intelligence Officer is ready. Select a pre-configured query below to start a regional assessment or input your request directly:
                   </p>
                 </div>
  
@@ -688,7 +688,7 @@ function CopilotPageContent() {
                               <div className="flex justify-between items-center text-[10px] font-bold text-cyan-400">
                                 <span className="flex items-center gap-1.5">
                                   <AlertCircle className="h-3.5 w-3.5" />
-                                  EXPLAINABLE AI CLIMATE METRICS
+                                  EXPLAINABLE CLIMATE RISK MODEL
                                 </span>
                                 <span className="font-mono bg-cyan-950 px-2 py-0.5 rounded border border-cyan-500/20">Confidence: {msg.data.explainable_risk.confidence}%</span>
                               </div>
@@ -722,7 +722,7 @@ function CopilotPageContent() {
                           {/* Action advice cards */}
                           {msg.data.recommended_actions && msg.data.recommended_actions.length > 0 && (
                             <div>
-                              <h4 className="text-[9px] font-bold uppercase tracking-widest text-cyan-400 mb-2">Government Action Plan Protocols</h4>
+                              <h4 className="text-[9px] font-bold uppercase tracking-widest text-cyan-400 mb-2">Mitigation and Operational Directives</h4>
                               <div className="grid gap-2 sm:grid-cols-2">
                                 {msg.data.recommended_actions.map((action, idx) => {
                                   const isHydro = idx % 2 === 0;
@@ -731,7 +731,7 @@ function CopilotPageContent() {
                                       <div className="flex items-center gap-1.5 mb-1.5 border-b border-white/[0.04] pb-1">
                                         {isHydro ? <Waves className="h-3.5 w-3.5 text-cyan-400" /> : <Leaf className="h-3.5 w-3.5 text-cyan-400" />}
                                         <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400">
-                                          {isHydro ? "Hydrology Command" : "Agriculture Directive"}
+                                          {isHydro ? "Hydrological Management" : "Agriculture Directive"}
                                         </span>
                                       </div>
                                       <p className="text-[11px] text-slate-300 leading-relaxed font-sans">{action}</p>
@@ -772,13 +772,13 @@ function CopilotPageContent() {
                             
                             <div className="flex items-center justify-between pt-1">
                               <div className="text-[8.5px] text-slate-500 uppercase tracking-widest">
-                                Verified Government Command Telemetry
+                                Verified Regional Climate Observations
                               </div>
                               <div className="flex gap-2">
                                 <Button variant="ghost" size="icon" className="h-7.5 w-7.5 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg" onClick={() => copyToClipboard(msg.text)} title="Copy Response">
                                   <Copy className="h-3.5 w-3.5" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-7.5 w-7.5 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg" onClick={() => shareAdvisory(msg)} title="Share Command Link">
+                                <Button variant="ghost" size="icon" className="h-7.5 w-7.5 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg" onClick={() => shareAdvisory(msg)} title="Share Chat Link">
                                   <Share2 className="h-3.5 w-3.5" />
                                 </Button>
                                 <Button variant="ghost" size="icon" className="h-7.5 w-7.5 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg" onClick={() => downloadReportText(msg)} title="Download Report">
@@ -787,7 +787,7 @@ function CopilotPageContent() {
                                 {msg.data?.action && (
                                   <Button variant="outline" size="sm" className="h-7.5 border-brand-blue/30 hover:border-cyan-500 text-brand-titanium text-[9px] tracking-wider uppercase bg-brand-blue/5 rounded-lg px-2.5" onClick={() => msg.data?.action && executeAction(msg.data.action)}>
                                     <Sparkles className="h-3 w-3 mr-1 text-cyan-400" />
-                                    Execute Command
+                                    Zoom to Target
                                   </Button>
                                 )}
                               </div>
@@ -827,7 +827,7 @@ function CopilotPageContent() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-500 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-500"></span>
                   </span>
-                  Climate Officer is compiling analytical data model...
+                  Climate Officer is processing database queries...
                 </div>
               </div>
             )}
@@ -854,7 +854,7 @@ function CopilotPageContent() {
           <CardHeader className="border-b border-white/[0.08] py-3.5 bg-slate-950/50">
             <CardTitle className="text-white text-xs tracking-widest uppercase flex items-center gap-2 font-orbitron">
               <Activity className="h-4.5 w-4.5 text-brand-blue animate-pulse" />
-              Operational System Context
+              Active Climate Context
             </CardTitle>
             <CardDescription className="text-muted-foreground text-[10px]">
               Active dashboard parameters dynamically injected into queries.
@@ -873,8 +873,8 @@ function CopilotPageContent() {
               </div>
               <div className="absolute w-10 h-10 border-t border-l border-cyan-500/60 rounded-tl-full origin-bottom-right bottom-1/2 right-1/2 animate-spin duration-[4000ms] pointer-events-none" />
               <div className="relative text-center z-10 select-none">
-                <p className="text-[8.5px] uppercase tracking-widest text-cyan-400 font-bold font-orbitron animate-pulse">SATELLITE RADAR STATUS</p>
-                <p className="text-[7.5px] text-slate-500 font-mono mt-0.5">SCANNING MONSOON GRIDS...</p>
+                <p className="text-[8.5px] uppercase tracking-widest text-cyan-400 font-bold font-orbitron animate-pulse">REGIONAL SCAN STATUS</p>
+                <p className="text-[7.5px] text-slate-500 font-mono mt-0.5">MONITORING CLIMATE GRIDS...</p>
               </div>
             </div>
 
@@ -882,11 +882,11 @@ function CopilotPageContent() {
             <div className="rounded-xl border border-white/[0.06] bg-slate-950/30 p-2.5 space-y-1.5">
               <p className="text-[8px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1 font-orbitron">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                System Health Status
+                System Status
               </p>
               <div className="grid grid-cols-2 gap-1.5 text-[9px] font-mono leading-normal">
                 <div className="p-1.5 border border-slate-850 bg-background/50 rounded flex flex-col justify-between">
-                  <span className="text-slate-500 text-[7px] uppercase">Telemetry Latency</span>
+                  <span className="text-slate-500 text-[7px] uppercase">Query Latency</span>
                   <span className="text-white font-bold text-[10px] mt-0.5">142ms (Active)</span>
                 </div>
                 <div className="p-1.5 border border-slate-850 bg-background/50 rounded flex flex-col justify-between">
@@ -898,7 +898,7 @@ function CopilotPageContent() {
                   <span className="text-white font-bold text-[10px] mt-0.5">1,240 records</span>
                 </div>
                 <div className="p-1.5 border border-slate-850 bg-background/50 rounded flex flex-col justify-between">
-                  <span className="text-slate-500 text-[7px] uppercase">Sensor Status</span>
+                  <span className="text-slate-500 text-[7px] uppercase">Observation Feeds</span>
                   <span className="text-emerald-400 font-bold text-[9px] mt-0.5">✓ 15 online</span>
                 </div>
               </div>
@@ -941,9 +941,9 @@ function CopilotPageContent() {
             <div className="rounded-xl border border-cyan-500/10 bg-cyan-950/5 p-3 text-xs leading-relaxed text-slate-400 font-sans">
               <p className="font-bold text-white text-[10px] tracking-wide mb-1 flex items-center gap-1">
                 <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
-                MISSION NOTES
+                ANALYSIS POLICY
               </p>
-              The Climate Officer has full direct read permissions over PostgreSQL database schemas. Telemetry queries cite official source agencies automatically.
+              The Climate Intelligence Officer accesses live gridded databases. Explanations cite source agencies (IMD, NRSC, CPCB, CWC) automatically.
             </div>
           </CardContent>
         </Card>
@@ -954,7 +954,7 @@ function CopilotPageContent() {
 
 export default function CopilotPage() {
   return (
-    <Suspense fallback={<div className="text-center py-20 text-slate-400 font-mono text-xs">INITIALIZING SATELLITE COMMUNICATIONS LINK...</div>}>
+    <Suspense fallback={<div className="text-center py-20 text-slate-400 font-mono text-xs">LOADING CLIMATE INTELLIGENCE WORKSPACE...</div>}>
       <CopilotPageContent />
     </Suspense>
   );

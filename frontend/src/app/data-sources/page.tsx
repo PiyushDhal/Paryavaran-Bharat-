@@ -40,7 +40,7 @@ const sources = [
     lastUpdated: "Near Real-time",
     updateFrequency: "Hourly",
     status: "Operational",
-    description: "Statutory organization coordinating the activities of State Pollution Control Boards. Provides continuous air quality telemetry.",
+    description: "Statutory organization coordinating the activities of State Pollution Control Boards. Provides continuous air quality observation feeds.",
     icon: Wind,
     color: "rose"
   },

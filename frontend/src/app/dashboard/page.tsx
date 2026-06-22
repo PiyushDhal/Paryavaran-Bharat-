@@ -72,7 +72,7 @@ function LiveClock() {
         <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-blue" />
       </span>
       <span className="text-[11px] font-medium font-mono text-secondary-foreground">
-        MISSION LIVE · {time}
+        SYSTEM ACTIVE · {time}
       </span>
     </div>
   );
@@ -123,7 +123,7 @@ export default function DashboardPage() {
     if (selectedDistrictId) {
       const dist = rankings.find(r => r.district_id === selectedDistrictId);
       if (dist) {
-        return `Telemetry for ${dist.district_name} (${activeYear}) indicates a composite risk score of ${dist.composite_risk}. Flood risk is ${dist.flood_risk}% and Drought risk is ${dist.drought_risk}%. Local command units should be aware of these metrics. Next Step: Open AI Copilot to generate a detailed local assessment.`;
+        return `Observations for ${dist.district_name} (${activeYear}) indicate a composite risk score of ${dist.composite_risk}. Flood risk is ${dist.flood_risk}% and Drought risk is ${dist.drought_risk}%. Disaster management authorities should monitor these metrics. Next Step: Open AI Copilot to generate a detailed local assessment.`;
       }
     }
 
@@ -132,14 +132,14 @@ export default function DashboardPage() {
     const droughtHigh = rankings.find(r => r.drought_risk > 70);
 
     const locations = criticalDistricts.length ? criticalDistricts.join(" and ") : "Assam";
-    let brief = `Early-warning telemetry indicates elevated risk coordinates. `;
+    let brief = `Early-warning indicators suggest elevated risk profiles. `;
     if (rainHigh) {
       brief += `Heavy precipitation anomalies in ${rainHigh.state_name} (${rainHigh.district_name}) increase flood probabilities. `;
     }
     if (droughtHigh) {
       brief += `Soil moisture depletion is accelerating in ${droughtHigh.district_name} (${droughtHigh.state_name}) indicating early-stage drought trends. `;
     }
-    brief += `Coordinated disaster mitigation centers should monitor the affected basins in ${locations} immediately.`;
+    brief += `Mitigation and disaster management teams should monitor the affected basins in ${locations} immediately.`;
     return brief;
   }, [rankings, selectedDistrictId, activeYear]);
 
@@ -151,7 +151,7 @@ export default function DashboardPage() {
       <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
         <div>
           <Badge className="bg-surface-elevated text-brand-titanium hover:bg-brand-blue/10 border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
-            National Climate Mission Control
+            National Operations Center
           </Badge>
           <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-orbitron tracking-[0.12em] uppercase">
             Operations Center

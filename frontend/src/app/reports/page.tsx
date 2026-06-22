@@ -610,7 +610,7 @@ export default function ReportsPage() {
     const riskDiff = Math.abs(ranking.composite_risk - compareRanking.composite_risk);
     const rainLevel = ranking.flood_risk > 70 ? "torrential precipitation anomalies (+22%)" : "normal seasonal monsoon distributions";
     
-    let summary = `This strategic intelligence assessment maps the projected climate risk profiles for ${district.name} District, ${district.state_name} UT/State, for target year ${year} AD. The geographical focus area supports ${district.population.toLocaleString()} citizens over ${district.area_sq_km.toLocaleString()} sq km of terrain. Sensor telemetry gridded feeds from INSAT-3DR and IMD networks suggest a composite climate risk score of ${ranking.composite_risk}/100.`;
+    let summary = `This strategic intelligence assessment maps the projected climate risk profiles for ${district.name} District, ${district.state_name} UT/State, for target year ${year} AD. The geographical focus area supports ${district.population.toLocaleString()} citizens over ${district.area_sq_km.toLocaleString()} sq km of terrain. Sensor observation gridded feeds from INSAT-3DR and IMD networks suggest a composite climate risk score of ${ranking.composite_risk}/100.`;
     
     let condition = `Recent gridded climate grids identify ${rainLevel} in the district. Soil moisture saturation levels are hovering at ${ranking.drought_risk > 60 ? "depleted (low agricultural resilience)" : "adequate seasonal capacity"}. Hydrological reservoirs are holding at approximately ${ranking.water_stress_risk > 70 ? "critical levels (elevated local drawdowns)" : "nominal operating pressures"}.`;
     
@@ -618,7 +618,7 @@ export default function ReportsPage() {
 
     let highRiskZones = `${district.name}'s eastern flood basin clusters and low-lying coastal drainage belts.`;
     let immediateActions = [
-      "Deploy localized emergency telemetry transceivers at river checkpoints",
+      "Deploy localized emergency streamflow sensors at river checkpoints",
       "Subsidize moisture-retaining soil cover and heat-resilient pearl millet seeds",
       "Issue Level-2 municipal water-rationing guidelines for industrial grids"
     ];
@@ -642,7 +642,7 @@ export default function ReportsPage() {
     if (isComp) {
       summary = `This bilateral climate comparison compares the projected risk models of ${district.name} (${district.state_name}) and ${compareDistrict.name} (${compareDistrict.state_name}) for the scenario horizon of ${year} AD. There is a composite risk delta of ${riskDiff}% between the locations.`;
       condition = `${district.name} exhibits a composite risk of ${ranking.composite_risk}% (with flood risk at ${ranking.flood_risk}% and drought risk at ${ranking.drought_risk}%) while ${compareDistrict.name} reports a composite risk of ${compareRanking.composite_risk}% (with flood risk at ${compareRanking.flood_risk}% and drought risk at ${compareRanking.drought_risk}%).`;
-      aiBrief = `COMPARATIVE SYNTHESIS: The telemetry profiles suggest divergent climate adaptation pathways. ${district.name} is primarily driven by ${ranking.flood_risk > ranking.drought_risk ? "excess run-off and flooding vectors" : "prolonged precipitation deficits"}, whereas ${compareDistrict.name} displays critical vulnerabilities related to ${compareRanking.flood_risk > compareRanking.drought_risk ? "water discharge anomalies" : "agricultural moisture dry-out"}.`;
+      aiBrief = `COMPARATIVE SYNTHESIS: The observation profiles suggest divergent climate adaptation pathways. ${district.name} is primarily driven by ${ranking.flood_risk > ranking.drought_risk ? "excess run-off and flooding vectors" : "prolonged precipitation deficits"}, whereas ${compareDistrict.name} displays critical vulnerabilities related to ${compareRanking.flood_risk > compareRanking.drought_risk ? "water discharge anomalies" : "agricultural moisture dry-out"}.`;
       highRiskZones = `${district.name}'s high-risk sectors and ${compareDistrict.name}'s vulnerable coastal zones.`;
       
       immediateActions = [
@@ -665,7 +665,7 @@ export default function ReportsPage() {
           "Issue flash flood warnings to low-lying community centers via SMS grids"
         ];
       } else if (type === "drought_assessment") {
-        summary = `AGRICULTURAL DROUGHT CHARTER: Soil moisture telemetry maps for ${district.name} show drought risk at ${ranking.drought_risk}%. Precipitation deficits have depleted topsoil moisture, threatening agricultural yields.`;
+        summary = `AGRICULTURAL DROUGHT CHARTER: Soil moisture observation maps for ${district.name} show drought risk at ${ranking.drought_risk}%. Precipitation deficits have depleted topsoil moisture, threatening agricultural yields.`;
         aiBrief = `DROUGHT STRESS AUDIT: NDVI vegetation charts display early indications of stress in standing crops. Groundwater drawdowns are accelerating, calling for restrictions on deep borewell drilling.`;
         immediateActions = [
           "Set up regional tanker logistics for priority household districts",
@@ -682,7 +682,7 @@ export default function ReportsPage() {
         ];
       } else if (type === "water_stress") {
         summary = `WATER STRESS EVALUATION: Hydrological metrics show water stress risk at ${ranking.water_stress_risk}% for ${district.name}. Reservoir capacities and water tables are entering depletion thresholds.`;
-        aiBrief = `AQUIFER TELEMETRY: Satellite gravity data indicates rapid depletion of shallow groundwater tables. Local demand loads have exceeded natural recharge capacities by 18%, requiring aggressive rainwater harvesting.`;
+        aiBrief = `AQUIFER OBSERVATIONS: Satellite gravity data indicates rapid depletion of shallow groundwater tables. Local demand loads have exceeded natural recharge capacities by 18%, requiring aggressive rainwater harvesting.`;
         immediateActions = [
           "Impose industrial water recycling quotas and limit commercial extractions",
           "Deploy smart water meters on agricultural pump connections",
@@ -729,10 +729,10 @@ export default function ReportsPage() {
           "Subsidize regional watershed management programs across critical basins"
         ];
       } else if (type === "mission_brief") {
-        summary = `OPERATIONAL MISSION BRIEF: Strategic climate defense dossier compiled for ${district.name} District, ${district.state_name}. Commencing emergency deployment protocols for scenario year ${year} AD. The monitored operational area spans ${district.area_sq_km.toLocaleString()} sq km, housing ${district.population.toLocaleString()} citizens.`;
-        aiBrief = `TACTICAL BRIEFING: Fused intelligence overlays indicate critical compound risks focused on ${focusSector} security grids. Local hazard indexes are projected to peak, creating municipal exposure. Dispatch commands must establish immediate coordination channels with block-level disaster committees.`;
+        summary = `OPERATIONAL BRIEF: Strategic climate response plan compiled for ${district.name} District, ${district.state_name}. Commencing risk management protocols for scenario year ${year} AD. The monitored area spans ${district.area_sq_km.toLocaleString()} sq km, housing ${district.population.toLocaleString()} citizens.`;
+        aiBrief = `RISK BRIEFING: Integrated observations indicate critical compound risks focused on ${focusSector} sectors. Local hazard indices are projected to peak, creating municipal exposure. Local authorities must establish immediate coordination channels with block-level disaster committees.`;
         immediateActions = [
-          "Establish high-priority telemetry sensor links with NDMA command center",
+          "Establish high-priority sensor links with NDMA operations center",
           "Issue Level-2 water and resource quotas for heavy industrial zones",
           "Position emergency rescue fleets and medical kits at regional headquarters"
         ];
@@ -1268,7 +1268,7 @@ export default function ReportsPage() {
                               <span>District Boundaries Grid</span>
                               <span className="text-[9px] text-brand-blue font-mono">Interactive Talukas</span>
                             </p>
-                            <p className="text-[9px] text-muted-foreground mb-2 leading-tight">Hover zones for telemetry forecast details.</p>
+                            <p className="text-[9px] text-muted-foreground mb-2 leading-tight">Hover zones for observation forecast details.</p>
                           </div>
                           <div className="relative overflow-visible">
                             <svg viewBox="0 0 200 150" className="w-full h-36 bg-background/60 border border-slate-900 rounded-lg">
@@ -1324,7 +1324,7 @@ export default function ReportsPage() {
                               <text x="10" y="142" fill="#64748b" fontSize="7" fontFamily="monospace" className="pointer-events-none">MODEL ACC: SSP5-8.5</text>
                             </svg>
 
-                            {/* Floating Telemetry Box for District Zone */}
+                            {/* Floating Observations Box for District Zone */}
                             {hoveredDistrictZone && districtZoneForecasts[hoveredDistrictZone] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-white/[0.08] bg-background/95 shadow-2xl text-[9px] text-secondary-foreground w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-brand-titanium border-b border-white/5 pb-0.5 flex items-center justify-between">
@@ -1467,7 +1467,7 @@ export default function ReportsPage() {
                               </g>
                             </svg>
 
-                            {/* Floating Telemetry Box for State */}
+                            {/* Floating Observations Box for State */}
                             {hoveredStateName && stateForecasts[hoveredStateName] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-white/[0.08] bg-background/95 shadow-2xl text-[9px] text-secondary-foreground w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-brand-titanium border-b border-white/5 pb-0.5 flex items-center justify-between">
@@ -1488,7 +1488,7 @@ export default function ReportsPage() {
                               <span>Multi-Hazard Risk Heatmap</span>
                               <span className="text-[9px] text-rose-400 font-mono">Radar Hotspots</span>
                             </p>
-                            <p className="text-[9px] text-muted-foreground mb-2 leading-tight">Hover hotspots for specific telemetry summaries.</p>
+                            <p className="text-[9px] text-muted-foreground mb-2 leading-tight">Hover hotspots for specific observation summaries.</p>
                           </div>
                           <div className="relative overflow-visible">
                             <svg viewBox="0 0 200 150" className="w-full h-36 bg-background/60 border border-slate-900 rounded-lg relative overflow-hidden">
@@ -1548,7 +1548,7 @@ export default function ReportsPage() {
                               <text x="125" y="142" fill="#C0C8D4" fontSize="8" fontFamily="monospace" className="pointer-events-none">{ranking.composite_risk}% composite</text>
                             </svg>
 
-                            {/* Floating Telemetry Box for Heatspot */}
+                            {/* Floating Observations Box for Heatspot */}
                             {hoveredHeatspot && heatmapHotspotForecasts[hoveredHeatspot] && (
                               <div className="absolute z-30 p-2.5 rounded-lg border border-rose-400/40 bg-background/95 shadow-2xl text-[9px] text-secondary-foreground w-44 font-sans leading-normal pointer-events-none transition-all" style={{ top: '10px', left: '10px' }}>
                                 <p className="font-bold text-rose-400 border-b border-white/5 pb-0.5">
@@ -1918,26 +1918,26 @@ export default function ReportsPage() {
                 </div>
               )}
 
-              {/* Slide 1: Ground Telemetry Matrix */}
+              {/* Slide 1: Ground Observations Matrix */}
               {currentSlide === 1 && (
                 <div className="space-y-5 animate-fade-in">
                   <div className="space-y-3">
-                    <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><Activity className="w-4 h-4 text-brand-blue" /> II. Telemetry & Current Conditions</h4>
+                    <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><Activity className="w-4 h-4 text-brand-blue" /> II. Observations & Current Conditions</h4>
                     <p className="text-xs text-slate-350 leading-relaxed font-serif text-justify mb-4">{reportNarrative?.condition}</p>
                   </div>
                   <div className="grid gap-3.5 grid-cols-2 md:grid-cols-3">
                     {[
-                      { name: "Ambient Temperature", val: `${ranking ? Math.round(ranking.heatwave_risk * 0.2 + 25) : 31}°C`, desc: "IMD Daily Telemetry", color: "text-rose-450" },
+                      { name: "Ambient Temperature", val: `${ranking ? Math.round(ranking.heatwave_risk * 0.2 + 25) : 31}°C`, desc: "IMD Daily Observations", color: "text-rose-450" },
                       { name: "Precipitation Inflow", val: `${ranking ? Math.round(ranking.flood_risk * 2.5) : 100} mm`, desc: "IMD stations gridded", color: "text-cyan-400" },
                       { name: "Vegetation greenness", val: `${ranking ? (0.8 - (ranking.drought_risk * 0.005)).toFixed(2) : 0.42} NDVI`, desc: "ISRO Sentinel-2 NDVI", color: "text-emerald-400" },
-                      { name: "Reservoir Active Storage", val: `${ranking ? Math.round(100 - ranking.water_stress_risk) : 48}%`, desc: "India-WRIS telemetry", color: "text-cyan-400" },
+                      { name: "Reservoir Active Storage", val: `${ranking ? Math.round(100 - ranking.water_stress_risk) : 48}%`, desc: "India-WRIS observations", color: "text-cyan-400" },
                       { name: "Air Quality Index", val: `${ranking ? Math.round(ranking.composite_risk * 1.5 + 40) : 75}`, desc: "CPCB monitoring", color: "text-purple-400" },
                       { name: "Soil Infiltration Index", val: `${ranking ? Math.round(100 - ranking.drought_risk) : 45}%`, desc: "NRSC Scatterometer", color: "text-orange-400" }
-                    ].map((tele) => (
-                      <div key={tele.name} className="p-4 rounded-xl border border-white/[0.06] bg-slate-950/40 shadow-md">
-                        <p className="text-[9px] uppercase font-bold text-slate-400">{tele.name}</p>
-                        <p className={`text-xl font-bold font-mono mt-1 ${tele.color}`}>{tele.val}</p>
-                        <p className="text-[9px] text-muted-foreground mt-0.5">{tele.desc}</p>
+                    ].map((obs) => (
+                      <div key={obs.name} className="p-4 rounded-xl border border-white/[0.06] bg-slate-950/40 shadow-md">
+                        <p className="text-[9px] uppercase font-bold text-slate-400">{obs.name}</p>
+                        <p className={`text-xl font-bold font-mono mt-1 ${obs.color}`}>{obs.val}</p>
+                        <p className="text-[9px] text-muted-foreground mt-0.5">{obs.desc}</p>
                       </div>
                     ))}
                   </div>

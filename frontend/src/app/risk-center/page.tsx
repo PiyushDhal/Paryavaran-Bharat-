@@ -49,7 +49,7 @@ export default function RiskCenterPage() {
       drivers.push("LST Anomaly: Land Surface Temperature (LST) shows a rise of +2.8°C above normal baseline, triggering heat dome index alerts.");
     }
     if (risk.water_stress_risk > 65) {
-      drivers.push("Reservoir Depletion: India-WRIS telemetry proxy shows municipal reservoir levels at 18% capacity, indicating near-term supply risks.");
+      drivers.push("Reservoir Depletion: India-WRIS observation proxy shows municipal reservoir levels at 18% capacity, indicating near-term supply risks.");
     }
 
     if (drivers.length === 0) {

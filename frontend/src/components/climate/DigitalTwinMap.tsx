@@ -2257,7 +2257,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             {/* Environmental Feeds Grid */}
             <div className="space-y-2">
               <p className="text-[10px] font-bold uppercase tracking-wider text-brand-titanium">
-                Telemetry Observations
+                Climate Observations
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {[
@@ -2404,7 +2404,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center p-8 text-center text-muted-foreground">
-            {historyLoading ? "Loading district observation history..." : "Select a district to initialize telemetry streams."}
+            {historyLoading ? "Loading district observation history..." : "Select a district to initialize climate observation streams."}
           </div>
         )}
       </div>

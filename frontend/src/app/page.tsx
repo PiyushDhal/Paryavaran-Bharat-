@@ -38,7 +38,7 @@ const capabilities = [
   {
     icon: Zap,
     title: "AI Climate Copilot",
-    detail: "Conversational intelligence for operational command, generating instant reports and maps."
+    detail: "Conversational intelligence for operational planning, generating instant reports and maps."
   }
 ];
 
@@ -347,13 +347,13 @@ export default function LandingPage() {
   const badgeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Elegant mission readiness load sequence (approx 3s)
+    // Elegant system readiness load sequence (approx 3s)
     const steps = [
       { duration: 700 }, // BHARAT CLIMATE TWIN
       { duration: 600 }, // Initializing Climate Intelligence...
       { duration: 600 }, // Connecting Digital Twin...
       { duration: 600 }, // Loading Government Datasets...
-      { duration: 500 }  // Mission Ready
+      { duration: 500 }  // System Ready
     ];
     
     let currentStep = 0;
@@ -443,7 +443,7 @@ export default function LandingPage() {
             <div className="absolute inset-0 rounded-full border border-dashed border-brand-blue/30 animate-slow-orbit" />
             {/* Inner pulsing ring */}
             <div className="absolute inset-2.5 rounded-full border border-brand-highlight/20 hud-pulse-glow" />
-            {/* Mission core icon */}
+            {/* System core icon */}
             <Satellite className="w-10 h-10 text-brand-blue animate-pulse" />
           </div>
 
@@ -457,7 +457,7 @@ export default function LandingPage() {
                 {loadingStep === 1 && "Connecting Digital Twin..."}
                 {loadingStep === 2 && "Loading Government Datasets..."}
                 {loadingStep === 3 && "Synchronizing Satellite Feeds..."}
-                {loadingStep === 4 && "Mission Ready"}
+                {loadingStep === 4 && "System Ready"}
               </p>
             </div>
             
@@ -470,7 +470,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Side HUD Telemetry Logs */}
+          {/* Side HUD Observation Logs */}
           <div className="absolute bottom-8 left-8 right-8 justify-between font-mono text-[9px] text-brand-titanium/40 hidden md:flex w-[calc(100%-4rem)] select-none">
             <div className="space-y-1">
               <div>[SECURE CHANNEL] ESTABLISHED TO ISRO SYSTEM</div>
@@ -539,13 +539,13 @@ export default function LandingPage() {
         {/* Radar sweep animation */}
         <RadarSweep />
 
-        {/* Telemetry Digital Stream Overlay */}
+        {/* Observation Digital Stream Overlay */}
         <div
           ref={telemetryRef}
           className="absolute right-6 bottom-20 max-w-xs p-4 rounded-lg border border-white/[0.08] bg-background/75 backdrop-blur-md font-mono text-[11px] text-brand-titanium/80 hidden xl:block z-10 leading-relaxed shadow-glow animate-fade-in-cta"
         >
           <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5 mb-2 font-bold text-brand-titanium">
-            <span>TELEMETRY STREAM</span>
+            <span>OBSERVATION STREAM</span>
             <span className="flex h-2.5 w-2.5 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-blue"></span>
@@ -575,7 +575,7 @@ export default function LandingPage() {
                   </span>
                   <div className="font-mono text-[9px] tracking-[0.16em] text-brand-titanium uppercase leading-tight">
                     BCT CORE UNIT<br/>
-                    <span className="text-brand-blue font-bold">ACTIVE COMMAND</span>
+                    <span className="text-brand-blue font-bold">SYSTEM ACTIVE</span>
                   </div>
                 </div>
               </div>
@@ -601,7 +601,7 @@ export default function LandingPage() {
                 className="inline-flex items-center gap-2 rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1.5 text-xs font-medium text-brand-titanium backdrop-blur-sm shadow-glow animate-fade-in-subtitle"
               >
                 <ShieldAlert className="w-4 h-4 text-brand-blue animate-pulse" />
-                Government-tech climate command layer
+                Government-tech climate monitoring layer
               </div>
 
               <p className="text-base text-secondary-foreground leading-relaxed max-w-xl animate-fade-in-subtitle font-sans" style={{ textShadow: "0 0 30px rgba(2, 6, 23, 0.9)" }}>
@@ -613,7 +613,7 @@ export default function LandingPage() {
                   href="/dashboard"
                   className="inline-flex items-center gap-2 bg-brand-blue hover:bg-brand-blue/90 hover:scale-105 text-slate-950 font-semibold px-8 py-4 rounded-lg transition-all shadow-[0_0_25px_rgba(6,182,212,0.35)]"
                 >
-                  Open Command Center
+                  Open Operations Center
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>

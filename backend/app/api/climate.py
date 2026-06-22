@@ -331,7 +331,7 @@ def district_pdf_report(district_id: int, db: Session = Depends(get_db)) -> Stre
     # Metadata Table
     headers = ["Parameter", "Observed Value", "Source Attribution", "Assessed Severity"]
     rows = [
-        ["Ambient Temperature", f"{weather.temperature_c if weather else 30.0}°C", "IMD Gridded Daily Telemetry", "Normal Anomaly" if not weather or weather.temperature_c < 38 else "Elevated Thermal"],
+        ["Ambient Temperature", f"{weather.temperature_c if weather else 30.0}°C", "IMD Gridded Daily Observations", "Normal Anomaly" if not weather or weather.temperature_c < 38 else "Elevated Thermal"],
         ["Precipitation (Rainfall)", f"{weather.rainfall_mm if weather else 120.0} mm", "IMD Meteorological Stations", f"Deficit: {weather.rainfall_deficit_pct if weather else 0.0}%"],
         ["Vegetation Canopy (NDVI)", f"{sat.ndvi if sat else 0.45}", "ISRO Bhuvan (NRSC Satellites)", "Healthy Sowing" if not sat or sat.ndvi > 0.4 else "Vegetative Decline"],
         ["Active Reservoir Storage", f"{sat.reservoir_level_pct if sat else 50.0}%", "India-WRIS Water Inventory", "Adequate Headroom" if not sat or sat.reservoir_level_pct > 35 else "Critical Drawdown"],
@@ -403,7 +403,7 @@ def state_pdf_report(state_id: int, db: Session = Depends(get_db)) -> StreamingR
     headers = ["Regional Average", "Computed Score", "Target Scale", "Regional Severity"]
     rows = [
         ["State Composite Climate Risk", f"{round(avg_risk, 1)}/100", "0 - 100 Range", "Moderate Threat" if avg_risk < 60 else "High State Alert"],
-        ["Hydrological Flood Risk Index", f"{round(avg_flood, 1)}/100", "CWC Telemetry Map", "Standard Watch" if avg_flood < 55 else "Immediate Response Required"],
+        ["Hydrological Flood Risk Index", f"{round(avg_flood, 1)}/100", "CWC Streamflow Observations", "Standard Watch" if avg_flood < 55 else "Immediate Response Required"],
         ["Agricultural Drought Risk Index", f"{round(avg_drought, 1)}/100", "NRSC Soil moisture Grid", "Moisture Deficit watch" if avg_drought > 50 else "Stable Sowing"]
     ]
     y = draw_pdf_table(pdf, 54, y - 10, headers, rows, [150, 110, 110, 117])
@@ -422,9 +422,9 @@ def state_pdf_report(state_id: int, db: Session = Depends(get_db)) -> StreamingR
     # State Mitigations
     y = draw_section_header(pdf, y - 20, "Regional Emergency Guidelines")
     actions = [
-        "Coordinate inter-district river basin diversion structures with CWC telemetry guidelines.",
+        "Coordinate inter-district river basin diversion structures with CWC streamflow observation guidelines.",
         "Release state agricultural drought subsidies for talukas demonstrating critical soil moisture indices.",
-        "Conduct mock drill updates with SDMA regional command centers."
+        "Conduct mock drill updates with SDMA regional planning offices."
     ]
     y = draw_bullet_points(pdf, y - 10, actions)
     
@@ -452,12 +452,12 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
     pdf = canvas.Canvas(buffer, pagesize=A4)
     
     title = f"{theme.upper()} ASSESSMENT REPORT: {district.name.upper()}"
-    subtitle = f"Department of Environmental Telemetry | District: {district.name}, State: {district.state.name}"
+    subtitle = f"Department of Environmental Observations | District: {district.name}, State: {district.state.name}"
     pdf.setTitle(f"{district.name} {theme.capitalize()} Report")
     
     draw_pdf_header(pdf, title, subtitle)
     
-    # Render Specific Telemetry Block
+    # Render Specific Observation Block
     y = draw_section_header(pdf, 650, f"Critical {theme.capitalize()} Observations")
     
     headers = ["Observation Matrix", "Recorded Value", "Source Agency", "Observation Scale"]
@@ -466,14 +466,14 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
         rows = [
             ["Precipitation (7-Day Accumulated)", f"{weather.rainfall_mm if weather else 120.0} mm", "IMD Meteorological grid", "High Rainfall Anomaly" if not weather or weather.rainfall_mm > 150 else "Standard Monsoon"],
             ["Brahmaputra/Regional River Runoff", f"{weather.river_level_m if weather else 2.1} m", "Central Water Commission (CWC)", "Critical Floodwatch Limit" if not weather or weather.river_level_m > 4.0 else "Within Channel Bounds"],
-            ["Soil moisture Saturation Index", f"{weather.soil_moisture_pct if weather else 45.0}%", "NRSC INSAT Land telemetry", "Saturated" if not weather or weather.soil_moisture_pct > 65 else "Absorptive capacity active"],
+            ["Soil moisture Saturation Index", f"{weather.soil_moisture_pct if weather else 45.0}%", "NRSC INSAT Land observations", "Saturated" if not weather or weather.soil_moisture_pct > 65 else "Absorptive capacity active"],
             ["Catchment Reservoir Storage", f"{sat.reservoir_level_pct if sat else 50.0}%", "India-WRIS Basin Registry", "Spillway Headroom Active" if not sat or sat.reservoir_level_pct > 80 else "Capacity available"]
         ]
         score = risk.flood_risk if risk else 45.0
         bullet_points = [
             "Activate SDMA flood early-warning warning dissemination nodes.",
             "Instruct village blocks to begin relocation cascades if river level exceeds red alert lines.",
-            "Manage reservoir reservoir release parameters under 24h inflow telemetry updates."
+            "Manage reservoir reservoir release parameters under 24h inflow observation updates."
         ]
     elif theme == "drought":
         rows = [
@@ -517,7 +517,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
         ]
     elif theme == "heatwave":
         rows = [
-            ["Ambient Temperature", f"{weather.temperature_c if weather else 30.0}°C", "IMD Gridded Daily Telemetry", "High Temperature Anomaly" if not weather or weather.temperature_c > 35 else "Seasonal Temp"],
+            ["Ambient Temperature", f"{weather.temperature_c if weather else 30.0}°C", "IMD Gridded Daily Observations", "High Temperature Anomaly" if not weather or weather.temperature_c > 35 else "Seasonal Temp"],
             ["Relative Atmospheric Humidity", f"{weather.humidity_pct if weather else 55.0}%", "IMD Gridded Sensors", "Humidex Anomaly" if not weather or weather.humidity_pct > 60 else "Nominal Humidity"],
             ["Calculated Heatwave Risk Score", f"{risk.heatwave_risk if risk else 35.0}/100", "BCT Thermal Assessment", "Critical Heat Warning" if not risk or risk.heatwave_risk > 60 else "Moderate Exposure"],
             ["Peak Power Grid Load Reserves", "92% Grid Margin", "State Power Dispatch Center", "Elevated Cooling Demand"]
@@ -556,7 +556,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
         ]
     elif theme == "mission_brief":
         rows = [
-            ["Operational Mission Priority", "CRITICAL CLIMATE DEFENSE", "Command operations HQ", "Active brief protocols"],
+            ["Operational Mitigation Priority", "CRITICAL REGIONAL ADVISORY", "National Operations Center", "Active brief protocols"],
             ["Civil Protection Area", f"{district.area_sq_km:,.1f} Sq.Km" if district else "Varies", "District administrative file", "Target defense area"],
             ["Aggregated Population at Risk", f"{district.population:,} citizens" if district else "Varies", "District census database", "Exposure target"],
             ["Force & Asset readiness status", "High readiness priority", "National disaster forces", "Deployment margins ready"]
@@ -565,7 +565,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
         bullet_points = [
             "Pre-position civil defense teams and emergency tankers at priority zones.",
             "Issue Level-2 municipal water-rationing guidelines for industrial grids.",
-            "Establish direct communication loops between Command HQ and taluka monitoring centers."
+            "Establish direct coordination loops between Operations Center and taluka monitoring centers."
         ]
     else:  # air quality
         rows = [
@@ -591,7 +591,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
     
     pdf.setFont("Helvetica", 9.5)
     pdf.setFillColorRGB(0.2, 0.2, 0.2)
-    risk_desc = f"Based on telemetry feeds and historical baselines, this district exhibits a {'critical' if score > 75 else 'high' if score > 60 else 'moderate'} hazard profile under this theme."
+    risk_desc = f"Based on historical baselines and gridded observations, this district exhibits a {'critical' if score > 75 else 'high' if score > 60 else 'moderate'} hazard profile under this theme."
     pdf.drawString(54, y - 26, risk_desc)
     
     # Specific Mitigations
@@ -744,13 +744,13 @@ def executive_pdf_report(db: Session = Depends(get_db)) -> StreamingResponse:
     directions = [
         "Audit reservoir headroom margins across drought-threatened basins (India-WRIS observations).",
         "Deploy SDRF rescue assets to districts with flood risk probabilities exceeding 65/100.",
-        "Establish standardized crop advisory warnings using district NDVI telemetry profiles."
+        "Establish standardized crop advisory warnings using district NDVI observation profiles."
     ]
     y = draw_bullet_points(pdf, y - 10, directions)
     
     pdf.setFont("Helvetica-Bold", 8)
     pdf.setFillColorRGB(0.5, 0.5, 0.5)
-    pdf.drawString(54, 40, f"Generated: {date.today().isoformat()} | National Command Level Dossier | Confidential")
+    pdf.drawString(54, 40, f"Generated: {date.today().isoformat()} | National Planning Level Dossier | Confidential")
     pdf.drawRightString(541.27, 40, "Page 1 of 1")
     
     pdf.showPage()
