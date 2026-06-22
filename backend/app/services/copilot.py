@@ -30,23 +30,49 @@ class ClimateCopilot:
             if active_district:
                 active_state = active_district.state
 
-        # Resolve mentioned district or state
+        # Look for state and district database lists
+        db_states = db.query(State).all()
+        db_districts = db.query(District).all()
+
+        # If not resolved by district, load active state if state name is selected
+        if not active_state and payload.selected_state_name:
+            active_state = next((s for s in db_states if s.name.lower() == payload.selected_state_name.lower()), None)
+
+        # Resolve mentioned district or state in current query
         mentioned_district = None
         mentioned_state = None
         
-        # Look for state mentions
-        db_states = db.query(State).all()
+        # Look for state mentions in query
         for s in db_states:
             if s.name.lower() in text or (s.code and s.code.lower() in text.split()):
                 mentioned_state = s
                 break
                 
-        # Look for district mentions
-        db_districts = db.query(District).all()
+        # Look for district mentions in query
         for d in db_districts:
             if d.name.lower() in text:
                 mentioned_district = d
                 break
+
+        # If no active/mentioned district or state, look back in chat history to resolve targets
+        if not active_district and not active_state and not mentioned_district and not mentioned_state and payload.chat_history:
+            for msg in reversed(payload.chat_history):
+                msg_text = msg.get("text", "").lower()
+                # Check for state mention in history
+                for s in db_states:
+                    if s.name.lower() in msg_text or (s.code and s.code.lower() in msg_text.split()):
+                        active_state = s
+                        break
+                if active_state:
+                    break
+                # Check for district mention in history
+                for d in db_districts:
+                    if d.name.lower() in msg_text:
+                        active_district = d
+                        active_state = d.state
+                        break
+                if active_district:
+                    break
 
         # Check for Gemini API key
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -85,15 +111,41 @@ class ClimateCopilot:
             for r in rankings[:5]:
                 rankings_summary += f"- {r.get('district_name') or r.get('district')} ({r.get('state_name') or r.get('state')}): Composite Risk {r.get('composite_risk')}/100 (Flood: {r.get('flood_risk')}, Drought: {r.get('drought_risk')})\n"
 
+            # Build analytics filters description
+            filters_context = "None"
+            if payload.analytics_filters:
+                filters_list = []
+                for k, v in payload.analytics_filters.items():
+                    if v:
+                        filters_list.append(f"{k}: {v}")
+                if filters_list:
+                    filters_context = ", ".join(filters_list)
+
+            # Build chat history context
+            history_context = ""
+            if payload.chat_history:
+                history_context = "Recent Conversation History:\n"
+                for msg in payload.chat_history:
+                    role_name = "User" if msg.get("role") == "user" else "Officer"
+                    text_content = msg.get("text", "")
+                    history_context += f"- {role_name}: {text_content}\n"
+                history_context += "\n"
+
             system_instruction = (
-                "You are the **Bharat Climate Intelligence Officer**—an enterprise-grade decision-support agent working inside ISRO, NDMA, IMD, and NRSC.\n"
+                "You are the **Bharat Climate Intelligence Officer**—a senior enterprise-grade climate analyst and decision-support officer working inside ISRO, NDMA, IMD, and NRSC.\n"
                 "Your tone is highly analytical, evidence-based, context-aware, actionable, and professional. Do not use generic chat language.\n"
                 "You must strictly output a valid JSON block containing the fields listed below. Do not wrap the JSON in ```json or any other text.\n"
+                "\n"
+                "Your instructions are:\n"
+                "1. **Climate Intelligence Engine**: Do not just echo numbers (e.g. 'Temperature is 32C'). Instead, explain what they mean physically and socio-economically (e.g., thermal stress levels, risk of crop canopy drying, public health implications, or water reservoir depletion).\n"
+                "2. **Decision Support System**: Provide concrete, actionable, and structured safety guidance, emergency priorities, resource allocations, farmer sowing recommendations, and long-term mitigation plans. If the user asks 'What should authorities do next?', structure a priority action plan spanning immediate, short-term, and long-term policies.\n"
+                "3. **Scenario Simulator Integration**: If the context contains active simulation inputs and outputs under 'Active Simulation Inputs/Outputs', explain how the delta inputs (e.g. temperature delta, rainfall delta, reservoir delta) propagate to the socio-economic impacts (crop stress, water availability, infrastructure risk, population exposed, and estimated economic losses in INR). Formulate AI recommendations to mitigate this specific simulated climate scenario.\n"
+                "\n"
                 "JSON Schema required:\n"
                 "{\n"
-                '  "explanation": "Markdown description of the analysis and answers. Address the prompt directly. Incorporate telemetry data.",\n'
-                '  "risk_analysis": "Explanation of what the risk values mean, explaining the drivers (soil moisture, temperature, reservoir levels).",\n'
-                '  "recommended_actions": ["List of 2 to 4 immediate, short-term, or long-term policy interventions."],\n'
+                '  "explanation": "Markdown description of the analysis, answers, and interpretations. Address the prompt directly. Incorporate telemetry data. Acknowledge and refer to context state, selected district/state, current layer, active year, simulation parameters, and conversation history context if the prompt is a follow-up or asks about them. Provide deep explanations of numbers instead of just listing them.",\n'
+                '  "risk_analysis": "Explanation of what the risk values mean, explaining the physical drivers (soil moisture, temperature anomalies, reservoir levels, wind, humidity, river levels).",\n'
+                '  "recommended_actions": ["List of 2 to 4 immediate, short-term, or long-term policy or operational interventions."],\n'
                 '  "chart": { "type": "bar", "data": [{"district": "Region A", "risk": 45}] },\n'
                 '  "districts": [],\n'
                 '  "action": null,\n'
@@ -108,7 +160,9 @@ class ClimateCopilot:
                 f"- Active Year: {payload.active_year}\n"
                 f"- Timeline Step: {payload.timeline_step}\n"
                 f"- Map Mode: {payload.map_mode}\n"
-                f"- Active Simulation Inputs/Outputs: {payload.active_simulation}\n\n"
+                f"- Active Simulation Inputs/Outputs: {payload.active_simulation}\n"
+                f"- Active Analytics Filters: {filters_context}\n\n"
+                f"{history_context}"
                 f"{district_context}\n"
                 f"{rankings_summary}\n\n"
                 "Generate the response for user prompt: " + payload.prompt
@@ -162,6 +216,55 @@ class ClimateCopilot:
         # Target location context resolver
         target_district = mentioned_district or active_district
         target_state = mentioned_state or (active_state if not mentioned_district else None)
+
+        # Prefetch telemetry variables for offline analyst explanation
+        temp = 31.5
+        rain = 115.0
+        deficit = -2.5
+        humidity = 65.0
+        aqi = 75
+        river = 2.1
+        soil = 42.0
+        ndvi = 0.42
+        reservoir = 48.0
+        comp_score = 45.0
+        f_score = 40.0
+        d_score = 50.0
+        h_score = 35.0
+        ws_score = 45.0
+        trend = "stable"
+        
+        if target_district:
+            weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+            sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+            risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+            if weather:
+                temp = weather.temperature_c
+                rain = weather.rainfall_mm
+                deficit = weather.rainfall_deficit_pct
+                humidity = weather.humidity_pct
+                aqi = weather.aqi
+                river = weather.river_level_m
+                soil = weather.soil_moisture_pct
+            if sat:
+                ndvi = sat.ndvi
+                reservoir = sat.reservoir_level_pct
+            if risk:
+                comp_score = risk.composite_risk
+                f_score = risk.flood_risk
+                d_score = risk.drought_risk
+                h_score = risk.heatwave_risk
+                ws_score = risk.water_stress_risk
+                trend = risk.trend
+        elif target_state:
+            districts_in_state = db.query(District).filter(District.state_id == target_state.id).all()
+            dist_ids = [d.id for d in districts_in_state]
+            if dist_ids:
+                comp_score = db.query(func.avg(RiskScore.composite_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 50.0
+                f_score = db.query(func.avg(RiskScore.flood_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
+                d_score = db.query(func.avg(RiskScore.drought_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
+                h_score = db.query(func.avg(RiskScore.heatwave_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 35.0
+                ws_score = db.query(func.avg(RiskScore.water_stress_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 45.0
 
         # -------------------------------------------------------------
         # INTENT 1: Comparisons (PHASE 6)
@@ -322,8 +425,8 @@ class ClimateCopilot:
                 dist_id = target_district.id if target_district else 302
                 dist_name = target_district.name if target_district else "Jodhpur"
                 # Parse manual overrides from query
-                if "+3" in text or "3 degrees" in text: temp_delta = 3.0
-                elif "+4" in text: temp_delta = 4.0
+                if "+3" in text or "3 degrees" in text or "3 degree" in text: temp_delta = 3.0
+                elif "+4" in text or "4 degrees" in text or "4 degree" in text: temp_delta = 4.0
                 if "-20" in text: rain_delta = -20.0
                 elif "+30" in text: rain_delta = 30.0
                 
@@ -368,19 +471,25 @@ class ClimateCopilot:
                     }
                 }
 
+            loc_name = target_state.name if target_state else (target_district.name if target_district else "Rajasthan")
+
             explanation = (
-                f"### Scenario Simulator Intelligence: {temp_delta:+.1f}°C Temp | {rain_delta:+.1f}% Rainfall\n\n"
-                f"Evaluation of simulated anomalies reveals compound climate risks across sectors:\n\n"
-                f"- **Flood & Hydrology Impact:** Simulated flood risk is **{f_risk}/100**. {'Elevated runoffs threaten low-lying channels (CWC monitoring).' if f_risk > 60 else 'River channels remain within baseline capacity.'}\n"
-                f"- **Vegetation & Soil Stress:** Crop stress index scales to **{crop}/100** due to rapid soil moisture decay (NRSC INSAT observation).\n"
-                f"- **Water Resource Balance:** Water availability is **{water}/100**, indicating reservoir storage drawdown.\n"
-                f"- **Asset & Civil Exposure:** Infrastructure risk rating is **{infra}/100**, with **{pop_risk:,}** people exposed to high heat/inundation limits.\n"
-                f"- **Financial Impact:** Projected local economic loss is **₹{econ_loss}M INR** due to agricultural yield drops and damage repairs."
+                f"### Scenario Simulator Intelligence: {loc_name} ({temp_delta:+.1f}°C Temp | {rain_delta:+.1f}% Rainfall)\n\n"
+                f"Evaluation of simulated climate anomalies reveals critical compound risks and socio-economic exposures:\n\n"
+                f"1. **Water Availability ({water}/100):** This score combines reservoir capacity and soil moisture. "
+                f"{'Critical deficit. Low water levels threaten municipal drinking supply and kharif crop irrigation.' if water < 45 else 'Moderate/stable availability. Sub-surface moisture levels are currently buffering evaporation loss.'}\n"
+                f"2. **Agricultural Impact (Crop Stress: {crop}/100):** Driven by temperature anomalies and soil moisture decay. "
+                f"{'Severe vegetation stress. Accelerated evapotranspiration will likely degrade crop canopy greenness (NDVI) and lower yield efficiency.' if crop > 60 else 'Managed stress levels. Current canopy health matches nominal crop resilience thresholds.'}\n"
+                f"3. **Population Affected ({pop_risk:,} exposed):** Estimated civil exposure under simulated composite risk margins. "
+                f"This requires establishing direct evacuation command loops and health buffer supplies.\n"
+                f"4. **Infrastructure Risk ({infra}/100):** Evaluated hazard to physical assets. "
+                f"{'High risk. Elevated river levels and flash discharge threaten local road networks and utilities.' if infra > 60 else 'Low risk. Civil infrastructure remains within baseline safety capacities.'}\n"
+                f"5. **Economic Implications (₹{econ_loss}M INR projected loss):** Estimated financial damages due to agricultural harvest loss, municipal repairs, and energy strain."
             )
             
             risk_analysis = (
-                f"Under the {sim_source}, the composite risk settles at **{comp}/100**. "
-                f"Thermal stress anomalies drive water evaporation, resulting in a {'drought alert' if d_risk > 60 else 'stable baseline'} status."
+                f"Under the {sim_source}, the simulated composite risk settles at **{comp}/100**. "
+                f"Thermal stress anomalies drive rapid moisture decay, leading to {'an active drought and heat alert' if d_risk > 60 else 'stable baseline'} status."
             )
             
             chart_data = [
@@ -388,7 +497,7 @@ class ClimateCopilot:
                 {"district": "Drought Risk", "risk": d_risk},
                 {"district": "Crop Stress", "risk": crop},
                 {"district": "Water Stress", "risk": water},
-                {"district": "Composite", "risk": comp}
+                {"district": "Composite Risk", "risk": comp}
             ]
             
             recommended_actions = [
@@ -471,6 +580,240 @@ class ClimateCopilot:
                 "drivers": ["Atmospheric Temperature Deficit", "Depleted Soil Saturation Index"],
                 "actions": ["Verify district telemetry sensors"],
                 "sources": ["IMD Forecast Feed", "NRSC INSAT NDVI"]
+            }
+
+        # -------------------------------------------------------------
+        # NEW INTENTS: Climate Analyst & Decision Support (Phases 2 & 3)
+        # -------------------------------------------------------------
+        elif "rainfall" in text or "precipitation" in text:
+            explanation = (
+                f"### Climate Analyst: Rainfall & Hydrological Assessment for {target_state.name if target_state else (target_district.name if target_district else 'India')}\n\n"
+                f"- **Observed Rainfall:** {rain} mm.\n"
+                f"- **Departure Anomaly:** Deficit/Surplus is at **{deficit}%** compared to normal averages.\n"
+                f"- **Soil Saturation:** Soil moisture index stands at **{soil}%**.\n\n"
+                f"**Implications & Interpretation:**\n"
+                f"A rainfall deficit of **{deficit}%** {'represents severe hydrological stress' if deficit < -10 else 'falls within normal seasonal variance'}. "
+                f"With soil moisture at **{soil}%**, the root zone {'exhibits high dehydration trends that threaten kharif sowing cycles and require supplemental irrigation' if soil < 35 else 'remains sufficiently saturated to support baseline agricultural activities'}. "
+                f"Reservoir levels at **{reservoir}%** limit water storage headroom, demanding strict seasonal allocations."
+            )
+            risk_analysis = f"Rainfall deficits drive drought risk up to {d_score}/100 and composite risk to {comp_score}/100."
+            chart_data = [
+                {"district": "Rainfall (mm)", "risk": rain},
+                {"district": "Deficit (%)", "risk": abs(deficit)},
+                {"district": "Soil Moisture (%)", "risk": soil},
+                {"district": "Reservoir Level (%)", "risk": reservoir}
+            ]
+            recommended_actions = [
+                "Deploy local micro-irrigation guidelines to conserve root zone moisture.",
+                "Enforce strict water storage drawdown rules matching current reservoir levels.",
+                "Activate canal lining projects to minimize conveyance losses."
+            ]
+            suggestions = ["Show Drought Layer", "What should authorities do next?", "Compare Rajasthan and Gujarat"]
+            insights = [f"Rainfall deficit is {deficit}%.", f"Reservoir capacity stands at {reservoir}%."]
+            explainable_risk = {
+                "confidence": 92,
+                "drivers": ["Precipitation anomaly deficit", "Low Soil Saturation"],
+                "actions": ["Verify district telemetry sensors"],
+                "sources": ["IMD grid data", "NRSC Landsat products"]
+            }
+
+        elif "temperature" in text or "temp" in text or "heat" in text:
+            explanation = (
+                f"### Climate Analyst: Thermal Anomaly & Heatwave Assessment for {target_state.name if target_state else (target_district.name if target_district else 'India')}\n\n"
+                f"- **Ambient Temperature:** {temp}°C.\n"
+                f"- **Heatwave Risk Index:** **{h_score}/100**.\n"
+                f"- **Relative Humidity:** {humidity}%.\n\n"
+                f"**Implications & Interpretation:**\n"
+                f"Ambient temperatures of **{temp}°C** combined with **{humidity}%** relative humidity raise the localized felt heat index. "
+                f"A heatwave risk index of **{h_score}/100** represents a **{'critical heat hazard' if h_score > 60 else 'moderate seasonal' if h_score > 35 else 'normal/safe'}** level. "
+                f"Extreme heat accelerates soil moisture evaporation, compounding vegetation stress and raising urban peak load limits on power grids."
+            )
+            risk_analysis = f"High temperature anomalies directly drive heatwave risk to {h_score}/100 and water stress to {ws_score}/100."
+            chart_data = [
+                {"district": "Ambient Temp (C)", "risk": temp},
+                {"district": "Humidity (%)", "risk": humidity},
+                {"district": "Heatwave Risk", "risk": h_score},
+                {"district": "Water Stress Risk", "risk": ws_score}
+            ]
+            recommended_actions = [
+                "Establish district-level cooling centers in high-density areas.",
+                "Enforce outdoor labor restrictions between 11 AM and 4 PM during peak warnings.",
+                "Review power grid distribution load reserves for compliance."
+            ]
+            suggestions = ["What should authorities do next?", "Show Heatwave Layer", "Compare Rajasthan and Gujarat"]
+            insights = [f"Ambient temp is {temp}°C.", f"Heatwave risk score is {h_score}/100."]
+            explainable_risk = {
+                "confidence": 94,
+                "drivers": ["Thermal anomalies", "Felt Heat Index rise"],
+                "actions": ["Deploy mobile cooling vans"],
+                "sources": ["IMD observation grid"]
+            }
+
+        elif "aqi" in text or "air" in text:
+            explanation = (
+                f"### Climate Analyst: AQI & Air Quality Assessment for {target_state.name if target_state else (target_district.name if target_district else 'India')}\n\n"
+                f"- **Observed AQI:** **{aqi}**.\n"
+                f"- **Classification:** {'Hazardous/Poor' if aqi > 150 else 'Moderate' if aqi > 50 else 'Good/Healthy'}.\n\n"
+                f"**Implications & Interpretation:**\n"
+                f"An Air Quality Index of **{aqi}** implies **{'elevated particulate matter concentration (PM2.5/PM10)' if aqi > 100 else 'clean atmospheric conditions'}**. "
+                f"{'Sensitive groups may experience respiratory irritation, requiring municipal warnings' if aqi > 100 else 'Ambient air quality poses no significant health hazard to the population'}. "
+                f"AQI levels are monitored on a rolling basis from CPCB sensors to detect thermal inversion hazards."
+            )
+            risk_analysis = f"Particulate concentration contributes to composite environmental strain."
+            chart_data = [
+                {"district": "AQI Score", "risk": aqi}
+            ]
+            recommended_actions = [
+                "Deploy street-level water mist sprinklers in hazardous zones.",
+                "Issue public health notices advising masks for sensitive populations.",
+                "Limit high-emission industrial units during peak stagnation hours."
+            ]
+            suggestions = ["Show AQI Layer", "Explain Jodhpur risk drivers", "Compare Rajasthan and Gujarat"]
+            insights = [f"AQI is {aqi} ({'Healthy' if aqi <= 100 else 'Moderate' if aqi <= 200 else 'Poor'})."]
+            explainable_risk = {
+                "confidence": 90,
+                "drivers": ["Particulate Matter accumulation", "Atmospheric stagnation"],
+                "actions": ["Enforce construction dust controls"],
+                "sources": ["CPCB grid monitoring"]
+            }
+
+        elif "ndvi" in text or "canopy" in text or "forest" in text:
+            explanation = (
+                f"### Climate Analyst: NDVI & Vegetative Canopy Assessment for {target_state.name if target_state else (target_district.name if target_district else 'India')}\n\n"
+                f"- **NDVI Index Value:** **{ndvi}**.\n"
+                f"- **Canopy Density:** {'Lush/Healthy' if ndvi > 0.6 else 'Moderate' if ndvi > 0.35 else 'Barren/Degraded'}.\n\n"
+                f"**Implications & Interpretation:**\n"
+                f"The Normalized Difference Vegetation Index value of **{ndvi}** indicates **{'healthy chlorophyll activity and high canopy thickness' if ndvi > 0.45 else 'degraded vegetative cover or agricultural stress'}**. "
+                f"Declines in NDVI suggest rapid soil moisture decay or forest degradation. Sourced from NRSC Sentinel and Landsat satellite observations, these values are used to predict kharif yield efficiencies."
+            )
+            risk_analysis = f"Lower vegetative thickness correlates directly with drought risk: {d_score}/100."
+            chart_data = [
+                {"district": "NDVI (x100)", "risk": int(ndvi * 100)},
+                {"district": "Drought Risk", "risk": d_score}
+            ]
+            recommended_actions = [
+                "Implement satellite-derived crop advice alerts to high-stress blocks.",
+                "Promote agroforestry programs to increase structural tree cover.",
+                "Assess biomass losses using multi-spectral imagery sets."
+            ]
+            suggestions = ["Show Drought Layer", "Assess crop health", "Compare Rajasthan and Gujarat"]
+            insights = [f"NDVI canopy index is {ndvi}."]
+            explainable_risk = {
+                "confidence": 93,
+                "drivers": ["Volumetric vegetative greenness decay", "Canopy moisture stress"],
+                "actions": ["Verify Sentinel sensor drift values"],
+                "sources": ["NRSC LISS-III product"]
+            }
+
+        elif "agriculture" in text or "crop" in text:
+            crop_stress_val = crop_stress(ndvi, soil)
+            explanation = (
+                f"### Climate Analyst: Agricultural Stress & Crop Health Assessment for {target_state.name if target_state else (target_district.name if target_district else 'India')}\n\n"
+                f"- **Vegetation canopy (NDVI):** {ndvi}.\n"
+                f"- **Root Zone Moisture:** {soil}%.\n"
+                f"- **Estimated Crop Stress:** **{round(crop_stress_val, 1)}/100**.\n\n"
+                f"**Implications & Interpretation:**\n"
+                f"An estimated crop stress value of **{round(crop_stress_val, 1)}/100** {'points to high vulnerability in crop sowing grids' if crop_stress_val > 50 else 'indicates healthy agricultural sowing capacity'}."
+                f" Evaporative soil moisture decay directly impacts crop root zones, delaying germination and reducing target sowing windows for oilseed and cotton crops."
+            )
+            risk_analysis = f"Vegetation stress anomalies drive drought risk to {d_score}/100 and composite risk to {comp_score}/100."
+            chart_data = [
+                {"district": "Crop Stress", "risk": crop_stress_val},
+                {"district": "Drought Risk", "risk": d_score},
+                {"district": "NDVI (x100)", "risk": int(ndvi * 100)},
+                {"district": "Soil Moisture (%)", "risk": soil}
+            ]
+            recommended_actions = [
+                "Advise farmers to shift sowing from paddy to drought-tolerant pulses or short-duration oilseeds.",
+                "Deploy block-level advisories for moisture conservation (mulching, drip-irrigation).",
+                "Authorize crop loss subsidies for dry agricultural blocks."
+            ]
+            suggestions = ["Show Drought Layer", "What should authorities do next?", "Compare Rajasthan and Gujarat"]
+            insights = [f"Crop stress index is {round(crop_stress_val, 1)}/100."]
+            explainable_risk = {
+                "confidence": 91,
+                "drivers": ["Canopy moisture decay", "Root zone soil dehydration"],
+                "actions": ["Distribute drought-resilient seed packets"],
+                "sources": ["NRSC Satellite Data", "IMD Grids"]
+            }
+
+        elif "historical" in text or "history" in text or "trends" in text:
+            explanation = (
+                f"### Climate Analyst: Historical Baseline & Long-term Trends for {target_state.name if target_state else (target_district.name if target_district else 'India')}\n\n"
+                f"- **Current Active Year:** {payload.active_year or 2026}.\n"
+                f"- **Composite Risk Score:** {comp_score}/100.\n"
+                f"- **Trend Trajectory:** **{trend.upper()}**.\n\n"
+                f"**Implications & Interpretation:**\n"
+                f"Historical climate telemetry reveals that the current risk rating of **{comp_score}/100** represents a **{trend}** trajectory. "
+                f"Comparing observations to the 30-year seasonal baseline indicates rising temperature anomalies and volatile precipitation patterns, leading to structural shifts in regional water tables and sowing windows."
+            )
+            risk_analysis = f"Long-term trends show a composite risk of {comp_score}/100 with a {trend} trajectory."
+            chart_data = [
+                {"district": "Historical Risk", "risk": comp_score}
+            ]
+            recommended_actions = [
+                "Calibrate historical baseline parameters with current daily drift metrics.",
+                "Update long-term infrastructure zoning maps with current risk trends.",
+                "Integrate multi-decadal model runs into public utility planning guidelines."
+            ]
+            suggestions = ["Show active alerts", "What should authorities do next?", "Compare Rajasthan and Gujarat"]
+            insights = [f"Baseline risk trend is {trend}."]
+            explainable_risk = {
+                "confidence": 92,
+                "drivers": ["Multi-decadal temperature trend shift", "Monsoon cycle drift"],
+                "actions": ["Verify model calibration grids"],
+                "sources": ["BCT Historical database"]
+            }
+
+        elif any(k in text for k in ["action", "what to do", "authorities", "next", "government", "mitigation", "strategy", "emergency", "priority"]):
+            # Generate actionable recommendations based on active risk scores
+            loc_name = target_state.name if target_state else (target_district.name if target_district else "India")
+            
+            # Determine priority hazard based on risk scores
+            priority_hazard = "Composite Climate Anomaly"
+            if f_score > d_score and f_score > h_score:
+                priority_hazard = "High Flood Vulnerability"
+            elif d_score > f_score and d_score > h_score:
+                priority_hazard = "Agricultural Drought Exposure"
+            elif h_score > f_score and h_score > d_score:
+                priority_hazard = "Severe Thermal Heat Anomaly"
+                
+            explanation = (
+                f"### Decision Support System: Policy & Operational Directives for {loc_name}\n\n"
+                f"**Priority Hazard Watch:** **{priority_hazard}** (Composite Risk: {comp_score}/100)\n\n"
+                f"Based on raw IMD grid data and NRSC satellite telemetry, the following structured response plan is recommended for authorities next:\n\n"
+                f"1. **Emergency Priorities & Disaster Response:**\n"
+                f"   - {'Pre-position state disaster response teams (SDRF) along river flood channels and initiate hourly CWC gauge logs.' if f_score > 50 else 'Establish district cooling centers in high-density blocks and enforce shift-work bans between 11 AM and 4 PM.' if h_score > 55 else 'Pre-position drinking water tankers and deploy block-level water rationing directives.'}\n"
+                f"   - Activate the unified multi-agency hazard warning command loops (IMD, CWC, NRSC).\n\n"
+                f"2. **Resource Allocation:**\n"
+                f"   - Budget reservoir reserves matching the current **{reservoir}%** capacity level.\n"
+                f"   - Authorize groundwater withdrawal restrictions to buffer subsurface tables.\n\n"
+                f"3. **Farmer Guidance & Agricultural Support:**\n"
+                f"   - Advise farmers to shift sowing from water-intensive paddy to drought-tolerant pulses or short-duration oilseeds.\n"
+                f"   - Deploy satellite-derived crop advisories based on the active vegetation greenness index (**{ndvi}**).\n\n"
+                f"4. **Long-Term Mitigation Plans:**\n"
+                f"   - Fund canal lining projects to prevent seepage and accelerate groundwater recharge grids.\n"
+                f"   - Construct decentralized check-dams and farm ponds to buffer localized runoffs."
+            )
+            risk_analysis = f"Policy directives are optimized for {priority_hazard} based on a risk assessment."
+            chart_data = [
+                {"district": "Flood Risk", "risk": f_score},
+                {"district": "Drought Risk", "risk": d_score},
+                {"district": "Heatwave Risk", "risk": h_score},
+                {"district": "Water Stress Risk", "risk": ws_score}
+            ]
+            recommended_actions = [
+                f"Authorize emergency funding for {priority_hazard.lower()} countermeasures.",
+                "Convene the state disaster mitigation advisory committee.",
+                "Review grid load buffer limits for thermal compliance."
+            ]
+            suggestions = ["Show active alerts", "Run future conditions simulation", "Explain risk drivers"]
+            insights = [f"Mitigation plan structured for {loc_name}.", f"Dominant hazard: {priority_hazard}."]
+            explainable_risk = {
+                "confidence": 94,
+                "drivers": ["Hazard Intensity projections", "Civic exposure metrics"],
+                "actions": ["Verify pre-position logs", "Deploy field monitors"],
+                "sources": ["IMD Warnings Index", "NRSC Vulnerability Atlas"]
             }
 
         # -------------------------------------------------------------
@@ -737,7 +1080,13 @@ class ClimateCopilot:
                 )
                 
                 risk_analysis = f"The state composite risk of {round(avg_risk, 1)}/100 represents a {'moderate' if avg_risk < 60 else 'high'} regional threat landscape."
-                chart_data = [{"district": d.name, "risk": db.query(RiskScore.composite_risk).filter(RiskScore.district_id == d.id).order_by(desc(RiskScore.valid_on)).scalar() or 50.0} for d in districts_in_state[:5]]
+                chart_data = []
+                for d in districts_in_state[:5]:
+                    r_score = db.query(RiskScore.composite_risk).filter(RiskScore.district_id == d.id).order_by(desc(RiskScore.valid_on)).first()
+                    chart_data.append({
+                        "district": d.name,
+                        "risk": r_score[0] if r_score else 50.0
+                    })
                 
                 action = {"type": "download_report", "report_type": "state", "id": target_state.id, "name": target_state.name}
                 recommended_actions = [

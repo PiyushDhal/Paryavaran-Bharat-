@@ -31,14 +31,17 @@ import {
   GraduationCap,
   Scale,
   Leaf,
-  X
+  X,
+  Play,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
+import { api, API_BASE_URL, getToken } from "@/lib/api";
 import type { District, Ranking, State, ClimateObservation } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
@@ -124,6 +127,10 @@ export default function ReportsPage() {
   const [renameValue, setRenameValue] = useState("");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Presentation slide state variables
+  const [presentationActive, setPresentationActive] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
   // Load from backend APIs
   useEffect(() => {
     Promise.all([
@@ -197,6 +204,22 @@ export default function ReportsPage() {
       .then(setHistoryObservations)
       .catch(() => setHistoryObservations([]));
   }, [districtId, year]);
+
+  // Keypress listener for ArrowLeft/ArrowRight to navigate slides in presentation mode
+  useEffect(() => {
+    if (!presentationActive) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === "Right") {
+        setCurrentSlide((prev) => Math.min(prev + 1, 6));
+      } else if (e.key === "ArrowLeft" || e.key === "Left") {
+        setCurrentSlide((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === "Escape") {
+        setPresentationActive(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [presentationActive]);
 
   const districtZoneForecasts = useMemo(() => {
     const forecasts: Record<string, { risk: number; temp: number; rainfall: number; soil: string; warning: string }> = {};
@@ -397,6 +420,49 @@ export default function ReportsPage() {
       showToast("Report compiled with Decision Intelligence framework.");
     }, 1200);
   };
+  
+  // Download report PDF from backend
+  const handleDownloadPDF = () => {
+    if (!generatedReport) return;
+    
+    let path = "";
+    const type = generatedReport.reportType;
+    
+    if (type === "district_climate") {
+      path = `/reports/district/${districtId}.pdf`;
+    } else if (type === "state_climate") {
+      const stateId = selectedStateId === "all" ? (district?.state_id || 1) : selectedStateId;
+      path = `/reports/state/${stateId}.pdf`;
+    } else if (type === "flood_assessment") {
+      path = `/reports/flood/${districtId}.pdf`;
+    } else if (type === "drought_assessment") {
+      path = `/reports/drought/${districtId}.pdf`;
+    } else if (type === "heatwave_assessment") {
+      path = `/reports/heatwave/${districtId}.pdf`;
+    } else if (type === "water_stress") {
+      path = `/reports/water/${districtId}.pdf`;
+    } else if (type === "climate_resilience") {
+      path = `/reports/resilience/${districtId}.pdf`;
+    } else if (type === "agriculture_impact") {
+      path = `/reports/agriculture/${districtId}.pdf`;
+    } else if (type === "disaster_preparedness") {
+      path = `/reports/preparedness/${districtId}.pdf`;
+    } else if (type === "executive_summary") {
+      path = `/reports/executive.pdf`;
+    } else if (type === "mission_brief") {
+      path = `/reports/mission-brief/${districtId}.pdf`;
+    }
+    
+    if (path) {
+      const token = getToken();
+      const downloadUrl = `${API_BASE_URL}/api/v1/climate${path}${token ? `?token=${token}` : ""}`;
+      window.open(downloadUrl, "_blank");
+      showToast("PDF report download initiated.");
+    } else {
+      showToast("Download not supported for this report type.");
+    }
+  };
+
   // Print friendly print handler
   const handlePrint = () => {
     if (typeof window !== "undefined") {
@@ -662,6 +728,30 @@ export default function ReportsPage() {
           "Incorporate localized risk layers into state-level infrastructure models",
           "Subsidize regional watershed management programs across critical basins"
         ];
+      } else if (type === "mission_brief") {
+        summary = `OPERATIONAL MISSION BRIEF: Strategic climate defense dossier compiled for ${district.name} District, ${district.state_name}. Commencing emergency deployment protocols for scenario year ${year} AD. The monitored operational area spans ${district.area_sq_km.toLocaleString()} sq km, housing ${district.population.toLocaleString()} citizens.`;
+        aiBrief = `TACTICAL BRIEFING: Fused intelligence overlays indicate critical compound risks focused on ${focusSector} security grids. Local hazard indexes are projected to peak, creating municipal exposure. Dispatch commands must establish immediate coordination channels with block-level disaster committees.`;
+        immediateActions = [
+          "Establish high-priority telemetry sensor links with NDMA command center",
+          "Issue Level-2 water and resource quotas for heavy industrial zones",
+          "Position emergency rescue fleets and medical kits at regional headquarters"
+        ];
+        shortTermAdvisories = [
+          "Pre-stage transport detours in case flood indicators cross critical lines",
+          "Audit central crop seed reserves to support fast re-planting",
+          "Set up mobile shade shelters in high-density work zones"
+        ];
+        longTermAdaptations = [
+          "Deploy regional aquifer recharge grids and structural wells",
+          "Re-route major transport lines around predicted landslide/flood paths",
+          "Integrate real-time IoT water monitoring tools across municipal grids"
+        ];
+        keyFindings = [
+          `Composite command risk is calculated at ${ranking.composite_risk}/100.`,
+          `Operational area population exposure limits stand at ${Math.round(ranking.composite_risk * 1.8)}k citizens.`,
+          `Resource availability index matches high-alert drawdown states.`,
+          `Communication channel status is active and verified by Central Command.`
+        ];
       }
     }
     return {
@@ -844,6 +934,7 @@ export default function ReportsPage() {
                   <option value="agriculture_impact">Agriculture Impact Report</option>
                   <option value="disaster_preparedness">Disaster Preparedness Report</option>
                   <option value="executive_summary">Executive Summary Report</option>
+                  <option value="mission_brief">Operational Mission Brief</option>
                 </select>
               </div>
 
@@ -1088,10 +1179,16 @@ export default function ReportsPage() {
                   <CardDescription className="text-muted-foreground text-xs">Government-grade climate security advisory ready for export.</CardDescription>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Button onClick={handlePrint} size="sm" variant="outline" className="border-slate-800 hover:bg-surface-elevated text-secondary-foreground text-xs gap-1.5 font-bold">
-                    <Printer className="h-3.5 w-3.5" /> Print / Save PDF
+                  <Button onClick={() => setPresentationActive(true)} size="sm" className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs gap-1.5 rounded-full shadow-[0_0_15px_rgba(147,51,234,0.3)]">
+                    <Play className="h-3.5 w-3.5" /> Presentation Mode
                   </Button>
-                  <Button onClick={handleExportCSV} size="sm" variant="outline" className="border-slate-800 hover:bg-surface-elevated text-secondary-foreground text-xs gap-1.5 font-bold">
+                  <Button onClick={handleDownloadPDF} size="sm" className="bg-brand-blue hover:bg-brand-blue/80 text-slate-950 font-bold text-xs gap-1.5 rounded-full">
+                    <Download className="h-3.5 w-3.5" /> Download PDF
+                  </Button>
+                  <Button onClick={handlePrint} size="sm" variant="outline" className="border-slate-800 hover:bg-surface-elevated text-secondary-foreground text-xs gap-1.5 font-bold rounded-full">
+                    <Printer className="h-3.5 w-3.5" /> Print Preview
+                  </Button>
+                  <Button onClick={handleExportCSV} size="sm" variant="outline" className="border-slate-800 hover:bg-surface-elevated text-secondary-foreground text-xs gap-1.5 font-bold rounded-full">
                     <FileSpreadsheet className="h-3.5 w-3.5" /> Export CSV
                   </Button>
                 </div>
@@ -1760,6 +1857,342 @@ export default function ReportsPage() {
         </div>
 
       </div>
+
+      {/* ─── PRESENTATION MODE OVERLAY ─────────────────────────────────── */}
+      {presentationActive && generatedReport && (
+        <div className="fixed inset-0 z-50 bg-[#091220]/95 backdrop-blur-xl flex flex-col p-6 font-sans text-white select-text">
+          {/* Header */}
+          <div className="flex justify-between items-center border-b border-white/[0.08] pb-4 mb-6 animate-fade-in">
+            <div className="flex items-center gap-3">
+              <Badge className="bg-brand-blue/20 text-brand-titanium border border-brand-blue/30 text-[10px] tracking-wider uppercase">
+                Presentation Deck Mode
+              </Badge>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-white">
+                {generatedReport.name} — Slide {currentSlide + 1} of 7
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setPresentationActive(false)}
+                className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-white/[0.08] rounded-full hover:scale-105 transition-all"
+                title="Exit Presentation"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Slide Content Frame */}
+          <div className="flex-1 flex justify-center items-center overflow-y-auto max-h-[72vh] px-4">
+            <div className="w-full max-w-5xl h-full flex flex-col justify-between">
+              
+              {/* Slide 0: Executive Command Summary */}
+              {currentSlide === 0 && (
+                <div className="space-y-6 animate-fade-in font-serif leading-relaxed text-slate-200">
+                  <div className="text-center py-4 border-b border-slate-800">
+                    <h3 className="text-xl font-bold uppercase tracking-wider text-white font-orbitron">Government of India — Command Operations</h3>
+                    <p className="text-[10px] text-brand-titanium tracking-widest font-sans uppercase font-bold mt-1">National Security Advisory & Mitigation Memorandum</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-sans p-4 border border-slate-800 bg-background/20 rounded-xl my-4">
+                    <div>
+                      <span className="font-bold text-[9px] uppercase block text-muted-foreground">REF ID:</span>
+                      <span className="font-mono text-white text-[11px] font-bold">{generatedReport.refNo}</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[9px] uppercase block text-muted-foreground">DATE:</span>
+                      <span className="text-white font-bold">{generatedReport.dateCompiled}</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[9px] uppercase block text-muted-foreground">LOCATION:</span>
+                      <span className="text-white font-bold">{generatedReport.districtName} ({generatedReport.stateName})</span>
+                    </div>
+                    <div>
+                      <span className="font-bold text-[9px] uppercase block text-muted-foreground">SCENARIO:</span>
+                      <span className="text-brand-titanium font-bold">{generatedReport.year} AD Climate Model</span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><FileText className="w-4 h-4 text-brand-blue" /> I. Executive Summary</h4>
+                    <p className="text-base text-justify leading-relaxed indent-8">{reportNarrative?.summary}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide 1: Ground Telemetry Matrix */}
+              {currentSlide === 1 && (
+                <div className="space-y-5 animate-fade-in">
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><Activity className="w-4 h-4 text-brand-blue" /> II. Telemetry & Current Conditions</h4>
+                    <p className="text-xs text-slate-350 leading-relaxed font-serif text-justify mb-4">{reportNarrative?.condition}</p>
+                  </div>
+                  <div className="grid gap-3.5 grid-cols-2 md:grid-cols-3">
+                    {[
+                      { name: "Ambient Temperature", val: `${ranking ? Math.round(ranking.heatwave_risk * 0.2 + 25) : 31}°C`, desc: "IMD Daily Telemetry", color: "text-rose-450" },
+                      { name: "Precipitation Inflow", val: `${ranking ? Math.round(ranking.flood_risk * 2.5) : 100} mm`, desc: "IMD stations gridded", color: "text-cyan-400" },
+                      { name: "Vegetation greenness", val: `${ranking ? (0.8 - (ranking.drought_risk * 0.005)).toFixed(2) : 0.42} NDVI`, desc: "ISRO Sentinel-2 NDVI", color: "text-emerald-400" },
+                      { name: "Reservoir Active Storage", val: `${ranking ? Math.round(100 - ranking.water_stress_risk) : 48}%`, desc: "India-WRIS telemetry", color: "text-cyan-400" },
+                      { name: "Air Quality Index", val: `${ranking ? Math.round(ranking.composite_risk * 1.5 + 40) : 75}`, desc: "CPCB monitoring", color: "text-purple-400" },
+                      { name: "Soil Infiltration Index", val: `${ranking ? Math.round(100 - ranking.drought_risk) : 45}%`, desc: "NRSC Scatterometer", color: "text-orange-400" }
+                    ].map((tele) => (
+                      <div key={tele.name} className="p-4 rounded-xl border border-white/[0.06] bg-slate-950/40 shadow-md">
+                        <p className="text-[9px] uppercase font-bold text-slate-400">{tele.name}</p>
+                        <p className={`text-xl font-bold font-mono mt-1 ${tele.color}`}>{tele.val}</p>
+                        <p className="text-[9px] text-muted-foreground mt-0.5">{tele.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Slide 2: Multi-Hazard Risks */}
+              {currentSlide === 2 && (
+                <div className="grid gap-6 md:grid-cols-2 animate-fade-in items-center">
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><Layers className="w-4 h-4 text-brand-blue" /> III. Multi-Hazard Risks</h4>
+                    <p className="text-xs text-slate-350 leading-relaxed font-serif text-justify">Calculated multi-disaster vulnerability spectrum for the region based on gridded sensor indexes. Run scenario simulators to evaluate mitigation plans.</p>
+                    <div className="overflow-x-auto border border-white/[0.08] rounded-xl bg-background/50 text-[11px] font-sans">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-brand-blue/15 border-b border-white/[0.08] text-[8px] font-bold uppercase tracking-wider text-emerald-300">
+                            <th className="p-2">Hazard</th>
+                            <th className="p-2">Score</th>
+                            <th className="p-2">Category</th>
+                            <th className="p-2">Trend</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[
+                            { h: "Flood Vulnerability", s: `${ranking ? ranking.flood_risk : 45}/100`, cat: ranking && ranking.flood_risk > 60 ? "High" : "Moderate", t: ranking ? ranking.trend : "stable" },
+                            { h: "Drought Vulnerability", s: `${ranking ? ranking.drought_risk : 50}/100`, cat: ranking && ranking.drought_risk > 60 ? "High" : "Moderate", t: ranking ? ranking.trend : "stable" },
+                            { h: "Heatwave Vulnerability", s: `${ranking ? ranking.heatwave_risk : 35}/100`, cat: ranking && ranking.heatwave_risk > 60 ? "High" : "Moderate", t: ranking ? ranking.trend : "stable" },
+                            { h: "Water Stress Vulnerability", s: `${ranking ? ranking.water_stress_risk : 40}/100`, cat: ranking && ranking.water_stress_risk > 60 ? "High" : "Moderate", t: ranking ? ranking.trend : "stable" },
+                            { h: "Composite Risk Score", s: `${ranking ? ranking.composite_risk : 48}/100`, cat: ranking && ranking.composite_risk > 60 ? "Critical" : "Moderate", t: ranking ? ranking.trend : "stable" }
+                          ].map((row, i) => (
+                            <tr key={i} className="border-b border-white/[0.04] last:border-0">
+                              <td className="p-2 font-semibold">{row.h}</td>
+                              <td className="p-2 font-mono text-cyan-400">{row.s}</td>
+                              <td className="p-2">{row.cat}</td>
+                              <td className="p-2 text-slate-400 font-mono">{row.t}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div className="p-4 border border-slate-800 bg-background/30 rounded-2xl flex flex-col justify-center items-center">
+                    <p className="text-[10px] uppercase font-bold text-slate-400 text-center mb-3">Multi-Hazard Radar Heatmap Hotspots</p>
+                    <div className="w-full max-w-[340px]">
+                      <svg viewBox="0 0 200 150" className="w-full h-44 bg-background/60 border border-slate-900 rounded-lg overflow-hidden">
+                        <defs>
+                          <radialGradient id="heat-glow-rep-pres" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stopColor={ranking && ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.45" />
+                            <stop offset="70%" stopColor={ranking && ranking.composite_risk > 60 ? "#ef4444" : "#eab308"} stopOpacity="0.1" />
+                            <stop offset="100%" stopColor="#091220" stopOpacity="0" />
+                          </radialGradient>
+                        </defs>
+                        <circle cx="110" cy="65" r="45" fill="url(#heat-glow-rep-pres)" />
+                        <circle cx="75" cy="80" r="28" fill="url(#heat-glow-rep-pres)" opacity="0.7" />
+                        <circle cx="110" cy="65" r="12" fill="rgba(239,68,68,0.1)" stroke="#ef4444" strokeWidth="1.5" />
+                        <circle cx="75" cy="80" r="10" fill="rgba(77,168,218,0.1)" stroke="#4DA8DA" strokeWidth="1.5" />
+                        <circle cx="140" cy="110" r="9" fill="rgba(34,197,94,0.1)" stroke="#22C55E" strokeWidth="1.5" />
+                        <text x="10" y="20" fill="#f87171" fontSize="8" fontWeight="bold" fontFamily="sans-serif">HEAT RADAR</text>
+                        <text x="125" y="142" fill="#C0C8D4" fontSize="8" fontFamily="monospace">{ranking ? ranking.composite_risk : 48}% composite</text>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide 3: Regional Maps */}
+              {currentSlide === 3 && (
+                <div className="space-y-4 animate-fade-in">
+                  <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><Globe2 className="w-4 h-4 text-brand-blue" /> IV. Spatial Intelligence Maps</h4>
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="p-4 border border-slate-800 bg-background/20 rounded-2xl flex flex-col justify-center items-center">
+                      <p className="text-[10px] uppercase font-bold text-slate-400 text-center mb-2.5">District Boundary Talukas Map</p>
+                      <div className="w-full max-w-[340px]">
+                        <svg viewBox="0 0 200 150" className="w-full h-44 bg-background/60 border border-slate-900 rounded-lg">
+                          <polygon points="45,35 100,28 100,70 45,70" fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.4)" strokeWidth="1" />
+                          <polygon points="100,28 125,25 165,55 100,70" fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.4)" strokeWidth="1" />
+                          <polygon points="100,70 145,115 75,125 100,70" fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.4)" strokeWidth="1" />
+                          <polygon points="45,35 100,70 75,125 35,85" fill="rgba(6,182,212,0.06)" stroke="rgba(6,182,212,0.4)" strokeWidth="1" />
+                          <circle cx="100" cy="70" r="4" fill="#4DA8DA" />
+                          <text x="105" y="73" fill="#4DA8DA" fontSize="8" fontWeight="bold" fontFamily="sans-serif">{generatedReport.districtName}</text>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="p-4 border border-slate-800 bg-background/20 rounded-2xl flex flex-col justify-center items-center">
+                      <p className="text-[10px] uppercase font-bold text-slate-400 text-center mb-2.5">National Climate Threat Map</p>
+                      <div className="w-full max-w-[340px]">
+                        <svg viewBox="0 0 200 150" className="w-full h-44 bg-background/60 border border-slate-900 rounded-lg">
+                          <polygon points="40,40 70,30 85,55 65,80 40,65" fill="#f43f5e" fillOpacity="0.25" stroke="rgba(244,63,94,0.5)" strokeWidth="1" />
+                          <polygon points="25,75 50,80 60,95 35,100 20,90" fill="#4DA8DA" fillOpacity="0.25" stroke="rgba(77,168,218,0.5)" strokeWidth="1" />
+                          <polygon points="55,90 95,85 100,115 65,130 50,115" fill="#fb923c" fillOpacity="0.25" stroke="rgba(251,146,60,0.5)" strokeWidth="1" />
+                          <polygon points="58,130 78,125 85,160 65,170" fill="#22C55E" fillOpacity="0.25" stroke="rgba(34,197,94,0.5)" strokeWidth="1" />
+                          <polygon points="85,45 125,40 135,65 100,75" fill="#fb923c" fillOpacity="0.25" stroke="rgba(251,146,60,0.5)" strokeWidth="1" />
+                          <circle cx="62" cy="55" r="4.5" fill="#4DA8DA" />
+                          <circle cx="62" cy="55" r="8" fill="none" stroke="#4DA8DA" strokeWidth="1" className="animate-ping" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide 4: Recharts Analytics Trends */}
+              {currentSlide === 4 && (
+                <div className="space-y-4 animate-fade-in">
+                  <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><TrendingUp className="w-4 h-4 text-brand-blue" /> V. Analytical Trends Charts</h4>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="bg-background/50 p-3 rounded-lg border border-slate-800">
+                      <p className="text-[10px] font-bold text-slate-400 text-center mb-2">Rainfall Trends (mm)</p>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <AreaChart data={reportChartData}>
+                          <CartesianGrid stroke="rgba(148,163,184,0.06)" vertical={false} />
+                          <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <YAxis stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <Area type="monotone" dataKey="rainfall" stroke="#38bdf8" fill="rgba(56,189,248,0.15)" strokeWidth={1} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="bg-background/50 p-3 rounded-lg border border-slate-800">
+                      <p className="text-[10px] font-bold text-slate-400 text-center mb-2">Temperature Curve & Heat Index</p>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <LineChart data={reportChartData}>
+                          <CartesianGrid stroke="rgba(148,163,184,0.06)" vertical={false} />
+                          <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <YAxis stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <Line type="monotone" dataKey="temperature" stroke="#f87171" strokeWidth={1} dot={false} />
+                          <Line type="monotone" dataKey="heatwaveRisk" stroke="#4DA8DA" strokeWidth={1} strokeDasharray="3 3" dot={false} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="bg-background/50 p-3 rounded-lg border border-slate-800">
+                      <p className="text-[10px] font-bold text-slate-400 text-center mb-2">AQI Score Trends</p>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <BarChart data={reportChartData}>
+                          <CartesianGrid stroke="rgba(148,163,184,0.06)" vertical={false} />
+                          <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <YAxis stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <Bar dataKey="aqi" fill="#a78bfa" radius={[2, 2, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="bg-background/50 p-3 rounded-lg border border-slate-800">
+                      <p className="text-[10px] font-bold text-slate-400 text-center mb-2">Drought & Flood Risk Comparison</p>
+                      <ResponsiveContainer width="100%" height={120}>
+                        <AreaChart data={reportChartData}>
+                          <CartesianGrid stroke="rgba(148,163,184,0.06)" vertical={false} />
+                          <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <YAxis stroke="#64748b" tick={{ fontSize: 8 }} tickLine={false} />
+                          <Area type="monotone" dataKey="droughtRisk" stroke="#fb923c" fill="rgba(251,146,60,0.08)" strokeWidth={1} />
+                          <Area type="monotone" dataKey="floodRisk" stroke="#34d399" fill="rgba(52,211,153,0.08)" strokeWidth={1} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide 5: Socio-Economic Impact Indexes */}
+              {currentSlide === 5 && (
+                <div className="space-y-6 animate-fade-in text-center">
+                  <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><Layers className="w-4 h-4 text-brand-blue" /> VI. Socio-Economic Exposure & Impact Index</h4>
+                  <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4 font-sans max-w-4xl mx-auto my-6">
+                    <div className="p-5 border border-slate-800 bg-slate-950/50 rounded-2xl flex flex-col justify-between items-center shadow-lg">
+                      <Users className="w-8 h-8 text-brand-blue mb-2" />
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Population Exposed</span>
+                      <span className="text-lg font-bold text-white font-mono mt-1">{ranking ? Math.round(ranking.composite_risk * 1.8) : 80}k citizens</span>
+                    </div>
+                    <div className="p-5 border border-slate-800 bg-slate-950/50 rounded-2xl flex flex-col justify-between items-center shadow-lg">
+                      <Building className="w-8 h-8 text-rose-400 mb-2" />
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Infrastructure Risk</span>
+                      <span className="text-lg font-bold text-white font-mono mt-1">{ranking ? ranking.flood_risk : 45}% Vulnerable</span>
+                    </div>
+                    <div className="p-5 border border-slate-800 bg-slate-950/50 rounded-2xl flex flex-col justify-between items-center shadow-lg">
+                      <Leaf className="w-8 h-8 text-emerald-450 mb-2" />
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Agricultural Stress</span>
+                      <span className="text-lg font-bold text-white font-mono mt-1">{ranking ? ranking.drought_risk : 50}% Stress</span>
+                    </div>
+                    <div className="p-5 border border-slate-800 bg-slate-950/50 rounded-2xl flex flex-col justify-between items-center shadow-lg">
+                      <Scale className="w-8 h-8 text-brand-blue mb-2" />
+                      <span className="text-[10px] text-slate-400 font-bold uppercase">Economic Loss Multiplier</span>
+                      <span className="text-lg font-bold text-white font-mono mt-1">x{ranking ? ((ranking.composite_risk / 100) * 2.5 + 1).toFixed(1) : 2.2} Impact</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide 6: AI Brief & Recommended Action Plan */}
+              {currentSlide === 6 && (
+                <div className="space-y-4 animate-fade-in font-serif text-slate-200 leading-relaxed text-sm">
+                  <h4 className="text-xs font-bold font-sans uppercase text-brand-titanium border-b border-white/5 pb-1 flex items-center gap-1.5"><ShieldCheck className="w-4 h-4 text-brand-blue" /> VII. Command Decision Advisories</h4>
+                  <div className="border-l-2 border-emerald-400 pl-4 bg-emerald-950/15 py-3 rounded-r my-3">
+                    <p className="italic text-emerald-200 text-justify text-[13px]">{reportNarrative?.aiBrief}</p>
+                  </div>
+                  <div className="grid gap-3.5 md:grid-cols-3 font-sans text-xs">
+                    <div className="p-3 border border-slate-800 bg-background/25 rounded-xl">
+                      <p className="font-bold text-rose-400 uppercase mb-1 flex items-center gap-1">🚨 Immediate Protocols</p>
+                      <ul className="list-disc pl-4 space-y-1 text-slate-300 font-serif">
+                        {reportNarrative?.immediateActions.map((act, idx) => <li key={idx}>{act}</li>)}
+                      </ul>
+                    </div>
+                    <div className="p-3 border border-slate-800 bg-background/25 rounded-xl">
+                      <p className="font-bold text-brand-blue uppercase mb-1 flex items-center gap-1">📋 Short-Term Plans</p>
+                      <ul className="list-disc pl-4 space-y-1 text-slate-300 font-serif">
+                        {reportNarrative?.shortTermAdvisories.map((act, idx) => <li key={idx}>{act}</li>)}
+                      </ul>
+                    </div>
+                    <div className="p-3 border border-slate-800 bg-background/25 rounded-xl">
+                      <p className="font-bold text-brand-blue uppercase mb-1 flex items-center gap-1">🌱 Long-Term Adaptation</p>
+                      <ul className="list-disc pl-4 space-y-1 text-slate-300 font-serif">
+                        {reportNarrative?.longTermAdaptations.map((act, idx) => <li key={idx}>{act}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Slide Controls Footer inside Slide Frame */}
+              <div className="border-t border-white/[0.08] pt-4 mt-6 flex justify-between items-center text-xs font-sans text-muted-foreground no-print">
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" />
+                  BCT Operations Center presentation deck
+                </span>
+                <div className="flex gap-4">
+                  <button 
+                    disabled={currentSlide === 0} 
+                    onClick={() => setCurrentSlide((c) => Math.max(c - 1, 0))}
+                    className="flex items-center gap-1 hover:text-white disabled:opacity-30 transition-opacity"
+                  >
+                    <ChevronLeft className="w-4 h-4" /> Previous
+                  </button>
+                  <button 
+                    disabled={currentSlide === 6} 
+                    onClick={() => setCurrentSlide((c) => Math.min(c + 1, 6))}
+                    className="flex items-center gap-1 hover:text-white disabled:opacity-30 transition-opacity"
+                  >
+                    Next <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          {/* Navigation Dots Indicator */}
+          <div className="flex justify-center gap-2 mt-4 pb-2">
+            {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentSlide(i)}
+                className={`w-2 h-2 rounded-full transition-all ${currentSlide === i ? "bg-brand-blue w-6" : "bg-slate-700 hover:bg-slate-500"}`}
+                title={`Go to slide ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   );

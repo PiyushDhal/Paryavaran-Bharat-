@@ -109,17 +109,24 @@ export const api = {
     prompt: string,
     context?: {
       selected_district_id?: number;
+      selected_state_name?: string | null;
       active_layer?: string;
       active_year?: number;
       timeline_step?: string;
       map_mode?: string;
       active_simulation?: any;
+      analytics_filters?: any;
+      chat_history?: any[];
     }
   ) =>
     apiFetch<CopilotResponse>("/copilot/chat", {
       method: "POST",
       body: JSON.stringify({ prompt, ...context })
     }),
+
+  copilotHistory: () =>
+    apiFetch<any[]>("/copilot/history"),
+
   adminOverview: () =>
     apiFetch<{
       users: number;

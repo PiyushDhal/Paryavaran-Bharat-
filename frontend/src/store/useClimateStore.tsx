@@ -20,6 +20,18 @@ type ClimateContextType = {
   setActiveSimulation: (result: SimulationResult | null) => void;
   selectedStateName: string | null;
   setSelectedStateName: (name: string | null) => void;
+  analyticsFilters: {
+    stateId: number | "";
+    districtId: number | "";
+    climateZone: string;
+    riskCategory: string;
+  };
+  setAnalyticsFilters: (filters: {
+    stateId: number | "";
+    districtId: number | "";
+    climateZone: string;
+    riskCategory: string;
+  }) => void;
 };
 
 const ClimateContext = createContext<ClimateContextType | undefined>(undefined);
@@ -33,6 +45,17 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [mapMode, setMapMode] = useState<string>("streets");
   const [activeSimulation, setActiveSimulation] = useState<SimulationResult | null>(null);
   const [selectedStateName, setSelectedStateName] = useState<string | null>(null);
+  const [analyticsFilters, setAnalyticsFilters] = useState<{
+    stateId: number | "";
+    districtId: number | "";
+    climateZone: string;
+    riskCategory: string;
+  }>({
+    stateId: "",
+    districtId: "",
+    climateZone: "",
+    riskCategory: "",
+  });
 
   useEffect(() => {
     if (timelineStep === "2030") {
@@ -64,6 +87,8 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
         setActiveSimulation,
         selectedStateName,
         setSelectedStateName,
+        analyticsFilters,
+        setAnalyticsFilters,
       }}
     >
       {children}

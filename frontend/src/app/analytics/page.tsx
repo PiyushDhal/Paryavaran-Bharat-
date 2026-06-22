@@ -100,6 +100,18 @@ export default function AnalyticsPage() {
     }
   }, [climateContext?.activeYear]);
 
+  // Sync local filters with the global store for AI context awareness
+  useEffect(() => {
+    if (climateContext?.setAnalyticsFilters) {
+      climateContext.setAnalyticsFilters({
+        stateId,
+        districtId: selectedDistId,
+        climateZone,
+        riskCategory
+      });
+    }
+  }, [stateId, selectedDistId, climateZone, riskCategory, climateContext?.setAnalyticsFilters]);
+
   // ─── Workspace Tabs ────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<
     "overview" | "trends" | "risk" | "sustainability" | "water" | "air" | "agriculture" | "ai" | "compare"

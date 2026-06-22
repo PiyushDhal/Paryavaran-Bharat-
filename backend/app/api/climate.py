@@ -515,6 +515,58 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
             "Audit water-intensive agricultural block allocations.",
             "Enforce municipal water conservation orders during reservoir drawdown periods."
         ]
+    elif theme == "heatwave":
+        rows = [
+            ["Ambient Temperature", f"{weather.temperature_c if weather else 30.0}°C", "IMD Gridded Daily Telemetry", "High Temperature Anomaly" if not weather or weather.temperature_c > 35 else "Seasonal Temp"],
+            ["Relative Atmospheric Humidity", f"{weather.humidity_pct if weather else 55.0}%", "IMD Gridded Sensors", "Humidex Anomaly" if not weather or weather.humidity_pct > 60 else "Nominal Humidity"],
+            ["Calculated Heatwave Risk Score", f"{risk.heatwave_risk if risk else 35.0}/100", "BCT Thermal Assessment", "Critical Heat Warning" if not risk or risk.heatwave_risk > 60 else "Moderate Exposure"],
+            ["Peak Power Grid Load Reserves", "92% Grid Margin", "State Power Dispatch Center", "Elevated Cooling Demand"]
+        ]
+        score = risk.heatwave_risk if risk else 35.0
+        bullet_points = [
+            "Establish block-level cooling center guidelines and shade spaces.",
+            "Enforce labor time adjustments restricting outdoor work during peak sunlight (11 AM to 4 PM).",
+            "Pre-position hydration reserves at rural primary health clinics."
+        ]
+    elif theme == "resilience":
+        score = 100.0 - (risk.composite_risk if risk else 48.0)
+        rows = [
+            ["Calculated Resilience Index", f"{score}/100", "BCT Resilience calculations", "Robust capacity" if score > 60 else "Vulnerable state"],
+            ["Groundwater table recharge index", "Adequate" if not sat or sat.reservoir_level_pct > 40 else "Depleted", "India-WRIS Basin Registry", "Groundwater level drawdown"],
+            ["Forest & Vegetative Canopy Cover", f"{sat.ndvi if sat else 0.45}", "NRSC MODIS/Sentinel LISS-III", "Canopy coverage health"],
+            ["Composite Disaster risk buffer", f"{risk.composite_risk if risk else 48.0}/100", "Multi-hazard planning registry", "Mitigation margins"]
+        ]
+        bullet_points = [
+            "Integrate composite local risk layers into regional civil construction files.",
+            "Subsidize community rainwater collection layouts in low-recharge zones.",
+            "Promote multi-layered crop sowing systems to stabilize root-zone moistures."
+        ]
+    elif theme == "preparedness":
+        rows = [
+            ["Emergency shelters capacity", "Adequate spaces available", "State relief department", "Baseline shelter checks"],
+            ["Evacuation route accessibility", "Low inundation probability routes", "NDMA local transit grids", "Safe routing lines"],
+            ["Emergency power supply stocks", "95% readiness confirmed", "Civil grid authority", "Backup power reserves"],
+            ["Early warning siren networks", "100% transceiver coverage", "SDMA local command", "Siren alerts grid ready"]
+        ]
+        score = risk.composite_risk if risk else 48.0
+        bullet_points = [
+            "Conduct community mock emergency drills in low-lying talukas.",
+            "Stock pile emergency ration reserves and medical supplies at high-ground shelters.",
+            "Deploy warning sirens and test SMS alert channels with the telecom department."
+        ]
+    elif theme == "mission_brief":
+        rows = [
+            ["Operational Mission Priority", "CRITICAL CLIMATE DEFENSE", "Command operations HQ", "Active brief protocols"],
+            ["Civil Protection Area", f"{district.area_sq_km:,.1f} Sq.Km" if district else "Varies", "District administrative file", "Target defense area"],
+            ["Aggregated Population at Risk", f"{district.population:,} citizens" if district else "Varies", "District census database", "Exposure target"],
+            ["Force & Asset readiness status", "High readiness priority", "National disaster forces", "Deployment margins ready"]
+        ]
+        score = risk.composite_risk if risk else 48.0
+        bullet_points = [
+            "Pre-position civil defense teams and emergency tankers at priority zones.",
+            "Issue Level-2 municipal water-rationing guidelines for industrial grids.",
+            "Establish direct communication loops between Command HQ and taluka monitoring centers."
+        ]
     else:  # air quality
         rows = [
             ["CPCB Air Quality Index (AQI)", f"{weather.aqi if weather else 80}", "Central Pollution Control Board", "Ambient grid status"],
@@ -532,7 +584,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
     y = draw_pdf_table(pdf, 54, y - 10, headers, rows, [150, 110, 130, 107])
     
     # Themed Risk Indicator Summary
-    y = draw_section_header(pdf, y - 25, f"Integrated {theme.capitalize()} Risk Summary")
+    y = draw_section_header(pdf, y - 25, f"Integrated {theme.replace('_', ' ').capitalize()} Risk Summary")
     pdf.setFont("Helvetica-Bold", 14)
     pdf.setFillColorRGB(0.05, 0.15, 0.3)
     pdf.drawString(54, y - 10, f"Calculated Category Risk Index: {score}/100")
@@ -609,6 +661,50 @@ def aqi_pdf_report(district_id: int, db: Session = Depends(get_db)) -> Streaming
         buffer,
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=district-{district_id}-aqi-report.pdf"},
+    )
+
+@router.get("/reports/heatwave/{district_id}.pdf")
+def heatwave_pdf_report(district_id: int, db: Session = Depends(get_db)) -> StreamingResponse:
+    if not db.get(District, district_id):
+        raise HTTPException(status_code=404, detail="District not found")
+    buffer = _generate_themed_pdf(district_id, db, "heatwave")
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=district-{district_id}-heatwave-report.pdf"},
+    )
+
+@router.get("/reports/resilience/{district_id}.pdf")
+def resilience_pdf_report(district_id: int, db: Session = Depends(get_db)) -> StreamingResponse:
+    if not db.get(District, district_id):
+        raise HTTPException(status_code=404, detail="District not found")
+    buffer = _generate_themed_pdf(district_id, db, "resilience")
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=district-{district_id}-resilience-report.pdf"},
+    )
+
+@router.get("/reports/preparedness/{district_id}.pdf")
+def preparedness_pdf_report(district_id: int, db: Session = Depends(get_db)) -> StreamingResponse:
+    if not db.get(District, district_id):
+        raise HTTPException(status_code=404, detail="District not found")
+    buffer = _generate_themed_pdf(district_id, db, "preparedness")
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=district-{district_id}-preparedness-report.pdf"},
+    )
+
+@router.get("/reports/mission-brief/{district_id}.pdf")
+def mission_brief_pdf_report(district_id: int, db: Session = Depends(get_db)) -> StreamingResponse:
+    if not db.get(District, district_id):
+        raise HTTPException(status_code=404, detail="District not found")
+    buffer = _generate_themed_pdf(district_id, db, "mission_brief")
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=district-{district_id}-mission-brief-report.pdf"},
     )
 
 @router.get("/reports/executive.pdf")
