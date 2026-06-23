@@ -31,7 +31,7 @@ STATE_CODES = {
     "Rajasthan": "RJ", "Sikkim": "SK", "Tamil Nadu": "TN", "Telangana": "TG",
     "Tripura": "TR", "Uttar Pradesh": "UP", "Uttarakhand": "UK", "West Bengal": "WB",
     "Andaman and Nicobar Islands": "AN", "Chandigarh (UT)": "CH",
-    "Dadra and Nagar Haveli (UT)": "DN", "Daman and Diu (UT)": "DD", "Delhi (NCT)": "DL",
+    "Dadra and Nagar Haveli (UT)": "DN", "Daman and Diu (UT)": "DD", "Delhi (NCR)": "DL",
     "Jammu and Kashmir": "JK", "Ladakh": "LA", "Lakshadweep (UT)": "LD", "Puducherry (UT)": "PY"
 }
 
@@ -82,7 +82,7 @@ STATE_CAPITALS = {
     "Chandigarh (UT)": {"capital": "Chandigarh", "lat": 30.7333, "lon": 76.7794},
     "Dadra and Nagar Haveli (UT)": {"capital": "Daman", "lat": 20.3974, "lon": 72.8328},
     "Daman and Diu (UT)": {"capital": "Daman", "lat": 20.3974, "lon": 72.8328},
-    "Delhi (NCT)": {"capital": "New Delhi", "lat": 28.6139, "lon": 77.2090},
+    "Delhi (NCR)": {"capital": "New Delhi", "lat": 28.6139, "lon": 77.2090},
     "Jammu and Kashmir": {"capital": "Srinagar", "lat": 34.0837, "lon": 74.7973},
     "Ladakh": {"capital": "Leh", "lat": 34.1526, "lon": 77.5771},
     "Lakshadweep (UT)": {"capital": "Kavaratti", "lat": 10.5667, "lon": 72.6417},
