@@ -20,6 +20,16 @@ type ClimateContextType = {
   setActiveSimulation: (result: SimulationResult | null) => void;
   selectedStateName: string | null;
   setSelectedStateName: (name: string | null) => void;
+  selectedStateId: number | "";
+  setSelectedStateId: (id: number | "") => void;
+  selectedDataset: string;
+  setSelectedDataset: (dataset: string) => void;
+  activeRisk: string;
+  setActiveRisk: (risk: string) => void;
+  currentAIConversation: any[];
+  setCurrentAIConversation: (messages: any[]) => void;
+  currentGeneratedReport: any | null;
+  setCurrentGeneratedReport: (report: any | null) => void;
   analyticsFilters: {
     stateId: number | "";
     districtId: number | "";
@@ -45,6 +55,13 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [mapMode, setMapMode] = useState<string>("streets");
   const [activeSimulation, setActiveSimulation] = useState<SimulationResult | null>(null);
   const [selectedStateName, setSelectedStateName] = useState<string | null>(null);
+  
+  const [selectedStateId, setSelectedStateId] = useState<number | "">("");
+  const [selectedDataset, setSelectedDataset] = useState<string>("imd");
+  const [activeRisk, setActiveRisk] = useState<string>("composite");
+  const [currentAIConversation, setCurrentAIConversation] = useState<any[]>([]);
+  const [currentGeneratedReport, setCurrentGeneratedReport] = useState<any | null>(null);
+
   const [analyticsFilters, setAnalyticsFilters] = useState<{
     stateId: number | "";
     districtId: number | "";
@@ -87,6 +104,16 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
         setActiveSimulation,
         selectedStateName,
         setSelectedStateName,
+        selectedStateId,
+        setSelectedStateId,
+        selectedDataset,
+        setSelectedDataset,
+        activeRisk,
+        setActiveRisk,
+        currentAIConversation,
+        setCurrentAIConversation,
+        currentGeneratedReport,
+        setCurrentGeneratedReport,
         analyticsFilters,
         setAnalyticsFilters,
       }}

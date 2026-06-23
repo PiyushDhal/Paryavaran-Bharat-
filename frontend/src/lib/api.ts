@@ -117,6 +117,10 @@ export const api = {
       active_simulation?: any;
       analytics_filters?: any;
       chat_history?: any[];
+      selected_state_id?: number | "";
+      selected_dataset?: string;
+      active_risk?: string;
+      current_report?: any;
     }
   ) =>
     apiFetch<CopilotResponse>("/copilot/chat", {

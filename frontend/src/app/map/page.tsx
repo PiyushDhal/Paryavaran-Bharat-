@@ -1,5 +1,6 @@
 import { DigitalTwinMap } from "@/components/climate/DigitalTwinMap";
 import { TimelineSlider } from "@/components/climate/TimelineSlider";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 import { Badge } from "@/components/ui/badge";
 
 export default function MapPage() {
@@ -15,6 +16,9 @@ export default function MapPage() {
       <DigitalTwinMap />
       <div className="mt-2">
         <TimelineSlider />
+      </div>
+      <div className="mt-4 no-print">
+        <WorkflowRecommendations currentPage="map" />
       </div>
     </div>
   );

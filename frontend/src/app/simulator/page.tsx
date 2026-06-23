@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { useClimate } from "@/store/useClimateStore";
 import type { ScenarioPayload, SimulationResult } from "@/lib/types";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type SavedScenario = {
@@ -916,6 +917,8 @@ export default function SimulatorPage() {
           )}
         </div>
       </div>
+
+      <WorkflowRecommendations currentPage="simulator" />
 
       <style jsx>{`
         .simulator-root {

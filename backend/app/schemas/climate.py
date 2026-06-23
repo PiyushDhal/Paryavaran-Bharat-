@@ -118,6 +118,10 @@ class CopilotRequest(BaseModel):
     active_simulation: dict[str, Any] | None = None
     analytics_filters: dict[str, Any] | None = None
     chat_history: list[dict[str, Any]] | None = None
+    selected_state_id: int | str | None = None
+    selected_dataset: str | None = None
+    active_risk: str | None = None
+    current_report: dict[str, Any] | None = None
 
 
 

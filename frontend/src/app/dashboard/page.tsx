@@ -18,6 +18,7 @@ import {
 import { useClimate } from "@/store/useClimateStore";
 
 import { DigitalTwinMap } from "@/components/climate/DigitalTwinMap";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -376,6 +377,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
+          <WorkflowRecommendations currentPage="dashboard" />
         </div>
 
       </div>

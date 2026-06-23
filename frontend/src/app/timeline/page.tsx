@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { api } from "@/lib/api";
 import type { District, ClimateObservation } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 type TimelineEvent = {
   year: number;
@@ -234,6 +235,9 @@ export default function TimelinePage() {
           </CardContent>
         </Card>
       </div>
+
+      <WorkflowRecommendations currentPage="timeline" />
+
     </div>
   );
 }

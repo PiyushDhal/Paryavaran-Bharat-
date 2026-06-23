@@ -45,6 +45,7 @@ import { api, API_BASE_URL, getToken } from "@/lib/api";
 import type { District, Ranking, State, ClimateObservation } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 import {
   Area,
   AreaChart,
@@ -82,7 +83,7 @@ interface PersistentReport {
 
 
 export default function ReportsPage() {
-  const { setSelectedDistrictId, setActiveLayer, activeYear } = useClimate();
+  const { setSelectedDistrictId, setActiveLayer, activeYear, setCurrentGeneratedReport } = useClimate();
 
   const [districts, setDistricts] = useState<District[]>([]);
   const [states, setStates] = useState<State[]>([]);
@@ -416,6 +417,7 @@ export default function ReportsPage() {
       
       saveHistory([newReport, ...history]);
       setGeneratedReport(newReport);
+      setCurrentGeneratedReport(newReport);
       setGenerating(false);
       showToast("Report compiled with Decision Intelligence framework.");
     }, 1200);
@@ -517,6 +519,7 @@ export default function ReportsPage() {
     saveHistory(updated);
     if (generatedReport?.id === id) {
       setGeneratedReport(null);
+      setCurrentGeneratedReport(null);
     }
     showToast("Report deleted from library.");
   };
@@ -550,6 +553,7 @@ export default function ReportsPage() {
     saveHistory(updated);
     if (generatedReport && generatedReport.id === renamingId) {
       setGeneratedReport({ ...generatedReport, name: renameValue });
+      setCurrentGeneratedReport({ ...generatedReport, name: renameValue });
     }
     setRenamingId(null);
     showToast("Report title updated.");
@@ -585,6 +589,7 @@ export default function ReportsPage() {
     if (report.climateParameter) {
       setClimateParameter(report.climateParameter);
     }
+    setCurrentGeneratedReport(report);
     showToast(`Loaded report: ${report.name}`);  };
 
   // ─── Filtered History ──────────────────────────────────────────────
@@ -1170,6 +1175,7 @@ export default function ReportsPage() {
 
           {/* GENERATED MEMORANDUM DOCUMENT PREVIEW */}
           {generatedReport && !generating && (
+            <>
             <Card className="glass-card overflow-hidden animate-fade-in border-white/[0.08] shadow-[0_0_40px_rgba(6,182,212,0.05)]">
               
               {/* Document Actions bar */}
@@ -1852,6 +1858,10 @@ export default function ReportsPage() {
 
               </CardContent>
             </Card>
+            <div className="no-print">
+              <WorkflowRecommendations currentPage="reports" />
+            </div>
+            </>
           )}
 
         </div>

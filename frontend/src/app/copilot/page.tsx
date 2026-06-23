@@ -39,6 +39,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { api, API_BASE_URL } from "@/lib/api";
 import { useClimate } from "@/store/useClimateStore";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 import type { CopilotResponse } from "@/lib/types";
  
 interface ChatMessage {
@@ -84,7 +85,11 @@ function CopilotPageContent() {
     selectedStateName,
     analyticsFilters,
     setActiveLayer, 
-    setSelectedDistrictId 
+    setSelectedDistrictId,
+    selectedStateId,
+    selectedDataset,
+    activeRisk,
+    currentGeneratedReport
   } = useClimate();
   
   const [prompt, setPrompt] = useState("");
@@ -270,7 +275,11 @@ function CopilotPageContent() {
         map_mode: mapMode,
         active_simulation: activeSimulation,
         analytics_filters: analyticsFilters,
-        chat_history: chatHistory
+        chat_history: chatHistory,
+        selected_state_id: selectedStateId,
+        selected_dataset: selectedDataset,
+        active_risk: activeRisk,
+        current_report: currentGeneratedReport
       });
  
       const botMsg: ChatMessage = {
@@ -947,6 +956,9 @@ function CopilotPageContent() {
             </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="no-print">
+        <WorkflowRecommendations currentPage="copilot" />
       </div>
     </div>
   );

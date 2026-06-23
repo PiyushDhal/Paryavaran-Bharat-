@@ -45,6 +45,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { api } from "@/lib/api";
 import { useClimate } from "@/store/useClimateStore";
 import type { District, State, Ranking } from "@/lib/types";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 // Skeleton Loader Component
 function Skeleton({ className }: { className?: string }) {
@@ -840,6 +841,8 @@ export default function ClimateIntelligenceCenter() {
           </div>
         </CardContent>
       </Card>
+      
+      <WorkflowRecommendations currentPage="analytics" />
 
     </div>
   );

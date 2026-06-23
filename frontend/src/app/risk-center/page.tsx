@@ -13,6 +13,7 @@ import { API_BASE_URL, api } from "@/lib/api";
 import type { Ranking, RiskScore } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 export default function RiskCenterPage() {
   const { activeYear } = useClimate();
@@ -172,6 +173,9 @@ export default function RiskCenterPage() {
           </table>
         </CardContent>
       </Card>
+      
+      <WorkflowRecommendations currentPage="risk-center" />
+
     </div>
   );
 }
