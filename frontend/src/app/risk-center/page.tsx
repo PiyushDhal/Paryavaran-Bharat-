@@ -22,7 +22,7 @@ export default function RiskCenterPage() {
   const [rankings, setRankings] = useState<Ranking[]>([]);
 
   useEffect(() => {
-    api.rankings(10, activeYear).then(setRankings).catch(() => undefined);
+    api.rankings(100, activeYear).then(setRankings).catch(() => undefined);
   }, [activeYear]);
 
   useEffect(() => {
