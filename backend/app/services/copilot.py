@@ -41,8 +41,16 @@ class ClimateCopilot:
         text = prompt.lower()
         
         # Load database lists for resolution
-        db_states = db.query(State).all()
-        db_districts = db.query(District).all()
+        db_states = []
+        db_districts = []
+        db_errors = []
+        
+        try:
+            db_states = db.query(State).all()
+            db_districts = db.query(District).all()
+        except Exception as e:
+            logger.error(f"[DATABASE ERROR] Failed to load states/districts: {e}")
+            db_errors.append("States/Districts registry load")
 
         # Resolve target locations using current query, UI state, and history
         # Direct query resolution
@@ -60,18 +68,22 @@ class ClimateCopilot:
         # UI selection resolution
         ui_district = None
         ui_state = None
-        if payload.selected_district_id:
-            ui_district = db.query(District).filter(District.id == payload.selected_district_id).first()
-            if ui_district:
-                ui_state = ui_district.state
-        if not ui_state and payload.selected_state_name:
-            ui_state = next((s for s in db_states if s.name.lower() == payload.selected_state_name.lower()), None)
+        try:
+            if payload.selected_district_id:
+                ui_district = db.query(District).filter(District.id == payload.selected_district_id).first()
+                if ui_district:
+                    ui_state = ui_district.state
+            if not ui_state and payload.selected_state_name:
+                ui_state = next((s for s in db_states if s.name.lower() == payload.selected_state_name.lower()), None)
+        except Exception as e:
+            logger.error(f"[DATABASE ERROR] Failed to resolve UI selections: {e}")
+            db_errors.append("UI Selected Location resolution")
 
         # Chat history resolution
         history_districts = []
         history_states = []
         if payload.chat_history:
-            for msg in reversed(payload.chat_history):
+            for msg in payload.chat_history:
                 msg_text = (msg.get("text", "") + " " + msg.get("prompt", "") + " " + str(msg.get("response", ""))).lower()
                 for d in db_districts:
                     if d.name.lower() in msg_text:
@@ -180,7 +192,7 @@ class ClimateCopilot:
 
         # Check for Gemini API key
         if api_key:
-            response_data = self._call_gemini_api(payload, target_district_1, target_state_1, rankings, db, api_key, intent, target_district_2, target_state_2)
+            response_data = self._call_gemini_api(payload, target_district_1, target_state_1, rankings, db, api_key, intent, target_district_2, target_state_2, db_errors)
             if response_data:
                 # Sanitize the output values
                 if isinstance(response_data, dict):
@@ -189,9 +201,12 @@ class ClimateCopilot:
                     if "risk_analysis" in response_data:
                         response_data["risk_analysis"] = sanitize_ai_jargon(response_data["risk_analysis"])
                 return response_data
+            else:
+                logger.info("[COPILOT DEBUG] Fallback Condition Triggered: Gemini response generation returned empty or failed.")
 
         # Fallback to local expert engine if Gemini is not configured or fails
-        response_data = self._generate_offline_answer(payload, target_district_1, target_state_1, rankings, db, intent, target_district_2, target_state_2)
+        logger.info("[COPILOT DEBUG] Fallback Condition Triggered: Invoking local offline fallback answer generator.")
+        response_data = self._generate_offline_answer(payload, target_district_1, target_state_1, rankings, db, intent, target_district_2, target_state_2, db_errors)
         if isinstance(response_data, dict):
             if "explanation" in response_data:
                 response_data["explanation"] = sanitize_ai_jargon(response_data["explanation"])
@@ -262,11 +277,14 @@ class ClimateCopilot:
                         if intent.lower() in classification.lower():
                             return intent
             except Exception as e:
-                logger.error(f"Error in LLM classification: {e}")
+                logger.error(f"[LLM ERROR] Error in LLM classification: {e}")
 
         return "Climate Analysis"
 
-    def _retrieve_context(self, intent: str, payload: CopilotRequest, db: Session, target_district, target_state, rankings, target_district_2=None, target_state_2=None) -> dict:
+    def _retrieve_context(self, intent: str, payload: CopilotRequest, db: Session, target_district, target_state, rankings, target_district_2=None, target_state_2=None, db_errors=None) -> dict:
+        if db_errors is None:
+            db_errors = []
+            
         context = {"intent": intent, "data_summary": ""}
         
         if intent == "Platform Help":
@@ -289,22 +307,46 @@ class ClimateCopilot:
 
         elif intent == "Comparison":
             if target_district and target_district_2:
-                r1 = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
-                r2 = db.query(RiskScore).filter(RiskScore.district_id == target_district_2.id).order_by(desc(RiskScore.valid_on)).first()
-                w1 = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
-                w2 = db.query(WeatherData).filter(WeatherData.district_id == target_district_2.id).order_by(desc(WeatherData.observed_on)).first()
+                rc1, rc2, f1, f2, dr1, dr2 = 50.0, 50.0, 40.0, 40.0, 40.0, 40.0
+                temp1, temp2, rain1, rain2 = 31.5, 31.5, 115.0, 115.0
                 
-                rc1 = r1.composite_risk if r1 else 50.0
-                rc2 = r2.composite_risk if r2 else 50.0
-                f1 = r1.flood_risk if r1 else 40.0
-                f2 = r2.flood_risk if r2 else 40.0
-                dr1 = r1.drought_risk if r1 else 40.0
-                dr2 = r2.drought_risk if r2 else 40.0
-                
-                temp1 = w1.temperature_c if w1 else 31.5
-                temp2 = w2.temperature_c if w2 else 31.5
-                rain1 = w1.rainfall_mm if w1 else 115.0
-                rain2 = w2.rainfall_mm if w2 else 115.0
+                try:
+                    r1 = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+                    if r1:
+                        rc1 = r1.composite_risk
+                        f1 = r1.flood_risk
+                        dr1 = r1.drought_risk
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] RiskScore query failed for comparison district {target_district.id}: {e}")
+                    db_errors.append(f"RiskScore (district_id={target_district.id})")
+                    
+                try:
+                    r2 = db.query(RiskScore).filter(RiskScore.district_id == target_district_2.id).order_by(desc(RiskScore.valid_on)).first()
+                    if r2:
+                        rc2 = r2.composite_risk
+                        f2 = r2.flood_risk
+                        dr2 = r2.drought_risk
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] RiskScore query failed for comparison district {target_district_2.id}: {e}")
+                    db_errors.append(f"RiskScore (district_id={target_district_2.id})")
+                    
+                try:
+                    w1 = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+                    if w1:
+                        temp1 = w1.temperature_c
+                        rain1 = w1.rainfall_mm
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] WeatherData query failed for comparison district {target_district.id}: {e}")
+                    db_errors.append(f"WeatherData (district_id={target_district.id})")
+                    
+                try:
+                    w2 = db.query(WeatherData).filter(WeatherData.district_id == target_district_2.id).order_by(desc(WeatherData.observed_on)).first()
+                    if w2:
+                        temp2 = w2.temperature_c
+                        rain2 = w2.rainfall_mm
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] WeatherData query failed for comparison district {target_district_2.id}: {e}")
+                    db_errors.append(f"WeatherData (district_id={target_district_2.id})")
                 
                 context["data_summary"] = (
                     f"Comparing District Observations:\n"
@@ -312,12 +354,22 @@ class ClimateCopilot:
                     f"- {target_district_2.name} ({target_district_2.state.name}): Composite Risk={rc2}/100, Flood Risk={f2}/100, Drought Risk={dr2}/100, Temp={temp2}°C, Rain={rain2}mm\n"
                 )
             elif target_state and target_state_2:
-                avg1 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == target_state.id).scalar() or 50.0
-                avg2 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 50.0
-                f1 = db.query(func.avg(RiskScore.flood_risk)).join(District).filter(District.state_id == target_state.id).scalar() or 40.0
-                f2 = db.query(func.avg(RiskScore.flood_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 40.0
-                dr1 = db.query(func.avg(RiskScore.drought_risk)).join(District).filter(District.state_id == target_state.id).scalar() or 40.0
-                dr2 = db.query(func.avg(RiskScore.drought_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 40.0
+                avg1, avg2, f1, f2, dr1, dr2 = 50.0, 50.0, 40.0, 40.0, 40.0, 40.0
+                try:
+                    avg1 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == target_state.id).scalar() or 50.0
+                    f1 = db.query(func.avg(RiskScore.flood_risk)).join(District).filter(District.state_id == target_state.id).scalar() or 40.0
+                    dr1 = db.query(func.avg(RiskScore.drought_risk)).join(District).filter(District.state_id == target_state.id).scalar() or 40.0
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] State average query failed for {target_state.name}: {e}")
+                    db_errors.append(f"State risk averages (state_id={target_state.id})")
+                    
+                try:
+                    avg2 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 50.0
+                    f2 = db.query(func.avg(RiskScore.flood_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 40.0
+                    dr2 = db.query(func.avg(RiskScore.drought_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 40.0
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] State average query failed for {target_state_2.name}: {e}")
+                    db_errors.append(f"State risk averages (state_id={target_state_2.id})")
                 
                 context["data_summary"] = (
                     f"Comparing State Averages:\n"
@@ -326,6 +378,9 @@ class ClimateCopilot:
                 )
             else:
                 context["data_summary"] = "Comparison request detected, but not enough states or districts identified."
+            
+            if db_errors:
+                context["data_summary"] += f"\nNote: connection issues restricted database retrievals for some fields ({', '.join(db_errors)})."
             return context
 
         elif intent == "Scenario Analysis":
@@ -352,12 +407,21 @@ class ClimateCopilot:
                 dist_id = target_district.id if target_district else 1
                 temp, rain, deficit, humidity, aqi, river, soil, ndvi, reservoir = 31.5, 115.0, -2.5, 65.0, 75, 2.1, 42.0, 0.42, 48.0
                 if target_district:
-                    weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
-                    sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
-                    if weather:
-                        temp, rain, deficit, humidity, aqi, river, soil = weather.temperature_c, weather.rainfall_mm, weather.rainfall_deficit_pct, weather.humidity_pct, weather.aqi, weather.river_level_m, weather.soil_moisture_pct
-                    if sat:
-                        ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
+                    try:
+                        weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+                        if weather:
+                            temp, rain, deficit, humidity, aqi, river, soil = weather.temperature_c, weather.rainfall_mm, weather.rainfall_deficit_pct, weather.humidity_pct, weather.aqi, weather.river_level_m, weather.soil_moisture_pct
+                    except Exception as e:
+                        logger.error(f"[DATABASE ERROR] WeatherData query failed for scenario analysis: {e}")
+                        db_errors.append("WeatherData (Scenario baseline)")
+                        
+                    try:
+                        sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                        if sat:
+                            ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
+                    except Exception as e:
+                        logger.error(f"[DATABASE ERROR] SatelliteData query failed for scenario analysis: {e}")
+                        db_errors.append("SatelliteData (Scenario baseline)")
                 
                 base_dict = {"rainfall_mm": rain, "rainfall_deficit_pct": deficit, "temperature_c": temp, "humidity_pct": humidity, "river_level_m": river, "soil_moisture_pct": soil, "ndvi": ndvi, "reservoir_level_pct": reservoir}
                 sim_result = self.simulator.run(base_dict, {"rainfall_delta_pct": -20.0, "temperature_delta_c": 2.0, "reservoir_delta_pct": -15.0, "planning_horizon_years": 5})
@@ -372,16 +436,29 @@ class ClimateCopilot:
                     f"- Economic Loss: ₹{sim_result['economic_loss_m_inr']}M INR\n"
                     f"- Population At Risk: {sim_result['population_at_risk']}\n"
                 )
+            
+            if db_errors:
+                context["data_summary"] += f"\nNote: connection issues restricted database retrievals for some fields ({', '.join(db_errors)})."
             return context
 
         elif intent == "Risk Assessment":
             comp_score, f_score, d_score, h_score, ws_score = 45.0, 40.0, 50.0, 35.0, 45.0
             alerts = []
             if target_district:
-                risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
-                if risk:
-                    comp_score, f_score, d_score, h_score, ws_score = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk
-                alerts = db.query(ClimateAlert).filter(ClimateAlert.district_id == target_district.id).all()
+                try:
+                    risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+                    if risk:
+                        comp_score, f_score, d_score, h_score, ws_score = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] RiskScore query failed for risk assessment: {e}")
+                    db_errors.append("RiskScore (Assessment)")
+                    
+                try:
+                    alerts = db.query(ClimateAlert).filter(ClimateAlert.district_id == target_district.id).all()
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] ClimateAlert query failed: {e}")
+                    db_errors.append("ClimateAlert")
+                    
             alert_details = "\n".join([f"- Alert: {a.title} ({a.severity}): {a.message}" for a in alerts]) if alerts else "None active"
             
             context["data_summary"] = (
@@ -391,21 +468,36 @@ class ClimateCopilot:
                 f"- Hazard Indices: Flood={f_score}/100, Drought={d_score}/100, Heatwave={h_score}/100, Water Stress={ws_score}/100\n"
                 f"- Active Emergency Alerts:\n{alert_details}\n"
             )
+            if db_errors:
+                context["data_summary"] += f"\nNote: connection issues restricted database retrievals for some fields ({', '.join(db_errors)})."
             return context
 
         elif intent == "Decision Support":
             comp_score, f_score, d_score, h_score, ws_score = 45.0, 40.0, 50.0, 35.0, 45.0
             soil, reservoir = 42.0, 48.0
             if target_district:
-                risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
-                if risk:
-                    comp_score, f_score, d_score, h_score, ws_score = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk
-                sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
-                weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
-                if sat:
-                    reservoir = sat.reservoir_level_pct
-                if weather:
-                    soil = weather.soil_moisture_pct
+                try:
+                    risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+                    if risk:
+                        comp_score, f_score, d_score, h_score, ws_score = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] RiskScore query failed for decision support: {e}")
+                    db_errors.append("RiskScore (Decision support)")
+                    
+                try:
+                    sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                    if sat:
+                        reservoir = sat.reservoir_level_pct
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] SatelliteData query failed for decision support: {e}")
+                    db_errors.append("SatelliteData (Decision support)")
+                    
+                    weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+                    if weather:
+                        soil = weather.soil_moisture_pct
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] WeatherData query failed for decision support: {e}")
+                    db_errors.append("WeatherData (Decision support)")
             
             context["data_summary"] = (
                 f"Operational Context for Policy Planning:\n"
@@ -414,6 +506,8 @@ class ClimateCopilot:
                 f"- Key Vulnerabilities: Drought={d_score}, Flood={f_score}, Heatwave={h_score}, Water Stress={ws_score}\n"
                 f"- Reservoir Capacity: {reservoir}%, Soil Moisture: {soil}%\n"
             )
+            if db_errors:
+                context["data_summary"] += f"\nNote: connection issues restricted database retrievals for some fields ({', '.join(db_errors)})."
             return context
 
         # Climate Analysis / Report Generation
@@ -421,15 +515,29 @@ class ClimateCopilot:
         comp_score, f_score, d_score, h_score, ws_score = 45.0, 40.0, 50.0, 35.0, 45.0
         
         if target_district:
-            weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
-            sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
-            risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
-            if weather:
-                temp, rain, deficit, humidity, aqi, river, soil = weather.temperature_c, weather.rainfall_mm, weather.rainfall_deficit_pct, weather.humidity_pct, weather.aqi, weather.river_level_m, weather.soil_moisture_pct
-            if sat:
-                ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
-            if risk:
-                comp_score, f_score, d_score, h_score, ws_score = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk
+            try:
+                weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
+                if weather:
+                    temp, rain, deficit, humidity, aqi, river, soil = weather.temperature_c, weather.rainfall_mm, weather.rainfall_deficit_pct, weather.humidity_pct, weather.aqi, weather.river_level_m, weather.soil_moisture_pct
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] WeatherData query failed: {e}")
+                db_errors.append("WeatherData")
+                
+            try:
+                sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                if sat:
+                    ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] SatelliteData query failed: {e}")
+                db_errors.append("SatelliteData")
+                
+            try:
+                risk = db.query(RiskScore).filter(RiskScore.district_id == target_district.id).order_by(desc(RiskScore.valid_on)).first()
+                if risk:
+                    comp_score, f_score, d_score, h_score, ws_score = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] RiskScore query failed: {e}")
+                db_errors.append("RiskScore")
 
         context["data_summary"] = (
             f"Monitored Climate Observations:\n"
@@ -443,11 +551,17 @@ class ClimateCopilot:
             for r in rankings[:5]:
                 context["data_summary"] += f"- {r.get('district_name') or r.get('district')} ({r.get('state_name') or r.get('state')}): Composite Risk {r.get('composite_risk')}/100\n"
 
+        if db_errors:
+            context["data_summary"] += f"\n\n[WARNING: Database connection failed/timed out for sources: {', '.join(db_errors)}. "
+            context["data_summary"] += "Unable to retrieve live telemetry or active observation grids. Baseline climatology values "
+            context["data_summary"] += "are being substituted for safety. Please clearly state in your response that the system has "
+            context["data_summary"] += "encountered a temporary database connection timeout and is displaying baseline climate data instead.]"
+
         return context
 
-    def _call_gemini_api(self, payload: CopilotRequest, active_district, active_state, rankings, db: Session, api_key: str, intent: str, target_district_2=None, target_state_2=None) -> dict | None:
+    def _call_gemini_api(self, payload: CopilotRequest, active_district, active_state, rankings, db: Session, api_key: str, intent: str, target_district_2=None, target_state_2=None, db_errors=None) -> dict | None:
         try:
-            context = self._retrieve_context(intent, payload, db, active_district, active_state, rankings, target_district_2, target_state_2)
+            context = self._retrieve_context(intent, payload, db, active_district, active_state, rankings, target_district_2, target_state_2, db_errors)
 
             # Build custom prompts and personality instructions for each intent
             if intent == "Educational":
@@ -654,11 +768,20 @@ class ClimateCopilot:
                 f"Generate JSON for User Query: {payload.prompt}"
             )
 
+            # Log LLM Request details
+            logger.info(f"[COPILOT DEBUG] User Query: {payload.prompt}")
+            logger.info(f"[COPILOT DEBUG] Detected Intent: {intent}")
+            logger.info(f"[COPILOT DEBUG] Retrieved Context: {context['data_summary']}")
+            logger.info(f"[COPILOT DEBUG] Gemini Request Prompt:\n{prompt_content}")
+
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
             body = {
                 "contents": [{"parts": [{"text": prompt_content}]}],
                 "generationConfig": {"responseMimeType": "application/json"}
             }
+            
+            logger.info(f"[COPILOT DEBUG] Gemini API Request Body:\n{json.dumps(body)}")
+
             req = urllib.request.Request(
                 url, data=json.dumps(body).encode("utf-8"),
                 headers={"Content-Type": "application/json"}, method="POST"
@@ -666,6 +789,10 @@ class ClimateCopilot:
             with urllib.request.urlopen(req, timeout=12) as response:
                 res_body = json.loads(response.read().decode("utf-8"))
                 text_out = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
+                
+                # Log LLM response details
+                logger.info(f"[COPILOT DEBUG] Gemini Raw Response:\n{text_out}")
+                
                 if text_out.startswith("```"):
                     text_out = text_out.split("\n", 1)[1].rsplit("\n", 1)[0]
                 ans_dict = json.loads(text_out)
@@ -673,10 +800,13 @@ class ClimateCopilot:
                     ans_dict["districts"] = rankings[:6]
                 return ans_dict
         except Exception as e:
-            logger.error(f"Error calling Gemini API: {e}")
+            logger.error(f"[LLM ERROR] Error calling Gemini API: {e}")
             return None
 
-    def _generate_offline_answer(self, payload: CopilotRequest, active_district, active_state, rankings, db: Session, intent: str, target_district_2=None, target_state_2=None) -> dict:
+    def _generate_offline_answer(self, payload: CopilotRequest, active_district, active_state, rankings, db: Session, intent: str, target_district_2=None, target_state_2=None, db_errors=None) -> dict:
+        if db_errors is None:
+            db_errors = []
+            
         prompt = payload.prompt
         text = prompt.lower()
 
@@ -696,35 +826,64 @@ class ClimateCopilot:
         trend = "stable"
         
         if active_district:
-            weather = db.query(WeatherData).filter(WeatherData.district_id == active_district.id).order_by(desc(WeatherData.observed_on)).first()
-            sat = db.query(SatelliteData).filter(SatelliteData.district_id == active_district.id).order_by(desc(SatelliteData.observed_on)).first()
-            risk = db.query(RiskScore).filter(RiskScore.district_id == active_district.id).order_by(desc(RiskScore.valid_on)).first()
-            if weather:
-                temp, rain, deficit, humidity, aqi, river, soil = weather.temperature_c, weather.rainfall_mm, weather.rainfall_deficit_pct, weather.humidity_pct, weather.aqi, weather.river_level_m, weather.soil_moisture_pct
-            if sat:
-                ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
-            if risk:
-                comp_score, f_score, d_score, h_score, ws_score, trend = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk, risk.trend
+            try:
+                weather = db.query(WeatherData).filter(WeatherData.district_id == active_district.id).order_by(desc(WeatherData.observed_on)).first()
+                if weather:
+                    temp, rain, deficit, humidity, aqi, river, soil = weather.temperature_c, weather.rainfall_mm, weather.rainfall_deficit_pct, weather.humidity_pct, weather.aqi, weather.river_level_m, weather.soil_moisture_pct
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] Offline WeatherData query failed: {e}")
+                db_errors.append("WeatherData (Offline)")
+                
+            try:
+                sat = db.query(SatelliteData).filter(SatelliteData.district_id == active_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                if sat:
+                    ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] Offline SatelliteData query failed: {e}")
+                db_errors.append("SatelliteData (Offline)")
+                
+            try:
+                risk = db.query(RiskScore).filter(RiskScore.district_id == active_district.id).order_by(desc(RiskScore.valid_on)).first()
+                if risk:
+                    comp_score, f_score, d_score, h_score, ws_score, trend = risk.composite_risk, risk.flood_risk, risk.drought_risk, risk.heatwave_risk, risk.water_stress_risk, risk.trend
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] Offline RiskScore query failed: {e}")
+                db_errors.append("RiskScore (Offline)")
+                
         elif active_state:
-            districts_in_state = db.query(District).filter(District.state_id == active_state.id).all()
-            dist_ids = [d.id for d in districts_in_state]
-            if dist_ids:
-                comp_score = db.query(func.avg(RiskScore.composite_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 50.0
-                f_score = db.query(func.avg(RiskScore.flood_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
-                d_score = db.query(func.avg(RiskScore.drought_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
-                h_score = db.query(func.avg(RiskScore.heatwave_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 35.0
-                ws_score = db.query(func.avg(RiskScore.water_stress_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 45.0
+            try:
+                districts_in_state = db.query(District).filter(District.state_id == active_state.id).all()
+                dist_ids = [d.id for d in districts_in_state]
+                if dist_ids:
+                    comp_score = db.query(func.avg(RiskScore.composite_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 50.0
+                    f_score = db.query(func.avg(RiskScore.flood_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
+                    d_score = db.query(func.avg(RiskScore.drought_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 40.0
+                    h_score = db.query(func.avg(RiskScore.heatwave_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 35.0
+                    ws_score = db.query(func.avg(RiskScore.water_stress_risk)).filter(RiskScore.district_id.in_(dist_ids)).scalar() or 45.0
+            except Exception as e:
+                logger.error(f"[DATABASE ERROR] Offline state average query failed: {e}")
+                db_errors.append("State average stats (Offline)")
 
         if intent == "Comparison":
             if active_district and target_district_2:
-                r1 = db.query(RiskScore).filter(RiskScore.district_id == active_district.id).order_by(desc(RiskScore.valid_on)).first()
-                r2 = db.query(RiskScore).filter(RiskScore.district_id == target_district_2.id).order_by(desc(RiskScore.valid_on)).first()
-                rc1 = r1.composite_risk if r1 else 50.0
-                rc2 = r2.composite_risk if r2 else 50.0
-                f1 = r1.flood_risk if r1 else 40.0
-                f2 = r2.flood_risk if r2 else 40.0
-                dr1 = r1.drought_risk if r1 else 40.0
-                dr2 = r2.drought_risk if r2 else 40.0
+                rc1, rc2, f1, f2, dr1, dr2 = 50.0, 50.0, 40.0, 40.0, 40.0, 40.0
+                try:
+                    r1 = db.query(RiskScore).filter(RiskScore.district_id == active_district.id).order_by(desc(RiskScore.valid_on)).first()
+                    rc1 = r1.composite_risk if r1 else 50.0
+                    f1 = r1.flood_risk if r1 else 40.0
+                    dr1 = r1.drought_risk if r1 else 40.0
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] Offline Comparison RiskScore 1 failed: {e}")
+                    db_errors.append("RiskScore 1 (Offline)")
+                    
+                try:
+                    r2 = db.query(RiskScore).filter(RiskScore.district_id == target_district_2.id).order_by(desc(RiskScore.valid_on)).first()
+                    rc2 = r2.composite_risk if r2 else 50.0
+                    f2 = r2.flood_risk if r2 else 40.0
+                    dr2 = r2.drought_risk if r2 else 40.0
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] Offline Comparison RiskScore 2 failed: {e}")
+                    db_errors.append("RiskScore 2 (Offline)")
                 
                 better = active_district.name if rc1 < rc2 else target_district_2.name
                 worse = target_district_2.name if rc1 < rc2 else active_district.name
@@ -754,8 +913,13 @@ class ClimateCopilot:
                 insights = [f"{better} displays higher resilience indicators."]
                 explainable_risk = {"confidence": 90, "drivers": ["Soil moisture anomalies"], "actions": ["Optimize irrigation intervals"], "sources": ["IMD", "NRSC"]}
             elif active_state and target_state_2:
-                avg1 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == active_state.id).scalar() or 50.0
-                avg2 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 50.0
+                avg1, avg2 = 50.0, 50.0
+                try:
+                    avg1 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == active_state.id).scalar() or 50.0
+                    avg2 = db.query(func.avg(RiskScore.composite_risk)).join(District).filter(District.state_id == target_state_2.id).scalar() or 50.0
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] Offline State Comparison averages failed: {e}")
+                    db_errors.append("State averages comparison (Offline)")
                 better = active_state.name if avg1 < avg2 else target_state_2.name
                 worse = target_state_2.name if avg1 < avg2 else active_state.name
                 explanation = (
@@ -968,7 +1132,13 @@ class ClimateCopilot:
         else: # Climate Analysis
             loc_title = f"{active_district.name} District ({active_district.state.name})" if active_district else (f"{active_state.name} State" if active_state else "National Overview")
             
-            alerts = db.query(ClimateAlert).filter(ClimateAlert.district_id == active_district.id).all() if active_district else []
+            alerts = []
+            if active_district:
+                try:
+                    alerts = db.query(ClimateAlert).filter(ClimateAlert.district_id == active_district.id).all()
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] Offline alerts query failed: {e}")
+                    db_errors.append("ClimateAlert (Offline)")
             alert_text = f"\n> [!CAUTION]\n> **ACTIVE EMERGENCY WARNING**: {alerts[0].title} - {alerts[0].message}\n" if alerts else ""
 
             explanation = (
@@ -1009,6 +1179,9 @@ class ClimateCopilot:
         if not focus_districts and rankings:
             focus_districts = rankings[:6]
 
+        if db_errors:
+            explanation += f"\n\n*Note: Due to a temporary climate database connection timeout, some live observations could not be loaded. Showing baseline indexes instead.*"
+
         return {
             "explanation": explanation,
             "risk_analysis": risk_analysis,
@@ -1028,4 +1201,3 @@ def crop_stress(ndvi: float, soil_moisture: float) -> float:
     ndvi_stress = max(0.0, 1.0 - ndvi) * 60.0
     soil_stress = max(0.0, 100.0 - soil_moisture) * 0.4
     return min(100.0, ndvi_stress + soil_stress)
-

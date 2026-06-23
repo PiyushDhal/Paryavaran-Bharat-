@@ -314,7 +314,7 @@ function CopilotPageContent() {
       const fallbackMsg: ChatMessage = {
         id: "bot-error-" + Date.now(),
         sender: "bot",
-        text: "The connection to the climate database encountered a timeout. Attempting to re-establish connection. Connected local indicators suggest stable rainfall deficits but localized temperature deviations in the Northwestern sectors.",
+        text: "Unable to reach the Climate Copilot service. Please check your network connection or verify if the backend server is running.",
         timestamp: new Date()
       };
       
