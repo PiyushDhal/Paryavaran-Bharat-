@@ -602,7 +602,7 @@ export default function ClimateIntelligenceCenter() {
                   size="sm"
                   className="text-xs gap-1.5 border-brand-blue/30 text-brand-titanium bg-brand-blue/5 hover:bg-brand-blue/15 hover:border-brand-blue font-bold"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Consult AI Copilot
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Consult Bharat Climate Intelligence
                 </Button>
               </Link>
             </div>

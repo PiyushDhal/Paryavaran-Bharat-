@@ -323,7 +323,7 @@ function CopilotPageContent() {
       const fallbackMsg: ChatMessage = {
         id: "bot-error-" + Date.now(),
         sender: "bot",
-        text: "Unable to reach the Climate Copilot service. Please check your network connection or verify if the backend server is running.",
+        text: "Unable to reach the Bharat Climate Intelligence service. Please check your network connection or verify if the backend server is running.",
         timestamp: new Date()
       };
       

@@ -37,7 +37,7 @@ const capabilities = [
   },
   {
     icon: Zap,
-    title: "AI Climate Copilot",
+    title: "Bharat Climate Intelligence",
     detail: "Conversational intelligence for operational planning, generating instant reports and maps."
   }
 ];
@@ -736,9 +736,15 @@ export default function LandingPage() {
             <div>
               <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">Platform</h4>
               <div className="grid gap-2">
-                {["Dashboard", "Digital Twin Map", "Risk Center", "Simulator", "AI Copilot"].map((item) => (
-                  <Link key={item} href={`/${item.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm text-muted-foreground hover:text-brand-titanium transition-colors">
-                    {item}
+                {[
+                  { name: "Dashboard", href: "/dashboard" },
+                  { name: "Digital Twin Map", href: "/map" },
+                  { name: "Risk Center", href: "/risk-center" },
+                  { name: "Simulator", href: "/simulator" },
+                  { name: "Bharat Climate Intelligence", href: "/copilot" }
+                ].map((item) => (
+                  <Link key={item.name} href={item.href} className="text-sm text-muted-foreground hover:text-brand-titanium transition-colors">
+                    {item.name}
                   </Link>
                 ))}
               </div>

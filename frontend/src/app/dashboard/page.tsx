@@ -124,7 +124,7 @@ export default function DashboardPage() {
     if (selectedDistrictId) {
       const dist = rankings.find(r => r.district_id === selectedDistrictId);
       if (dist) {
-        return `Observations for ${dist.district_name} (${activeYear}) indicate a composite risk score of ${dist.composite_risk}. Flood risk is ${dist.flood_risk}% and Drought risk is ${dist.drought_risk}%. Disaster management authorities should monitor these metrics. Next Step: Open AI Copilot to generate a detailed local assessment.`;
+        return `Observations for ${dist.district_name} (${activeYear}) indicate a composite risk score of ${dist.composite_risk}. Flood risk is ${dist.flood_risk}% and Drought risk is ${dist.drought_risk}%. Disaster management authorities should monitor these metrics. Next Step: Open Bharat Climate Intelligence to generate a detailed local assessment.`;
       }
     }
 
@@ -302,7 +302,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-bold text-white leading-none">AI Climate Brief</CardTitle>
-                    <CardDescription className="text-[10px] text-muted-foreground mt-1">Copilot Synthesis</CardDescription>
+                    <CardDescription className="text-[10px] text-muted-foreground mt-1">Climate Intelligence Synthesis</CardDescription>
                   </div>
                 </div>
                 <Badge className="bg-surface-elevated text-brand-titanium hover:bg-surface-elevated border border-white/[0.08] text-[9px] font-bold py-0.5 px-2">
@@ -321,7 +321,7 @@ export default function DashboardPage() {
                 </span>
                 <Link href={selectedDistrictId ? `/copilot?query=Analyse%20current%20district` : "/copilot"}>
                   <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-brand-titanium border-white/[0.08] hover:border-white/[0.08] hover:bg-surface-elevated font-bold transition-all">
-                    Ask AI Copilot <ArrowRight className="w-3 h-3" />
+                    Ask Bharat Climate Intelligence <ArrowRight className="w-3 h-3" />
                   </Button>
                 </Link>
               </div>
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                   <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-brand-blue/10 text-brand-titanium group-hover:scale-110 transition-transform">
                     <Brain className="w-5 h-5" />
                   </div>
-                  <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">AI Copilot</span>
+                  <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-wider">Bharat Climate Intelligence</span>
                 </div>
               </Link>
 

@@ -1883,7 +1883,7 @@ export default function ReportsPage() {
                           <Bot className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-emerald-200">Consult AI Copilot</p>
+                          <p className="text-xs font-bold text-emerald-200">Consult Bharat Climate Intelligence</p>
                           <p className="text-[9px] text-muted-foreground">Ask operational queries</p>
                         </div>
                       </div>

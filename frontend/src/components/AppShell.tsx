@@ -70,7 +70,7 @@ const navSections = [
     items: [
       { href: "/simulator", label: "Scenario Simulator", icon: FilledSimulator },
       { href: "/timeline", label: "Climate Timeline", icon: FilledTimeline },
-      { href: "/copilot", label: "AI Copilot", icon: FilledCopilot },
+      { href: "/copilot", label: "Bharat Climate Intelligence", icon: FilledCopilot },
       { href: "/reports", label: "AI Report", icon: FilledReport }
     ]
   },
