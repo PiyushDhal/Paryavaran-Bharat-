@@ -387,9 +387,42 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
   }, [currentPage, currentMetric, currentDistrictName, selectedStateName, selectedStateId, selectedDistrictId, activeYear, activeSimulation, currentGeneratedReport, router]);
 
   const SuggestionIcon = smartSuggestion.icon;
-
+ 
   return (
     <div className="grid gap-5 mt-4">
+      {/* ─── Telemetry Sync Indicator Bar ─── */}
+      <div className="flex flex-wrap items-center justify-between gap-3.5 px-4.5 py-3 rounded-2xl border border-white/[0.08] bg-slate-950/60 text-[10px] font-mono text-muted-foreground shadow-2xl backdrop-blur-md">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+          </span>
+          <span className="text-white font-bold uppercase tracking-wider font-orbitron text-[9px]">WORKSPACE WORKFLOW STATE SYNC</span>
+        </div>
+        <div className="flex flex-wrap gap-x-4.5 gap-y-1.5 items-center">
+          <div className="flex items-center gap-1">
+            <span className="text-cyan-400/70 font-semibold uppercase">STATE:</span>
+            <span className="text-white font-bold">{selectedStateName || "National"}</span>
+          </div>
+          <div className="flex items-center gap-1 border-l border-white/10 pl-4.5">
+            <span className="text-cyan-400/70 font-semibold uppercase">DISTRICT:</span>
+            <span className="text-white font-bold">{currentDistrictName || "None"}</span>
+          </div>
+          <div className="flex items-center gap-1 border-l border-white/10 pl-4.5">
+            <span className="text-cyan-400/70 font-semibold uppercase">YEAR:</span>
+            <span className="text-white font-bold">{activeYear} AD</span>
+          </div>
+          <div className="flex items-center gap-1 border-l border-white/10 pl-4.5">
+            <span className="text-cyan-400/70 font-semibold uppercase">LAYER:</span>
+            <span className="text-brand-titanium font-bold uppercase">{activeLayer.replace("_", " ")}</span>
+          </div>
+          <div className="flex items-center gap-1 border-l border-white/10 pl-4.5">
+            <span className="text-cyan-400/70 font-semibold uppercase">RISK PROFILE:</span>
+            <span className="text-brand-titanium font-bold uppercase">{activeRisk.replace("_", " ")}</span>
+          </div>
+        </div>
+      </div>
+
       {/* ─── Smart Recommendation Box ─── */}
       <div className={`flex flex-col md:flex-row gap-4 p-4 rounded-2xl border ${smartSuggestion.color} backdrop-blur-md items-start md:items-center justify-between`}>
         <div className="flex gap-3 items-start">
@@ -414,7 +447,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
           Activate Scenario Lab <ArrowRight className="w-3.5 h-3.5" />
         </Button>
       </div>
-
+ 
       {/* ─── Next-Step Actions panel ─── */}
       <Card className="glass-card border-white/[0.08] p-5">
         <h4 className="text-xs font-bold uppercase tracking-wider text-brand-titanium mb-3.5 flex items-center gap-1.5 font-orbitron">
@@ -447,3 +480,4 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
     </div>
   );
 }
+

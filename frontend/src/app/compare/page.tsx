@@ -10,9 +10,10 @@ import { api } from "@/lib/api";
 import type { District, RiskScore } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
+import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 export default function ComparePage() {
-  const { activeYear } = useClimate();
+  const { activeYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtIdA, setDistrictIdA] = useState<number | undefined>(undefined);
   const [districtIdB, setDistrictIdB] = useState<number | undefined>(undefined);
@@ -22,6 +23,20 @@ export default function ComparePage() {
   useEffect(() => {
     setYear(activeYear);
   }, [activeYear]);
+
+  // Sync selectedDistrictId from global context to districtIdA
+  useEffect(() => {
+    if (selectedDistrictId && selectedDistrictId !== districtIdA) {
+      setDistrictIdA(selectedDistrictId);
+    }
+  }, [selectedDistrictId]);
+
+  // Sync districtIdA back to selectedDistrictId
+  useEffect(() => {
+    if (districtIdA && selectedDistrictId !== districtIdA) {
+      setSelectedDistrictId(districtIdA);
+    }
+  }, [districtIdA]);
 
   const [riskA, setRiskA] = useState<RiskScore | null>(null);
   const [riskB, setRiskB] = useState<RiskScore | null>(null);
@@ -43,7 +58,7 @@ export default function ComparePage() {
         }
         
         if (data.length > 0) {
-          const matchedA = dA && data.some(d => d.id === dA) ? dA : data[0].id;
+          const matchedA = dA && data.some(d => d.id === dA) ? dA : (selectedDistrictId || data[0].id);
           const matchedB = dB && data.some(d => d.id === dB) ? dB : (data[1] ? data[1].id : data[0].id);
           setDistrictIdA(matchedA);
           setDistrictIdB(matchedB);
@@ -312,6 +327,10 @@ export default function ComparePage() {
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="no-print mt-4">
+        <WorkflowRecommendations currentPage="analytics" />
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { api } from "@/lib/api";
 import type { District, ClimateObservation } from "@/lib/types";
 import { riskColor } from "@/lib/utils";
 import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
+import { useClimate } from "@/store/useClimateStore";
 
 type TimelineEvent = {
   year: number;
@@ -23,8 +24,9 @@ type TimelineEvent = {
 };
 
 export default function TimelinePage() {
+  const { selectedDistrictId, setSelectedDistrictId } = useClimate();
   const [districts, setDistricts] = useState<District[]>([]);
-  const [districtId, setDistrictId] = useState<number>(0);
+  const [districtId, setDistrictId] = useState<number>(selectedDistrictId || 0);
   const [activeEventIndex, setActiveEventIndex] = useState<number>(3); // 2026 selected by default (index 3 of [2010, 2015, 2020, 2026, 2030, 2040, 2050])
   const [timelineEvents, setTimelineEvents] = useState<any[]>([
     { year: 2010, label: "Loading...", type: "historical", description: "", avgTemp: "27.8°C", avgRain: "980mm", riskScore: 54, alert: "" },
@@ -41,11 +43,29 @@ export default function TimelinePage() {
       .then((data) => {
         setDistricts(data);
         if (data.length > 0) {
-          setDistrictId(data[0].id);
+          if (selectedDistrictId) {
+            setDistrictId(selectedDistrictId);
+          } else {
+            setDistrictId(data[0].id);
+          }
         }
       })
       .catch(() => undefined);
   }, []);
+
+  // Sync global selectedDistrictId changes down to local state
+  useEffect(() => {
+    if (selectedDistrictId && selectedDistrictId !== districtId) {
+      setDistrictId(selectedDistrictId);
+    }
+  }, [selectedDistrictId]);
+
+  // Sync local districtId changes back to global context
+  useEffect(() => {
+    if (districtId && selectedDistrictId !== districtId) {
+      setSelectedDistrictId(districtId);
+    }
+  }, [districtId]);
 
   useEffect(() => {
     if (!districtId) return;

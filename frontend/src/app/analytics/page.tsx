@@ -161,16 +161,48 @@ export default function ClimateIntelligenceCenter() {
     });
   }, []);
 
-  // Sync stateId from global selected district when page loads if possible
+  // Bidirectional sync with global store
   useEffect(() => {
-    if (districts.length > 0 && climateContext?.selectedDistrictId) {
-      const dist = districts.find((d) => d.id === climateContext.selectedDistrictId);
-      if (dist) {
-        setStateId(dist.state_id);
-        setSelectedDistId(dist.id);
+    if (districts.length > 0) {
+      if (climateContext?.selectedDistrictId && climateContext.selectedDistrictId !== selectedDistId) {
+        const dist = districts.find((d) => d.id === climateContext.selectedDistrictId);
+        if (dist) {
+          setStateId(dist.state_id);
+          setSelectedDistId(dist.id);
+        }
+      } else if (climateContext?.selectedStateId && climateContext.selectedStateId !== stateId && !climateContext.selectedDistrictId) {
+        setStateId(climateContext.selectedStateId);
+        setSelectedDistId("");
       }
     }
-  }, [districts, climateContext?.selectedDistrictId]);
+  }, [districts, climateContext?.selectedDistrictId, climateContext?.selectedStateId]);
+
+  // Sync local selectors back to global store
+  useEffect(() => {
+    if (selectedDistId && climateContext) {
+      if (climateContext.selectedDistrictId !== Number(selectedDistId)) {
+        climateContext.setSelectedDistrictId(Number(selectedDistId));
+        const dist = districts.find((d) => d.id === Number(selectedDistId));
+        if (dist) {
+          climateContext.setSelectedStateId(dist.state_id || "");
+          climateContext.setSelectedStateName(dist.state_name || null);
+        }
+      }
+    } else if (stateId && climateContext) {
+      if (climateContext.selectedStateId !== Number(stateId)) {
+        climateContext.setSelectedStateId(Number(stateId));
+        const stateObj = states.find(s => s.id === Number(stateId));
+        climateContext.setSelectedStateName(stateObj ? stateObj.name : null);
+        climateContext.setSelectedDistrictId(undefined);
+      }
+    } else if (!stateId && !selectedDistId && climateContext) {
+      if (climateContext.selectedStateId !== "" || climateContext.selectedDistrictId !== undefined) {
+        climateContext.setSelectedStateId("");
+        climateContext.setSelectedStateName(null);
+        climateContext.setSelectedDistrictId(undefined);
+      }
+    }
+  }, [selectedDistId, stateId, districts, states]);
 
   // 2. Fetch main metrics asynchronously
   useEffect(() => {

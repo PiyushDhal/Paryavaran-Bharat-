@@ -288,9 +288,28 @@ function formatLargeNum(n: number) {
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function SimulatorPage() {
   const router = useRouter();
-  const { setActiveSimulation } = useClimate();
+  const { 
+    selectedDistrictId, 
+    setSelectedDistrictId,
+    activeSimulation,
+    setActiveSimulation 
+  } = useClimate();
 
-  const [districtId, setDistrictId] = useState<number | undefined>(101);
+  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 101);
+
+  // Sync global selectedDistrictId changes down to local state
+  useEffect(() => {
+    if (selectedDistrictId && selectedDistrictId !== districtId) {
+      setDistrictId(selectedDistrictId);
+    }
+  }, [selectedDistrictId]);
+
+  // Sync local districtId changes back to global context
+  useEffect(() => {
+    if (districtId && selectedDistrictId !== districtId) {
+      setSelectedDistrictId(districtId);
+    }
+  }, [districtId]);
   const [activeTab, setActiveTab] = useState<TabKey>("atmospheric");
   const [viewTab, setViewTab] = useState<ViewTab>("results");
   const [activePreset, setActivePreset] = useState<string | null>(null);

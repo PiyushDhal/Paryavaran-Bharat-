@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -52,6 +52,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
 import { DistrictSelector } from "@/components/climate/DistrictSelector";
+import { StateSelector } from "@/components/climate/StateSelector";
 
 const navSections = [
   {
@@ -82,6 +83,93 @@ const navSections = [
     ]
   }
 ];
+
+function URLSyncHandler() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const {
+    activeYear,
+    setActiveYear,
+    selectedDistrictId,
+    setSelectedDistrictId,
+    activeLayer,
+    setActiveLayer,
+    activeRisk,
+    setActiveRisk,
+    selectedStateId,
+    setSelectedStateId
+  } = useClimate();
+
+  // 1. Sync from URL to Store on mount / query param change
+  useEffect(() => {
+    const qDistrictId = searchParams.get("district_id");
+    const qStateId = searchParams.get("state_id");
+    const qYear = searchParams.get("year");
+    const qLayer = searchParams.get("layer");
+    const qRisk = searchParams.get("risk");
+
+    if (qDistrictId) {
+      const parsed = Number(qDistrictId);
+      if (!isNaN(parsed) && parsed !== selectedDistrictId) {
+        setSelectedDistrictId(parsed);
+      }
+    }
+    if (qStateId) {
+      const parsed = Number(qStateId);
+      if (!isNaN(parsed) && parsed !== selectedStateId) {
+        setSelectedStateId(parsed);
+      }
+    }
+    if (qYear) {
+      const parsed = Number(qYear);
+      if (!isNaN(parsed) && parsed !== activeYear) {
+        setActiveYear(parsed);
+      }
+    }
+    if (qLayer && qLayer !== activeLayer) {
+      setActiveLayer(qLayer);
+    }
+    if (qRisk && qRisk !== activeRisk) {
+      setActiveRisk(qRisk);
+    }
+  }, [searchParams]);
+
+  // 2. Sync from Store to URL to persist state across page transitions
+  useEffect(() => {
+    if (pathname === "/") return;
+    
+    const params = new URLSearchParams(window.location.search);
+    let changed = false;
+
+    const setOrDelete = (key: string, val: string | number | undefined | null) => {
+      if (val !== undefined && val !== null && val !== "") {
+        if (params.get(key) !== String(val)) {
+          params.set(key, String(val));
+          changed = true;
+        }
+      } else {
+        if (params.has(key)) {
+          params.delete(key);
+          changed = true;
+        }
+      }
+    };
+
+    setOrDelete("district_id", selectedDistrictId);
+    setOrDelete("state_id", selectedStateId);
+    setOrDelete("year", activeYear);
+    setOrDelete("layer", activeLayer);
+    setOrDelete("risk", activeRisk);
+
+    if (changed) {
+      const newSearch = params.toString();
+      const newUrl = `${pathname}${newSearch ? "?" + newSearch : ""}`;
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, "", newUrl);
+    }
+  }, [selectedDistrictId, selectedStateId, activeYear, activeLayer, activeRisk, pathname]);
+
+  return null;
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -131,7 +219,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const { activeYear, setActiveYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
+  const { 
+    activeYear, 
+    setActiveYear, 
+    selectedDistrictId, 
+    setSelectedDistrictId,
+    selectedStateId,
+    setSelectedStateId
+  } = useClimate();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -151,6 +246,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-radar-grid bg-[size:44px_44px]">
+      <Suspense fallback={null}>
+        <URLSyncHandler />
+      </Suspense>
       {/* ── Desktop sidebar ────────────────────────────────────── */}
       <aside className={cn("fixed left-0 top-0 z-40 hidden h-screen border-r border-border bg-background py-5 lg:flex lg:flex-col transition-all duration-300 shadow-[4px_0_24px_rgba(0,0,0,0.2)]", isCollapsed ? "w-[88px] px-2" : "w-72 px-4")}>
         <div className="flex items-center justify-between px-2 mb-6">
@@ -308,13 +406,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             
             {/* ── Global Context Command Bar ── */}
             <div className="hidden lg:flex items-center gap-3 flex-1">
-              <div className="w-[240px]">
+              <div className="w-[180px]">
+                <StateSelector 
+                  value={selectedStateId} 
+                  onChange={(stateId) => {
+                    setSelectedStateId(stateId);
+                    setSelectedDistrictId(undefined);
+                  }}
+                />
+              </div>
+              <div className="w-[180px]">
                 <DistrictSelector 
                   value={selectedDistrictId} 
                   onChange={setSelectedDistrictId} 
+                  stateId={selectedStateId}
                 />
               </div>
-              <div className="w-[140px]">
+              <div className="w-[120px]">
                 <select
                   value={activeYear}
                   onChange={(e) => setActiveYear(Number(e.target.value))}

@@ -1,24 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { api } from "@/lib/api";
 import type { District } from "@/lib/types";
 
 export function DistrictSelector({
   value,
-  onChange
+  onChange,
+  stateId
 }: {
   value?: number;
   onChange: (districtId: number | undefined) => void;
+  stateId?: number | "";
 }) {
   const [districts, setDistricts] = useState<District[]>([]);
 
   useEffect(() => {
-    api.districts().then((items) => {
-      setDistricts(items);
-    });
-  }, []);
+    api.districts(stateId || undefined)
+      .then((items) => {
+        setDistricts(items);
+      })
+      .catch(() => undefined);
+  }, [stateId]);
 
   return (
     <select
@@ -32,7 +35,7 @@ export function DistrictSelector({
       <option value="">National / All Districts</option>
       {districts.map((district) => (
         <option key={district.id} value={district.id}>
-          {district.name}, {district.state_name}
+          {district.name}{!stateId ? `, ${district.state_name}` : ""}
         </option>
       ))}
     </select>

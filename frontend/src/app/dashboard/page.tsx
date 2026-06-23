@@ -376,12 +376,13 @@ export default function DashboardPage() {
               </Link>
             </CardContent>
           </Card>
-
-          <WorkflowRecommendations currentPage="dashboard" />
         </div>
 
       </div>
 
+      <div className="no-print">
+        <WorkflowRecommendations currentPage="dashboard" />
+      </div>
     </div>
   );
 }

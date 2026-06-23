@@ -80,10 +80,17 @@ interface PersistentReport {
   climateParameter?: string;
 }
 
-
-
 export default function ReportsPage() {
-  const { setSelectedDistrictId, setActiveLayer, activeYear, setCurrentGeneratedReport } = useClimate();
+  const { 
+    selectedDistrictId, 
+    setSelectedDistrictId, 
+    selectedStateId: globalStateId, 
+    setSelectedStateId: setGlobalStateId, 
+    setSelectedStateName, 
+    setActiveLayer, 
+    activeYear, 
+    setCurrentGeneratedReport 
+  } = useClimate();
 
   const [districts, setDistricts] = useState<District[]>([]);
   const [states, setStates] = useState<State[]>([]);
@@ -132,6 +139,42 @@ export default function ReportsPage() {
   const [presentationActive, setPresentationActive] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // Bidirectional sync with global store
+  useEffect(() => {
+    if (districts.length > 0) {
+      if (selectedDistrictId && selectedDistrictId !== districtId) {
+        setDistrictId(selectedDistrictId);
+        const d = districts.find(x => x.id === selectedDistrictId);
+        if (d && d.state_id) {
+          setSelectedStateId(String(d.state_id));
+        }
+      } else if (globalStateId && globalStateId !== (selectedStateId === "all" ? "" : Number(selectedStateId)) && !selectedDistrictId) {
+        setSelectedStateId(String(globalStateId));
+      }
+    }
+  }, [districts, selectedDistrictId, globalStateId]);
+
+  useEffect(() => {
+    if (districtId && districts.length > 0) {
+      if (selectedDistrictId !== districtId) {
+        setSelectedDistrictId(districtId);
+        const d = districts.find(x => x.id === districtId);
+        if (d) {
+          setGlobalStateId(d.state_id || "");
+          setSelectedStateName(d.state_name || null);
+        }
+      }
+    } else if (selectedStateId !== "all" && selectedStateId !== "") {
+      const stateVal = Number(selectedStateId);
+      if (globalStateId !== stateVal) {
+        setGlobalStateId(stateVal);
+        const stateObj = states.find(s => s.id === stateVal);
+        setSelectedStateName(stateObj ? stateObj.name : null);
+        setSelectedDistrictId(undefined);
+      }
+    }
+  }, [districtId, selectedStateId, districts, states]);
+
   // Load from backend APIs
   useEffect(() => {
     Promise.all([
@@ -142,7 +185,15 @@ export default function ReportsPage() {
       setDistricts(districtsData);
 
       if (districtsData.length > 0) {
-        setDistrictId(districtsData[0].id);
+        if (selectedDistrictId) {
+          setDistrictId(selectedDistrictId);
+          const d = districtsData.find(x => x.id === selectedDistrictId);
+          if (d && d.state_id) {
+            setSelectedStateId(String(d.state_id));
+          }
+        } else {
+          setDistrictId(districtsData[0].id);
+        }
         setCompareDistrictId(districtsData[1] ? districtsData[1].id : districtsData[0].id);
       }
     }).catch(() => undefined);

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import type { Ranking, SimulationResult } from "@/lib/types";
+import type { Ranking, SimulationResult, District } from "@/lib/types";
 
 type ClimateContextType = {
   activeYear: number;
@@ -73,6 +73,27 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
     climateZone: "",
     riskCategory: "",
   });
+
+  const [allDistricts, setAllDistricts] = useState<District[]>([]);
+
+  useEffect(() => {
+    api.districts().then(setAllDistricts).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (selectedDistrictId && allDistricts.length > 0) {
+      const match = allDistricts.find(d => d.id === selectedDistrictId);
+      if (match) {
+        setSelectedStateId(match.state_id);
+        if (match.state_name) {
+          setSelectedStateName(match.state_name);
+        }
+      }
+    } else if (!selectedDistrictId) {
+      setSelectedStateId("");
+      setSelectedStateName(null);
+    }
+  }, [selectedDistrictId, allDistricts]);
 
   useEffect(() => {
     if (timelineStep === "2030") {

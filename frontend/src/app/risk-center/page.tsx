@@ -16,11 +16,25 @@ import { useClimate } from "@/store/useClimateStore";
 import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 export default function RiskCenterPage() {
-  const { activeYear } = useClimate();
-  const [districtId, setDistrictId] = useState<number>();
+  const { activeYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
+  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId);
   const [risk, setRisk] = useState<RiskScore | null>(null);
   const [trends, setTrends] = useState<Array<Record<string, number | string>>>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
+
+  // Sync global selectedDistrictId changes down to local state
+  useEffect(() => {
+    if (selectedDistrictId && selectedDistrictId !== districtId) {
+      setDistrictId(selectedDistrictId);
+    }
+  }, [selectedDistrictId]);
+
+  // Sync local districtId changes back to global context
+  useEffect(() => {
+    if (districtId && selectedDistrictId !== districtId) {
+      setSelectedDistrictId(districtId);
+    }
+  }, [districtId]);
 
   useEffect(() => {
     api.rankings(100, activeYear).then(setRankings).catch(() => undefined);
