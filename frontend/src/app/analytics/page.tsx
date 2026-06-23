@@ -3,7 +3,6 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { 
-  BarChart3, 
   CloudRain, 
   Droplets, 
   Flame, 
@@ -12,43 +11,32 @@ import {
   ShieldAlert, 
   Sparkles, 
   Wind, 
-  Scale, 
   CalendarRange, 
-  History, 
-  FileText, 
-  Activity, 
-  Layers3, 
-  Compass, 
-  Users, 
   ArrowUpRight, 
   Download, 
   TrendingUp, 
   Check, 
   AlertTriangle,
   Globe,
-  Plus,
   RefreshCw,
   Printer,
   ChevronRight,
-  TrendingDown
+  Database,
+  CheckCircle,
+  XCircle,
+  HelpCircle
 } from "lucide-react";
 import { 
-  Radar, 
-  RadarChart, 
-  PolarGrid, 
-  PolarAngleAxis, 
-  PolarRadiusAxis, 
   ResponsiveContainer,
   AreaChart,
   Area,
   XAxis,
   YAxis,
   Tooltip,
-  BarChart,
-  Bar,
-  Legend,
   LineChart,
-  Line
+  Line,
+  CartesianGrid,
+  Legend
 } from "recharts";
 
 import { Badge } from "@/components/ui/badge";
@@ -56,42 +44,89 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useClimate } from "@/store/useClimateStore";
-import type { ClimateObservation, Ranking, District, State } from "@/lib/types";
+import type { District, State, Ranking } from "@/lib/types";
 
-// ─── District Metadata Classifications ────────────────────────────────
-const DISTRICT_METADATA: Record<number, { climateZone: string; riskCategory: string }> = {
-  101: { climateZone: "Tropical", riskCategory: "Flood Prone" },
-  102: { climateZone: "Semi-Arid", riskCategory: "Water Stressed" },
-  103: { climateZone: "Semi-Arid", riskCategory: "Safe" },
-  201: { climateZone: "Humid", riskCategory: "Flood Prone" },
-  202: { climateZone: "Humid", riskCategory: "Flood Prone" },
-  203: { climateZone: "Humid", riskCategory: "Flood Prone" },
-  301: { climateZone: "Semi-Arid", riskCategory: "Heatwave Prone" },
-  302: { climateZone: "Semi-Arid", riskCategory: "Heatwave Prone" },
-  303: { climateZone: "Arid", riskCategory: "Drought Prone" },
-  401: { climateZone: "Tropical", riskCategory: "Flood Prone" },
-  402: { climateZone: "Tropical", riskCategory: "Water Stressed" },
-  501: { climateZone: "Arid", riskCategory: "Drought Prone" },
-  502: { climateZone: "Tropical", riskCategory: "Safe" },
-  601: { climateZone: "Tropical", riskCategory: "Water Stressed" },
-  701: { climateZone: "Humid", riskCategory: "Flood Prone" },
-  702: { climateZone: "Humid", riskCategory: "Flood Prone" }
-};
+// Skeleton Loader Component
+function Skeleton({ className }: { className?: string }) {
+  return (
+    <div className={`animate-pulse rounded bg-slate-800/60 border border-slate-700/30 ${className}`} />
+  );
+}
 
-export default function AnalyticsPage() {
+// Ingestion Pipeline static details (Government Data Sources)
+const GOVERNMENT_SOURCES = [
+  {
+    id: "imd",
+    name: "India Meteorological Department (IMD)",
+    agency: "MoES",
+    dataset: "Gridded Weather Data (Temperature & Rainfall Anomaly)",
+    syncFrequency: "Daily at 06:00 IST",
+    lastSync: "Today, 06:00 AM",
+    status: "online"
+  },
+  {
+    id: "nrsc",
+    name: "National Remote Sensing Centre (NRSC)",
+    agency: "ISRO",
+    dataset: "Vegetation Index (NDVI) & Land Surface Moisture",
+    syncFrequency: "Weekly composite",
+    lastSync: "Yesterday, 18:30 PM",
+    status: "online"
+  },
+  {
+    id: "cpcb",
+    name: "Central Pollution Control Board (CPCB)",
+    agency: "MoEFCC",
+    dataset: "Continuous Ambient Air Quality (AQI Grid)",
+    syncFrequency: "Hourly (Real-time feed)",
+    lastSync: "5 mins ago",
+    status: "online"
+  },
+  {
+    id: "cwc",
+    name: "Central Water Commission (CWC)",
+    agency: "Jal Shakti",
+    dataset: "River Discharge & Level Alerts",
+    syncFrequency: "Hourly updates",
+    lastSync: "15 mins ago",
+    status: "online"
+  },
+  {
+    id: "wris",
+    name: "India-WRIS",
+    agency: "Jal Shakti",
+    dataset: "National Reservoir Level & Capacity Tracking",
+    syncFrequency: "Daily at 20:00 IST",
+    lastSync: "Yesterday, 20:00 PM",
+    status: "online"
+  }
+];
+
+export default function ClimateIntelligenceCenter() {
   const climateContext = useClimate();
 
-  const [districts, setDistricts] = useState<District[]>([]);
+  // Basic lists
   const [states, setStates] = useState<State[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  
+  // Async status lists
   const [allRankings, setAllRankings] = useState<Ranking[]>([]);
-  const [allHistories, setAllHistories] = useState<Record<number, ClimateObservation[]>>({});
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
 
-  // ─── Filter States ──────────────────────────────────────────────────
+  // Filters
   const [stateId, setStateId] = useState<number | "">("");
   const [selectedDistId, setSelectedDistId] = useState<number | "">("");
   const [year, setYear] = useState<number>(2026);
   const [climateZone, setClimateZone] = useState<string>("");
   const [riskCategory, setRiskCategory] = useState<string>("");
+
+  // Loading & Error States
+  const [loadingMetadata, setLoadingMetadata] = useState(true);
+  const [loadingMetrics, setLoadingMetrics] = useState(true);
+  const [loadingRankings, setLoadingRankings] = useState(true);
+
+  const [errorMetrics, setErrorMetrics] = useState(false);
+  const [errorRankings, setErrorRankings] = useState(false);
 
   // Sync year state with activeYear from context
   useEffect(() => {
@@ -100,7 +135,7 @@ export default function AnalyticsPage() {
     }
   }, [climateContext?.activeYear]);
 
-  // Sync local filters with the global store for AI context awareness
+  // Sync filters to global context for AI chat/copilot awareness
   useEffect(() => {
     if (climateContext?.setAnalyticsFilters) {
       climateContext.setAnalyticsFilters({
@@ -112,60 +147,18 @@ export default function AnalyticsPage() {
     }
   }, [stateId, selectedDistId, climateZone, riskCategory, climateContext?.setAnalyticsFilters]);
 
-  // ─── Workspace Tabs ────────────────────────────────────────────────
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "trends" | "risk" | "sustainability" | "water" | "air" | "agriculture" | "ai" | "compare"
-  >("overview");
-
-  // ─── District Comparison States ────────────────────────────────────
-  const [compDistA, setCompDistA] = useState<number>(101);
-  const [compDistB, setCompDistB] = useState<number>(303);
-
-  // ─── Sustainability Workspace Extensions ─────────────────────────
-  const [susSubTab, setSusSubTab] = useState<"scorecard" | "simulator" | "leaderboard" | "geogrid">("scorecard");
-
-  // Policy Simulator variables (rates as percentage)
-  const [reforestRate, setReforestRate] = useState<number>(15);
-  const [evShare, setEvShare] = useState<number>(20);
-  const [renewablesShare, setRenewablesShare] = useState<number>(30);
-  const [recycleRate, setRecycleRate] = useState<number>(25);
-
-  // Leaderboard sorting and searching parameters
-  const [rankSearchText, setRankSearchText] = useState<string>("");
-  const [rankSortKey, setRankSortKey] = useState<"name" | "score" | "forest" | "water" | "aqi" | "resilience">("score");
-  const [rankSortOrder, setRankSortOrder] = useState<"asc" | "desc">("desc");
-
-  // ─── Sustainability API States ────────────────────────────────────
-  const [analyticsData, setAnalyticsData] = useState<{
-    monthlyData: any[];
-    metrics: any;
-    aiInsights: any;
-  } | null>(null);
-  const [simulatedData, setSimulatedData] = useState<any[]>([]);
-
-  // Load datasets from backend API on mount
+  // 1. Load basic filter lists (non-blocking)
   useEffect(() => {
+    setLoadingMetadata(true);
     Promise.all([
-      api.states(),
-      api.districts(),
-      api.rankings(1000, year)
-    ]).then(([statesData, districtsData, rankingsData]) => {
+      api.states().catch(() => []),
+      api.districts().catch(() => [])
+    ]).then(([statesData, districtsData]) => {
       setStates(statesData);
       setDistricts(districtsData);
-      setAllRankings(rankingsData);
-
-      const historyPromises = districtsData.map(d =>
-        api.history(d.id, year).then(h => [d.id, h] as const)
-      );
-      Promise.all(historyPromises).then(results => {
-        const historyMap: Record<number, ClimateObservation[]> = {};
-        for (const [id, obs] of results) {
-          historyMap[id] = obs;
-        }
-        setAllHistories(historyMap);
-      }).catch(() => undefined);
-    }).catch(() => undefined);
-  }, [year]);
+      setLoadingMetadata(false);
+    });
+  }, []);
 
   // Sync stateId from global selected district when page loads if possible
   useEffect(() => {
@@ -178,8 +171,10 @@ export default function AnalyticsPage() {
     }
   }, [districts, climateContext?.selectedDistrictId]);
 
-  // Fetch sustainability analytics metrics from backend
+  // 2. Fetch main metrics asynchronously
   useEffect(() => {
+    setLoadingMetrics(true);
+    setErrorMetrics(false);
     api.analyticsMetrics({
       year,
       state_id: stateId || undefined,
@@ -189,104 +184,150 @@ export default function AnalyticsPage() {
     })
     .then((data) => {
       setAnalyticsData(data);
+      setLoadingMetrics(false);
     })
-    .catch(() => undefined);
+    .catch((err) => {
+      console.error("[INTELLIGENCE ERROR] Failed to fetch analytics metrics", err);
+      setErrorMetrics(true);
+      setLoadingMetrics(false);
+    });
   }, [year, stateId, selectedDistId, climateZone, riskCategory]);
 
-  // Fetch simulated projections from backend
+  // 3. Fetch rankings asynchronously
   useEffect(() => {
-    const activeMetrics = analyticsData?.metrics;
-    if (!activeMetrics) return;
-    api.simulateSustainability({
-      forest_health: activeMetrics.forestHealth,
-      air_quality_score: activeMetrics.airQualityScore,
-      water_sustainability: activeMetrics.waterSustainability,
-      avg_soil: activeMetrics.avgSoil,
-      climate_resilience: activeMetrics.climateResilience,
-      reforest_rate: reforestRate,
-      ev_share: evShare,
-      renewables_share: renewablesShare,
-      recycle_rate: recycleRate
-    })
+    setLoadingRankings(true);
+    setErrorRankings(false);
+    api.rankings(1000, year)
     .then((data) => {
-      setSimulatedData(data);
+      setAllRankings(data);
+      setLoadingRankings(false);
     })
-    .catch(() => undefined);
-  }, [analyticsData?.metrics, reforestRate, evShare, renewablesShare, recycleRate]);
+    .catch((err) => {
+      console.error("[INTELLIGENCE ERROR] Failed to fetch rankings", err);
+      setErrorRankings(true);
+      setLoadingRankings(false);
+    });
+  }, [year]);
 
-  // Filter districts based on current select states
+  // Filter districts based on currently selected state & metadata
   const filteredDistricts = useMemo(() => {
     return districts.filter((d) => {
       if (stateId && d.state_id !== stateId) return false;
-      const meta = DISTRICT_METADATA[d.id] || { climateZone: "Tropical", riskCategory: "Safe" };
-      if (climateZone && meta.climateZone !== climateZone) return false;
-      if (riskCategory && meta.riskCategory !== riskCategory) return false;
       return true;
     });
-  }, [districts, stateId, climateZone, riskCategory]);
+  }, [districts, stateId]);
 
-  // Aggregate monthly observations for the filtered scope from backend
   const monthlyData = useMemo(() => {
     return analyticsData?.monthlyData || [];
   }, [analyticsData]);
 
-  // Compute indices from backend
   const metrics = useMemo(() => {
-    return analyticsData?.metrics || null;
+    return analyticsData?.metrics || {
+      avgTemp: 27.8,
+      avgRain: 980,
+      avgAqi: 80,
+      avgReservoir: 50,
+      avgNdvi: 0.5,
+      avgSoil: 30,
+      compositeIndex: 50,
+      avgRisk: 50,
+      avgFlood: 50,
+      avgDrought: 50,
+      avgHeat: 50,
+      avgWater: 50
+    };
   }, [analyticsData]);
 
-  // Generate AI Insights from backend
   const aiInsights = useMemo(() => {
-    return analyticsData?.aiInsights || null;
+    return analyticsData?.aiInsights || {
+      summary: "Gathering regional indicators. AI brief compilation active...",
+      positives: ["Initial setup operational"],
+      negatives: ["Historical comparison pending"],
+      recommendations: ["Ensure all filters are configured properly for targeted local intelligence."]
+    };
   }, [analyticsData]);
 
-  // Compute District Rankings based on current year and filters
-  const rankingsList = useMemo(() => {
-    const list = districts.map(d => {
-      const histories = allHistories[d.id] || [];
-      if (histories.length === 0) return null;
-      const avgNdvi = histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length;
-      const avgAqi = histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length;
-      const avgReservoir = histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length;
-      const avgSoil = histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length;
+  // Calculations for Top 5 States
+  const topStates = useMemo(() => {
+    if (allRankings.length === 0) return [];
+    // Group risk by state
+    const stateMap: Record<string, { totalRisk: number; count: number }> = {};
+    allRankings.forEach(r => {
+      if (!stateMap[r.state_name]) {
+        stateMap[r.state_name] = { totalRisk: 0, count: 0 };
+      }
+      stateMap[r.state_name].totalRisk += r.composite_risk;
+      stateMap[r.state_name].count += 1;
+    });
+    return Object.entries(stateMap)
+      .map(([name, val]) => ({
+        name,
+        avgRisk: Math.round(val.totalRisk / val.count)
+      }))
+      .sort((a, b) => b.avgRisk - a.avgRisk)
+      .slice(0, 5);
+  }, [allRankings]);
 
-      const r = allRankings.find(x => x.district_id === d.id) || { composite_risk: 50, drought_risk: 50 };
+  // Calculations for Top 10 Districts
+  const topDistricts = useMemo(() => {
+    if (allRankings.length === 0) return [];
+    let list = allRankings;
+    if (stateId) {
+      const stateObj = states.find(s => s.id === stateId);
+      if (stateObj) {
+        list = list.filter(r => r.state_name === stateObj.name);
+      }
+    }
+    return [...list]
+      .sort((a, b) => b.composite_risk - a.composite_risk)
+      .slice(0, 10);
+  }, [allRankings, stateId, states]);
 
-      const ndviScore = Math.round(avgNdvi * 100);
-      const aqiScore = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
-      const reservoirScore = Math.round(avgReservoir);
-      const safetyScore = Math.round(100 - r.composite_risk);
-      const soilScore = Math.max(10, Math.min(100, Math.round(100 - r.drought_risk * 0.8)));
+  // Calculated high-risk district count (composite risk > 60)
+  const highRiskDistrictCount = useMemo(() => {
+    let list = allRankings;
+    if (stateId) {
+      const stateObj = states.find(s => s.id === stateId);
+      if (stateObj) {
+        list = list.filter(r => r.state_name === stateObj.name);
+      }
+    }
+    return list.filter(r => r.composite_risk > 60).length;
+  }, [allRankings, stateId, states]);
 
-      const compositeScore = Math.round(ndviScore * 0.25 + aqiScore * 0.2 + reservoirScore * 0.2 + safetyScore * 0.2 + soilScore * 0.15);
-      return {
-        id: d.id,
-        name: d.name,
-        state: d.state_name || "",
-        score: compositeScore,
-        water: reservoirScore,
-        aqi: Math.round(avgAqi),
-        forest: ndviScore,
-        carbon: Math.max(10, Math.min(95, Math.round(100 - (ndviScore * 0.6 + (100 - aqiScore) * 0.4)))),
-        resilience: safetyScore,
-        risk: r.composite_risk
-      };
-    }).filter(Boolean) as Array<{ id: number; name: string; state: string; score: number; water: number; aqi: number; forest: number; carbon: number; resilience: number; risk: number }>;
-    return list;
-  }, [districts, allHistories, allRankings]);
+  // Emerging Threats Generator
+  const emergingThreats = useMemo(() => {
+    const threats: string[] = [];
+    if (metrics.avgTemp > 35) {
+      threats.push("Critical ambient thermal heat dome; risk of agricultural crop canopy damage.");
+    }
+    if (metrics.avgAqi > 120) {
+      threats.push("Severe post-harvest dust inversion and air stagnation; immediate particulate controls needed.");
+    }
+    if (metrics.avgReservoir < 40) {
+      threats.push("Extreme surface reservoir storage deficit; aquifer drawdown thresholds active.");
+    }
+    if (metrics.avgRain < 300 && year > 2030) {
+      threats.push("Projected severe rainfall deficit due to shifting monsoon corridors.");
+    }
+    if (threats.length === 0) {
+      threats.push("No immediate red-alert thermal or water stress anomalies detected.");
+      threats.push("Monitor pre-monsoon vegetative canopy decline patterns in semi-arid zones.");
+    }
+    return threats;
+  }, [metrics, year]);
 
-  // Export functions
   const handleExportCSV = () => {
     if (monthlyData.length === 0) return;
-    let csv = "Date,Temperature (C),Rainfall (mm),AQI,Reservoir level (%),Soil Moisture (%)\n";
-    monthlyData.forEach(obs => {
-      csv += `${obs.observed_on},${obs.temperature_c},${obs.rainfall_mm},${obs.aqi},${obs.reservoir_level_pct},${obs.soil_moisture_pct}\n`;
+    let csv = "Date,Temperature (C),Rainfall (mm),AQI,Reservoir level (%),Soil Moisture (%),NDVI\n";
+    monthlyData.forEach((obs: any) => {
+      csv += `${obs.observed_on},${obs.temperature_c},${obs.rainfall_mm},${obs.aqi},${obs.reservoir_level_pct},${obs.soil_moisture_pct},${obs.ndvi}\n`;
     });
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.setAttribute("href", url);
-    a.setAttribute("download", `BCT_Climate_Sustainability_Data_${year}.csv`);
+    a.setAttribute("download", `BCT_Climate_Intelligence_Data_${year}.csv`);
     a.click();
   };
 
@@ -294,136 +335,32 @@ export default function AnalyticsPage() {
     window.print();
   };
 
-  // Set the map active layer in global state when selected in analytics
-  const triggerMapUpdate = (layerKey: string) => {
-    if (climateContext) {
-      climateContext.setActiveLayer(layerKey);
-    }
-  };
-
-  // Dynamic calculations for Comparison Tab
-  const compMetrics = useMemo(() => {
-    if (districts.length === 0) return null;
-    const fetchMetrics = (dId: number) => {
-      const histories = allHistories[dId] || [];
-      const avgNdvi = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length : 0.5;
-      const avgAqi = histories.length > 0 ? histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length : 100;
-      const avgReservoir = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length : 50;
-      const avgSoil = histories.length > 0 ? histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length : 30;
-      const r = allRankings.find(x => x.district_id === dId) || { composite_risk: 50, drought_risk: 50 };
-
-      const ndviScore = Math.round(avgNdvi * 100);
-      const aqiScore = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
-      const reservoirScore = Math.round(avgReservoir);
-      const safetyScore = Math.round(100 - r.composite_risk);
-      const soilScore = Math.max(10, Math.min(100, Math.round(100 - r.drought_risk * 0.8)));
-
-      const compositeScore = Math.round(ndviScore * 0.25 + aqiScore * 0.2 + reservoirScore * 0.2 + safetyScore * 0.2 + soilScore * 0.15);
-      return {
-        score: compositeScore,
-        water: reservoirScore,
-        aqi: Math.round(avgAqi),
-        forest: ndviScore,
-        carbon: Math.max(10, Math.min(95, Math.round(100 - (ndviScore * 0.6 + (100 - aqiScore) * 0.4)))),
-        resilience: safetyScore,
-        envHealth: Math.round(ndviScore * 0.4 + aqiScore * 0.3 + soilScore * 0.3),
-        renewable: Math.min(100, Math.max(10, Math.round(safetyScore * 0.7 + reservoirScore * 0.3)))
-      };
-    };
-
-    const distA = districts.find(d => d.id === compDistA) || districts[0];
-    const distB = districts.find(d => d.id === compDistB) || districts[1];
-
-    const dataA = fetchMetrics(distA.id);
-    const dataB = fetchMetrics(distB.id);
-
-    return { distA, distB, dataA, dataB };
-  }, [districts, allHistories, allRankings, compDistA, compDistB]);
-
-  // ─── Sustainability Dynamic Leaderboard ───────────────────────────
-  const leaderboardList = useMemo(() => {
-    const list = filteredDistricts.map(d => {
-      const histories = allHistories[d.id] || [];
-      const avgNdvi = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.ndvi ?? 0.5), 0) / histories.length : 0.5;
-      const avgAqi = histories.length > 0 ? histories.reduce((a, obs) => a + obs.aqi, 0) / histories.length : 100;
-      const avgReservoir = histories.length > 0 ? histories.reduce((a, obs) => a + (obs.reservoir_level_pct ?? 50), 0) / histories.length : 50;
-      const avgSoil = histories.length > 0 ? histories.reduce((a, obs) => a + obs.soil_moisture_pct, 0) / histories.length : 30;
-      const r = allRankings.find(x => x.district_id === d.id) || { composite_risk: 50 };
-
-      const forest = Math.round(avgNdvi * 100);
-      const aqi = Math.max(0, Math.min(100, Math.round(100 - (avgAqi - 50) * 0.4)));
-      const water = Math.round(avgReservoir);
-      const resilience = Math.round(100 - r.composite_risk);
-      const soil = Math.round(avgSoil);
-
-      const score = Math.round(forest * 0.25 + aqi * 0.2 + water * 0.2 + resilience * 0.2 + soil * 0.15);
-
-      return {
-        id: d.id,
-        name: d.name,
-        state: d.state_name || "",
-        score,
-        forest,
-        water,
-        aqi,
-        resilience,
-        soil
-      };
-    });
-
-    const searched = list.filter(item =>
-      item.name.toLowerCase().includes(rankSearchText.toLowerCase()) ||
-      item.state.toLowerCase().includes(rankSearchText.toLowerCase())
-    );
-
-    return searched.sort((a, b) => {
-      let fieldA: any = a[rankSortKey];
-      let fieldB: any = b[rankSortKey];
-
-      if (typeof fieldA === "string") {
-        return rankSortOrder === "asc"
-          ? fieldA.localeCompare(fieldB)
-          : fieldB.localeCompare(fieldA);
-      } else {
-        return rankSortOrder === "asc"
-          ? fieldA - fieldB
-          : fieldB - fieldA;
-      }
-    });
-  }, [filteredDistricts, allHistories, allRankings, rankSearchText, rankSortKey, rankSortOrder]);
-
-
-  if (states.length === 0 || districts.length === 0 || allRankings.length === 0 || Object.keys(allHistories).length === 0 || !analyticsData || !metrics) {
-    return <div className="text-center py-20 text-muted-foreground">Loading analytics datasets...</div>;
-  }
-
-  if (!metrics) return null;
-
   return (
-    <div className="grid gap-5">
-      {/* ─── Page Header & Title ───────────────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="grid gap-6">
+      
+      {/* ─── TITLE & TOP CONTROLS ───────────────────────────────────────── */}
+      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
         <div>
-          <Badge className="border-white/[0.08] bg-brand-blue/10 text-brand-titanium">Climate Intelligence Workspace</Badge>
-          <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">National Climate & Sustainability Analytics</h1>
-          <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
-            Unified Climate Trends, Risk Models, Sustainability Indexes, and Cognitive Recommendations workspace.
+          <Badge className="border-white/[0.08] bg-brand-blue/10 text-brand-titanium mb-2">ISRO Bharat Antariksh Hackathon</Badge>
+          <h1 className="text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">Climate Intelligence Center</h1>
+          <p className="mt-1 text-sm text-secondary-foreground">
+            Multi-agency decision-support console for state-level climatic anomalies, risk models, and resource monitoring.
           </p>
         </div>
 
-        {/* ─── Global Filters Bar ────────────────────────────────────────── */}
+        {/* State Intelligence Panel (Filters) */}
         <div className="flex flex-wrap gap-2.5 bg-surface/60 border border-white/[0.08] p-2 rounded-2xl backdrop-blur-md">
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">State</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Target State</span>
             <select
               value={stateId}
               onChange={(e) => {
                 setStateId(e.target.value === "" ? "" : Number(e.target.value));
                 setSelectedDistId("");
               }}
-              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2 text-white focus:outline-none text-xs w-40 cursor-pointer"
             >
-              <option value="">All States</option>
+              <option value="">All India (National)</option>
               {states.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -431,11 +368,12 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">District</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Target District</span>
             <select
               value={selectedDistId}
               onChange={(e) => setSelectedDistId(e.target.value === "" ? "" : Number(e.target.value))}
-              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs w-36 cursor-pointer"
+              disabled={!stateId}
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2 text-white focus:outline-none text-xs w-40 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <option value="">All Districts</option>
               {filteredDistricts.map((d) => (
@@ -445,11 +383,11 @@ export default function AnalyticsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Timeline</span>
+            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Projection Year</span>
             <select
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
-              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
+              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2 text-white focus:outline-none text-xs cursor-pointer"
             >
               {[2020, 2026, 2030, 2040, 2050].map((y) => (
                 <option key={y} value={y}>{y} AD</option>
@@ -457,983 +395,452 @@ export default function AnalyticsPage() {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Zone</span>
-            <select
-              value={climateZone}
-              onChange={(e) => {
-                setClimateZone(e.target.value);
-                setSelectedDistId("");
-              }}
-              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
+          <div className="flex items-end gap-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleExportCSV}
+              className="border-white/[0.08] bg-background hover:bg-surface hover:text-brand-titanium text-secondary-foreground text-xs h-7 px-2.5"
             >
-              <option value="">All Zones</option>
-              {["Tropical", "Semi-Arid", "Arid", "Humid"].map((z) => (
-                <option key={z} value={z}>{z}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-[7.5px] font-bold text-muted-foreground uppercase tracking-wider">Climatic Risk</span>
-            <select
-              value={riskCategory}
-              onChange={(e) => {
-                setRiskCategory(e.target.value);
-                setSelectedDistId("");
-              }}
-              className="bg-background border border-white/[0.08] rounded-lg py-1 px-2.5 text-white focus:outline-none text-xs cursor-pointer"
+              <Download className="h-3 w-3" />
+              <span>CSV</span>
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleExportPDF}
+              className="border-white/[0.08] bg-background hover:bg-surface hover:text-brand-titanium text-secondary-foreground text-xs h-7 px-2.5"
             >
-              <option value="">All Categories</option>
-              {["Flood Prone", "Drought Prone", "Heatwave Prone", "Water Stressed", "Safe"].map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
+              <Printer className="h-3 w-3" />
+              <span>PDF</span>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* ─── Export & Print Floating Actions ─────────────────────────────── */}
-      <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
-        <div className="flex gap-1.5 overflow-x-auto select-none no-scrollbar">
-          {[
-            { id: "overview", label: "Overview", icon: Layers3 },
-            { id: "trends", label: "Climate Trends", icon: TrendingUp },
-            { id: "risk", label: "Risk Analytics", icon: Activity },
-            { id: "sustainability", label: "Sustainability", icon: Leaf },
-            { id: "water", label: "Water Resources", icon: Droplets },
-            { id: "air", label: "Air Quality", icon: Wind },
-            { id: "agriculture", label: "Agriculture", icon: Compass },
-            { id: "ai", label: "AI Insights", icon: Sparkles },
-            { id: "compare", label: "District Compare", icon: Scale }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                  active 
-                    ? "bg-brand-blue text-slate-950 shadow-[0_0_12px_#4DA8DA50]" 
-                    : "text-muted-foreground hover:text-slate-200 hover:bg-surface/60"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
+      <hr className="border-white/[0.08]" />
 
-        <div className="flex gap-2">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={handleExportCSV}
-            className="border-white/[0.08] bg-background hover:bg-surface hover:text-brand-titanium text-secondary-foreground text-xs gap-1.5 h-8"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>CSV</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={handleExportPDF}
-            className="border-white/[0.08] bg-background hover:bg-surface hover:text-brand-titanium text-secondary-foreground text-xs gap-1.5 h-8"
-          >
-            <Printer className="h-3.5 w-3.5" />
-            <span>Print PDF</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* ─── TAB CONTENT: OVERVIEW ──────────────────────────────────────── */}
-      {activeTab === "overview" && (
-        <div className="space-y-5">
-          {/* Summary Scorecards Grid */}
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
-              <div>
-                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Temperature</span>
-                <p className="mt-2 text-2xl font-bold text-rose-400 font-mono">{metrics.avgTemp}°C</p>
-              </div>
-              <span className="text-[9px] text-muted-foreground">Monthly Avg Range</span>
-            </Card>
-
-            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
-              <div>
-                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Precipitation</span>
-                <p className="mt-2 text-2xl font-bold text-brand-titanium font-mono">{metrics.avgRain} mm</p>
-              </div>
-              <span className="text-[9px] text-muted-foreground">Monsoon Aggregate</span>
-            </Card>
-
-            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
-              <div>
-                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Reservoir Status</span>
-                <p className="mt-2 text-2xl font-bold text-brand-blue font-mono">{metrics.avgReservoir}%</p>
-              </div>
-              <span className="text-[9px] text-muted-foreground">Total Capacity Level</span>
-            </Card>
-
-            <Card className="glass-card bg-background/50 p-4 flex flex-col justify-between h-[104px]">
-              <div>
-                <span className="text-[8.5px] font-bold text-muted-foreground uppercase tracking-widest block">Air Quality</span>
-                <p className="mt-2 text-2xl font-bold text-brand-blue font-mono">{metrics.avgAqi} AQI</p>
-              </div>
-              <span className="text-[9px] text-muted-foreground">CPCB Gridded Index</span>
-            </Card>
-
-            <Card className="glass-card border-white/[0.08] bg-brand-blue/10 p-4 flex flex-col justify-between h-[104px] cursor-pointer hover:border-white/[0.08] transition" onClick={() => setActiveTab("sustainability")}>
-              <div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[8.5px] font-bold text-brand-blue uppercase tracking-widest block">Sustainability Index</span>
-                  <Leaf className="h-3.5 w-3.5 text-brand-blue" />
-                </div>
-                <p className="mt-2 text-2xl font-bold text-white font-mono">{metrics.compositeIndex}/100</p>
-              </div>
-              <span className="text-[9px] text-brand-titanium font-medium flex items-center gap-0.5">
-                Explore Ecologics <ChevronRight className="h-3 w-3" />
-              </span>
-            </Card>
+      {/* ─── SECTION 1: NATIONAL / STATE CLIMATE OVERVIEW (KPIs) ────────── */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        
+        {/* Temperature */}
+        <Card className="glass-card bg-background/50 border-white/[0.08] p-4 flex flex-col justify-between min-h-[105px]">
+          <div>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Temperature</span>
+              <Flame className="h-3.5 w-3.5 text-rose-400" />
+            </div>
+            {loadingMetrics ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : errorMetrics ? (
+              <p className="mt-2 text-xs text-rose-400">Error</p>
+            ) : (
+              <p className="mt-2 text-2xl font-bold text-rose-400 font-mono">{metrics.avgTemp}°C</p>
+            )}
           </div>
+          <span className="text-[9px] text-muted-foreground">Mean Ambient Index</span>
+        </Card>
 
-          {/* Quick Trends & Map highlights */}
-          <div className="grid gap-5 xl:grid-cols-2">
-            <Card className="glass-card">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <div>
-                  <CardTitle className="text-white text-base">Scope Climate Trends Overview</CardTitle>
-                  <CardDescription>Monthly aggregates for target parameters.</CardDescription>
-                </div>
-                <Button size="sm" variant="ghost" className="text-brand-titanium hover:text-white" onClick={() => setActiveTab("trends")}>
-                  Full Charts
-                </Button>
-              </CardHeader>
-              <CardContent className="h-64">
-                <ResponsiveContainer width="100%" height={230}>
-                  <AreaChart data={monthlyData}>
-                    <defs>
-                      <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#f87171" stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor="#f87171" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="date" stroke="#C0C8D4" fontSize={9} />
-                    <YAxis stroke="#C0C8D4" fontSize={9} />
-                    <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                    <Area type="monotone" dataKey="temperature_c" stroke="#f87171" fillOpacity={1} fill="url(#colorTemp)" name="Temperature (C)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* AI Insights Quick block */}
-            <Card className="glass-card flex flex-col justify-between p-5 space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium flex items-center gap-1.5">
-                  <Sparkles className="h-4 w-4" />
-                  Cognitive Analysis Summary
-                </h3>
-                <p className="text-xs text-secondary-foreground leading-relaxed italic">
-                  "{aiInsights?.summary}"
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 border-t border-white/[0.08] pt-3 text-[10.5px]">
-                <div>
-                  <span className="font-bold text-brand-blue block mb-1">✓ Positives</span>
-                  <div className="space-y-0.5">
-                    {aiInsights?.positives.slice(0, 2).map((p: string, i: number) => (
-                      <p key={i} className="text-secondary-foreground">• {p}</p>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <span className="font-bold text-brand-blue block mb-1">⚠ Critical Factors</span>
-                  <div className="space-y-0.5">
-                    {aiInsights?.negatives.slice(0, 2).map((n: string, i: number) => (
-                      <p key={i} className="text-secondary-foreground">• {n}</p>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end pt-3 border-t border-white/[0.08] mt-4">
-                <Link href={`/copilot?query=${encodeURIComponent("Explain ecological and sustainability indicators")}`}>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs gap-1.5 border-brand-blue/30 text-brand-titanium bg-brand-blue/5 hover:bg-brand-blue/15 hover:border-brand-blue"
-                  >
-                    <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Deep Dive with Climate Officer
-                  </Button>
-                </Link>
-              </div>
-            </Card>
+        {/* Rainfall Anomaly */}
+        <Card className="glass-card bg-background/50 border-white/[0.08] p-4 flex flex-col justify-between min-h-[105px]">
+          <div>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Rainfall</span>
+              <CloudRain className="h-3.5 w-3.5 text-brand-blue" />
+            </div>
+            {loadingMetrics ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : errorMetrics ? (
+              <p className="mt-2 text-xs text-rose-400">Error</p>
+            ) : (
+              <p className="mt-2 text-2xl font-bold text-brand-titanium font-mono">{metrics.avgRain} mm</p>
+            )}
           </div>
-        </div>
-      )}
+          <span className="text-[9px] text-muted-foreground">Annual Accumulation</span>
+        </Card>
 
-      {/* ─── TAB CONTENT: CLIMATE TRENDS ────────────────────────────────── */}
-      {activeTab === "trends" && (
-        <div className="grid gap-5 xl:grid-cols-2">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-white text-base">Temperature Profile Anomaly</CardTitle>
-              <CardDescription>Average monthly gridded readings.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height={230}>
-                <AreaChart data={monthlyData}>
-                  <XAxis dataKey="date" stroke="#C0C8D4" fontSize={9} />
-                  <YAxis stroke="#C0C8D4" fontSize={9} />
-                  <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                  <Area type="monotone" dataKey="temperature_c" stroke="#f87171" fill="rgba(248,113,113,0.15)" name="Temperature (C)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-white text-base">Precipitation Accumulation Index</CardTitle>
-              <CardDescription>Monsoon distributions and run-offs.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height={230}>
-                <AreaChart data={monthlyData}>
-                  <XAxis dataKey="date" stroke="#C0C8D4" fontSize={9} />
-                  <YAxis stroke="#C0C8D4" fontSize={9} />
-                  <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                  <Area type="monotone" dataKey="rainfall_mm" stroke="#38bdf8" fill="rgba(56,189,248,0.15)" name="Rainfall (mm)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: RISK ANALYTICS ────────────────────────────────── */}
-      {activeTab === "risk" && (
-        <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-5">
-            {[
-              { label: "Composite Risk Index", val: metrics.avgRisk, color: "text-rose-400" },
-              { label: "Flood Inundation Risk", val: metrics.avgFlood, color: "text-brand-blue" },
-              { label: "Extreme Heatwaves Risk", val: metrics.avgHeat, color: "text-red-400" },
-              { label: "Agricultural Drought Risk", val: metrics.avgDrought, color: "text-brand-blue" },
-              { label: "Hydrologic Water Stress", val: metrics.avgWater, color: "text-brand-titanium" }
-            ].map((r, i) => (
-              <Card key={i} className="glass-card bg-background/50 p-4">
-                <span className="text-[8.5px] font-bold text-muted-foreground uppercase block">{r.label}</span>
-                <p className={`mt-2 text-2xl font-bold font-mono ${r.color}`}>{r.val}%</p>
-                <div className="h-1 bg-surface-elevated rounded-full mt-2 overflow-hidden">
-                  <div className="h-full bg-current" style={{ width: `${r.val}%`, color: r.color.replace("text-", "#") }} />
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          <Card className="glass-card p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium mb-4">ML Predictor Facades</h3>
-            <div className="grid gap-4 md:grid-cols-3">
-              {[
-                ["Flood Forecast Model", "Predicts localized river flood thresholds and flash discharge anomalies.", "RandomForestFlood-v1.2", "emerald"],
-                ["Drought Severity Model", "Evaluates soil moisture dry index and crop NDVI conditions.", "XGBoostDrought-v2.0", "amber"],
-                ["Heatwave Warning Model", "Fuzzy-logic index based on ambient temperature and relative humidity grids.", "SklearnHeatAlert-v1.1", "red"]
-              ].map(([title, desc, model, col]) => (
-                <div key={title} className="rounded-2xl border border-white/[0.08] bg-white/[0.01] p-4 flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-bold text-white text-xs">{title}</h4>
-                    <p className="text-[11px] text-muted-foreground mt-1">{desc}</p>
-                  </div>
-                  <Badge className="mt-4 self-start font-mono text-[9px] uppercase border-white/[0.08] bg-brand-blue/10 text-brand-titanium">
-                    {model}
-                  </Badge>
-                </div>
-              ))}
+        {/* AQI */}
+        <Card className="glass-card bg-background/50 border-white/[0.08] p-4 flex flex-col justify-between min-h-[105px]">
+          <div>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">AQI</span>
+              <Wind className="h-3.5 w-3.5 text-orange-400" />
             </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: SUSTAINABILITY (MERGED SECTION) ────────────────── */}
-      {activeTab === "sustainability" && (
-        <div className="space-y-5">
-          {/* ─── Sustainability Sub-Navigation ────────────────────────────── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                { id: "scorecard", label: "Executive Scorecard", icon: BarChart3 },
-                { id: "simulator", label: "Policy Simulator & Forecast", icon: Sparkles },
-                { id: "leaderboard", label: "District Leaderboard", icon: Activity },
-              ].map((sub) => {
-                const Icon = sub.icon;
-                const active = susSubTab === sub.id;
-                return (
-                  <button
-                    key={sub.id}
-                    onClick={() => setSusSubTab(sub.id as any)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
-                      active
-                        ? "bg-surface-elevated text-brand-titanium border-white/[0.08] shadow-[0_0_8px_rgba(6,182,212,0.15)]"
-                        : "text-muted-foreground hover:text-slate-200 hover:bg-surface/40 border-transparent"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span>{sub.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Overall Sustainability Index:</span>
-              <Badge className="bg-surface-elevated text-brand-blue border border-white/[0.08] font-mono font-bold text-xs py-0.5 px-2">
-                {metrics.compositeIndex}/100
-              </Badge>
-            </div>
-          </div>
-
-          {/* ─── SUB TAB 1: EXECUTIVE SCORECARD ───────────────────────────── */}
-          {susSubTab === "scorecard" && (
-            <div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
-              {/* Radial Score Gauge Card */}
-              <Card className="glass-card p-6 flex flex-col justify-between items-center text-center">
-                <CardHeader className="pb-2 p-0">
-                  <CardTitle className="text-white text-base">Composite Index Score</CardTitle>
-                  <CardDescription>Overall Ecological Balance & Resource Security</CardDescription>
-                </CardHeader>
-                
-                <CardContent className="space-y-6 w-full flex flex-col items-center mt-4 p-0">
-                  {/* Gauge */}
-                  <div className="relative w-44 h-44 flex items-center justify-center">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-                      <circle cx="60" cy="60" r="50" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="8" />
-                      <circle
-                        cx="60"
-                        cy="60"
-                        r="50"
-                        fill="transparent"
-                        stroke={metrics.compositeIndex >= 70 ? "#22C55E" : metrics.compositeIndex >= 50 ? "#4DA8DA" : "#4DA8DA"}
-                        strokeWidth="8"
-                        strokeDasharray={2 * Math.PI * 50}
-                        strokeDashoffset={2 * Math.PI * 50 * (1 - metrics.compositeIndex / 100)}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                        style={{ filter: `drop-shadow(0 0 6px ${metrics.compositeIndex >= 70 ? "#22C55E" : "#4DA8DA"}70)` }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-4xl font-extrabold text-white tracking-tighter">{metrics.compositeIndex}</span>
-                      <span className="text-[8px] uppercase tracking-widest font-extrabold text-muted-foreground mt-1">Sustainability Score</span>
-                    </div>
-                  </div>
-
-                  {/* Pillars cards */}
-                  <div className="grid grid-cols-2 gap-2.5 w-full text-left text-[10.5px]">
-                    {[
-                      { label: "Environmental Health", score: `${metrics.envHealthScore}/100`, key: "environmental_health", color: "hover:border-white/[0.08]" },
-                      { label: "Water Sustainability", score: `${metrics.waterSustainability}%`, key: "water_resources", color: "hover:border-white/[0.08]" },
-                      { label: "Forest Cover (NDVI)", score: `${metrics.forestHealth}%`, key: "green_cover", color: "hover:border-green-500/25" },
-                      { label: "Resilience Score", score: `${metrics.climateResilience}%`, key: "climate_resilience", color: "hover:border-rose-500/25" }
-                    ].map((item) => (
-                      <div
-                        key={item.key}
-                        onClick={() => triggerMapUpdate(item.key)}
-                        className={`p-3 rounded-2xl bg-surface/40 border border-white/5 cursor-pointer transition ${item.color} active:scale-95`}
-                      >
-                        <span className="text-[7.5px] text-muted-foreground font-bold block uppercase tracking-wider">{item.label}</span>
-                        <p className="mt-1 font-bold text-white font-mono text-sm">{item.score}</p>
-                        <span className="text-[8px] text-brand-blue/80 mt-1 block">Click to view map layer</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Radar Chart & Directives */}
-              <Card className="glass-card p-5 flex flex-col justify-between">
-                <CardHeader className="p-0 pb-3">
-                  <CardTitle className="text-white text-base">5-Pillar Sustainability Radar</CardTitle>
-                  <CardDescription>Multi-dimensional analysis relative to safety boundaries.</CardDescription>
-                </CardHeader>
-                
-                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-0 mt-2">
-                  <div className="w-full h-56 flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height={220}>
-                      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={[
-                        { subject: "Forest Cover", value: metrics.forestHealth, fullMark: 100 },
-                        { subject: "Air Quality", value: metrics.airQualityScore, fullMark: 100 },
-                        { subject: "Water Storage", value: metrics.waterSustainability, fullMark: 100 },
-                        { subject: "Soil Health", value: metrics.avgSoil, fullMark: 100 },
-                        { subject: "Climate Safety", value: metrics.climateResilience, fullMark: 100 }
-                      ]}>
-                        <PolarGrid stroke="rgba(148,163,184,0.1)" />
-                        <PolarAngleAxis dataKey="subject" stroke="#C0C8D4" tick={{ fontSize: 9 }} />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
-                        <Radar name="Index" dataKey="value" stroke="#22C55E" fill="#22C55E" fillOpacity={0.25} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Policy Directives */}
-                  <div className="space-y-3">
-                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-brand-blue flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Enterprise Directives
-                    </h4>
-                    <div className="space-y-2">
-                      {aiInsights?.recommendations.slice(0, 3).map((tip: string, idx: number) => (
-                        <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-white/[0.08] bg-brand-blue/10 text-[11px] text-secondary-foreground leading-normal">
-                          <Check className="h-3.5 w-3.5 shrink-0 text-brand-blue mt-0.5" />
-                          <span>{tip}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* ─── SUB TAB 2: POLICY SIMULATOR & FORECAST ──────────────────── */}
-          {susSubTab === "simulator" && (
-            <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
-              {/* Slider Panel */}
-              <Card className="glass-card p-5 space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-white text-base">Carbon & Ecology Budget Simulator</CardTitle>
-                    <CardDescription>Simulate target carbon neutral levers in real-time.</CardDescription>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-[10px] uppercase text-brand-titanium hover:bg-surface px-2 h-7"
-                    onClick={() => {
-                      setReforestRate(15);
-                      setEvShare(20);
-                      setRenewablesShare(30);
-                      setRecycleRate(25);
-                    }}
-                  >
-                    Reset Defaults
-                  </Button>
-                </div>
-
-                <div className="space-y-4 pt-2">
-                  {/* Afforestation Slider */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-secondary-foreground">Forest Canopy/Afforestation Expansion</span>
-                      <span className="text-brand-blue font-mono font-bold">+{reforestRate}% yr</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={reforestRate}
-                      onChange={(e) => setReforestRate(Number(e.target.value))}
-                      className="w-full accent-emerald-400 bg-surface rounded-lg cursor-pointer h-1.5"
-                    />
-                    <p className="text-[9.5px] text-muted-foreground">Increases canopy NDVI levels and improves baseline soil moisture retention.</p>
-                  </div>
-
-                  {/* EV Adoption Slider */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-secondary-foreground">E-Mobility & Public Transit Grid Share</span>
-                      <span className="text-brand-titanium font-mono font-bold">{evShare}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={evShare}
-                      onChange={(e) => setEvShare(Number(e.target.value))}
-                      className="w-full accent-emerald-400 bg-surface rounded-lg cursor-pointer h-1.5"
-                    />
-                    <p className="text-[9.5px] text-muted-foreground">Direct abatement of vehicular particulates and volatile carbon emissions.</p>
-                  </div>
-
-                  {/* Renewable Share Slider */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-secondary-foreground">Renewable Energy Share (Solar & Wind)</span>
-                      <span className="text-brand-blue font-mono font-bold">{renewablesShare}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={renewablesShare}
-                      onChange={(e) => setRenewablesShare(Number(e.target.value))}
-                      className="w-full accent-amber-400 bg-surface rounded-lg cursor-pointer h-1.5"
-                    />
-                    <p className="text-[9.5px] text-muted-foreground">Reduces industrial coal burning emissions, improving CPCB Air Quality Index.</p>
-                  </div>
-
-                  {/* Water Recycling Slider */}
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-secondary-foreground">Hydrologic Recycling & Basin Recovery</span>
-                      <span className="text-brand-titanium font-mono font-bold">{recycleRate}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={recycleRate}
-                      onChange={(e) => setRecycleRate(Number(e.target.value))}
-                      className="w-full accent-mint bg-surface rounded-lg cursor-pointer h-1.5"
-                    />
-                    <p className="text-[9.5px] text-muted-foreground">Preserves localized surface reservoir capacities, hedging drought anomalies.</p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Simulation Result Chart */}
-              <Card className="glass-card p-5 flex flex-col justify-between">
-                <div>
-                  <CardTitle className="text-white text-base">Simulated Path vs Baseline Projection (to 2050)</CardTitle>
-                  <CardDescription>Decisions affect the composite index growth path relative to standard degradation models.</CardDescription>
-                </div>
-                
-                <CardContent className="h-64 mt-4 p-0">
-                  <ResponsiveContainer width="100%" height={230}>
-                    <LineChart data={simulatedData}>
-                      <XAxis dataKey="year" stroke="#C0C8D4" fontSize={9} />
-                      <YAxis domain={[10, 100]} stroke="#C0C8D4" fontSize={9} />
-                      <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                      <Legend wrapperStyle={{ fontSize: 9 }} />
-                      <Line type="monotone" dataKey="Baseline" stroke="#f87171" strokeWidth={2.5} strokeDasharray="5 5" name="Baseline (No Action)" />
-                      <Line type="monotone" dataKey="Simulated Path" stroke="#22C55E" strokeWidth={3} dot={{ r: 4 }} name="Simulated Path (Proposed)" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
-          {/* ─── SUB TAB 3: DISTRICT LEADERBOARD GRID ────────────────────── */}
-          {susSubTab === "leaderboard" && (
-            <Card className="glass-card p-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/5">
-                <div>
-                  <CardTitle className="text-white text-base">District Sustainability Leaderboard</CardTitle>
-                  <CardDescription>Detailed grid of districts, sortable by sustainability sub-pillars.</CardDescription>
-                </div>
-                
-                {/* Search Bar */}
-                <input
-                  type="text"
-                  placeholder="Search district..."
-                  value={rankSearchText}
-                  onChange={(e) => setRankSearchText(e.target.value)}
-                  className="bg-background border border-white/[0.08] rounded-lg py-1.5 px-3 text-white focus:outline-none text-xs w-56 placeholder:text-muted-foreground"
-                />
-              </div>
-
-              <div className="overflow-x-auto mt-4 max-h-[360px] overflow-y-auto pr-1">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/[0.08] text-muted-foreground">
-                      {[
-                        { label: "District Name", sortKey: "name" },
-                        { label: "State", sortKey: "state" },
-                        { label: "Composite Index", sortKey: "score" },
-                        { label: "Forest NDVI", sortKey: "forest" },
-                        { label: "Water Status", sortKey: "water" },
-                        { label: "Clean Air Index", sortKey: "aqi" },
-                        { label: "Climate Resilience", sortKey: "resilience" }
-                      ].map((h) => (
-                        <th
-                          key={h.sortKey}
-                          onClick={() => {
-                            if (rankSortKey === h.sortKey) {
-                              setRankSortOrder(rankSortOrder === "asc" ? "desc" : "asc");
-                            } else {
-                              setRankSortKey(h.sortKey as any);
-                              setRankSortOrder("desc");
-                            }
-                          }}
-                          className="py-2.5 px-2 font-semibold hover:text-white cursor-pointer select-none whitespace-nowrap"
-                        >
-                          <div className="flex items-center gap-1">
-                            <span>{h.label}</span>
-                            <span className="text-[10px] text-brand-blue">
-                              {rankSortKey === h.sortKey ? (rankSortOrder === "asc" ? "▲" : "▼") : ""}
-                            </span>
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  
-                  <tbody className="divide-y divide-white/5">
-                    {leaderboardList.map((item) => {
-                      const isSelected = selectedDistId === item.id;
-                      return (
-                        <tr
-                          key={item.id}
-                          onClick={() => setSelectedDistId(item.id)}
-                          className={`hover:bg-surface/40 cursor-pointer transition ${
-                            isSelected ? "bg-brand-blue/10 border-l-2 border-l-emerald-400" : ""
-                          }`}
-                        >
-                          <td className="py-3 px-2 font-bold text-white whitespace-nowrap">{item.name}</td>
-                          <td className="py-3 px-2 text-secondary-foreground">{item.state}</td>
-                          
-                          {/* Composite Index score bar */}
-                          <td className="py-3 px-2 whitespace-nowrap">
-                            <span className={`px-2 py-0.5 rounded font-mono font-bold text-[11px] ${
-                              item.score >= 70
-                                ? "bg-surface-elevated text-brand-blue border border-white/[0.08]"
-                                : item.score >= 50
-                                ? "bg-surface-elevated text-brand-titanium border border-white/[0.08]"
-                                : "bg-brand-blue/10 text-brand-blue border border-brand-blue/20"
-                            }`}>
-                              {item.score}/100
-                            </span>
-                          </td>
-                          
-                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.forest}%</td>
-                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.water}%</td>
-                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.aqi}/100</td>
-                          <td className="py-3 px-2 text-secondary-foreground font-mono">{item.resilience}%</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: WATER RESOURCES ────────────────────────────────── */}
-      {activeTab === "water" && (
-        <div className="grid gap-5 xl:grid-cols-2">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-white text-base">Reservoir Storage Status</CardTitle>
-              <CardDescription>Hydrological reserves trend over 12 months.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height={230}>
-                <AreaChart data={monthlyData}>
-                  <XAxis dataKey="date" stroke="#C0C8D4" fontSize={9} />
-                  <YAxis stroke="#C0C8D4" fontSize={9} />
-                  <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                  <Area type="monotone" dataKey="reservoir_level_pct" stroke="#22C55E" fill="rgba(34, 197, 94,0.15)" name="Reservoir (%)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card p-5 flex flex-col justify-between">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium mb-2">Water Stress Index</h3>
-              <p className="text-[11px] text-muted-foreground">Evaluates monthly groundwater draft and surface reservoir levels.</p>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-secondary-foreground">Water Stress Risk Level</span>
-                    <span className="text-brand-titanium font-bold font-mono">{metrics.waterStress}%</span>
-                  </div>
-                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-blue" style={{ width: `${metrics.waterStress}%` }} />
-                  </div>
-                </div>
-                <div className="text-[11px] text-secondary-foreground leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-white/[0.08]">
-                  <p className="font-semibold text-brand-titanium">Recommended Basin Interventions:</p>
-                  <p>• Mandate drip-irrigation retrofits in agricultural blocks.</p>
-                  <p>• Construct localized check-dams to capture monsoon peak run-offs.</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: AIR QUALITY ────────────────────────────────────── */}
-      {activeTab === "air" && (
-        <div className="grid gap-5 xl:grid-cols-2">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-white text-base">CPCB Gridded AQI Trend</CardTitle>
-              <CardDescription>Air Quality Index variance over 12 months.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height={230}>
-                <AreaChart data={monthlyData}>
-                  <XAxis dataKey="date" stroke="#C0C8D4" fontSize={9} />
-                  <YAxis stroke="#C0C8D4" fontSize={9} />
-                  <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                  <Area type="monotone" dataKey="aqi" stroke="#4DA8DA" fill="rgba(77, 168, 218,0.15)" name="AQI" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card p-5 flex flex-col justify-between">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium mb-2">Air Protection Score</h3>
-              <p className="text-[11px] text-muted-foreground">Computed safety score where higher is cleaner.</p>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-secondary-foreground">Clean Air Index</span>
-                    <span className="text-brand-blue font-bold font-mono">{metrics.airQualityScore}/100</span>
-                  </div>
-                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-blue" style={{ width: `${metrics.airQualityScore}%` }} />
-                  </div>
-                </div>
-                <div className="text-[11px] text-secondary-foreground leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-white/[0.08]">
-                  <p className="font-semibold text-brand-blue">Direct Clean Air Policies:</p>
-                  <p>• Establish strict buffer plantation shields around commercial grids.</p>
-                  <p>• Monitor real-time particulate emission grids for block-level compliance.</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: AGRICULTURE ────────────────────────────────────── */}
-      {activeTab === "agriculture" && (
-        <div className="grid gap-5 xl:grid-cols-2">
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="text-white text-base">Forest Canopy (NDVI) Density</CardTitle>
-              <CardDescription>NDVI condition values over 12 months.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-64">
-              <ResponsiveContainer width="100%" height={230}>
-                <AreaChart data={monthlyData}>
-                  <XAxis dataKey="date" stroke="#C0C8D4" fontSize={9} />
-                  <YAxis stroke="#C0C8D4" fontSize={9} />
-                  <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)" }} />
-                  <Area type="monotone" dataKey="ndvi" stroke="#22C55E" fill="rgba(34, 197, 94,0.15)" name="NDVI Index" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card p-5 flex flex-col justify-between">
-            <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium mb-2">Soil Health & Vegetation</h3>
-              <p className="text-[11px] text-muted-foreground">Calculated composite soil moisture indexes.</p>
-              <div className="mt-4 space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-secondary-foreground">Soil Moisture Score</span>
-                    <span className="text-brand-blue font-bold font-mono">{metrics.avgSoil}%</span>
-                  </div>
-                  <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
-                    <div className="h-full bg-brand-blue" style={{ width: `${metrics.avgSoil}%` }} />
-                  </div>
-                </div>
-                <div className="text-[11px] text-secondary-foreground leading-normal space-y-2 bg-white/[0.01] p-3 rounded-lg border border-white/[0.08]">
-                  <p className="font-semibold text-brand-blue">Soil Quality Recommendations:</p>
-                  <p>• Deploy moisture retention mulch overlays in arable zones.</p>
-                  <p>• Avoid nutrient drafts by regulating crop rotation schedules.</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: AI INSIGHTS ────────────────────────────────────── */}
-      {activeTab === "ai" && (
-        <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-          <Card className="glass-card p-5 space-y-5">
-            <div className="space-y-2">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium flex items-center gap-1.5">
-                <Sparkles className="h-4.5 w-4.5" />
-                Unified Ecological AI Explanation
-              </h3>
-              <p className="text-xs text-secondary-foreground leading-relaxed italic bg-background/40 p-3.5 rounded-2xl border border-white/[0.08]">
-                "{aiInsights?.summary}"
+            {loadingMetrics ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : errorMetrics ? (
+              <p className="mt-2 text-xs text-rose-400">Error</p>
+            ) : (
+              <p className={`mt-2 text-2xl font-bold font-mono ${metrics.avgAqi > 100 ? "text-amber-400" : "text-emerald-400"}`}>
+                {metrics.avgAqi}
               </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 border-t border-white/[0.08] pt-4 text-xs">
-              <div className="space-y-2">
-                <span className="font-bold text-brand-blue block uppercase tracking-wider text-[10px]">Positive Indicators</span>
-                <div className="space-y-1.5">
-                  {aiInsights?.positives.map((p: string, i: number) => (
-                    <div key={i} className="flex gap-1.5 text-secondary-foreground leading-normal">
-                      <span className="text-brand-blue font-bold">•</span>
-                      <span>{p}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <span className="font-bold text-brand-blue block uppercase tracking-wider text-[10px]">Negative Indicators</span>
-                <div className="space-y-1.5">
-                  {aiInsights?.negatives.map((n: string, i: number) => (
-                    <div key={i} className="flex gap-1.5 text-secondary-foreground leading-normal">
-                      <span className="text-brand-blue font-bold">•</span>
-                      <span>{n}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Dynamic Rankings Widget */}
-          <Card className="glass-card p-5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-brand-titanium mb-4 flex items-center gap-1.5">
-              <History className="h-4.5 w-4.5" />
-              Dynamic Sustainability Rankings
-            </h3>
-            <div className="space-y-2.5">
-              {rankingsList.slice(0, 5).map((r, i) => (
-                <div key={r.id} className="flex justify-between items-center bg-white/[0.02] border border-white/[0.08] rounded-lg p-2 text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold font-mono text-brand-blue w-4 text-right">#{i + 1}</span>
-                    <div className="leading-tight">
-                      <p className="font-bold text-white">{r.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{r.state}</p>
-                    </div>
-                  </div>
-                  <span className="font-bold font-mono text-brand-blue bg-surface-elevated px-1.5 py-0.5 rounded text-[10.5px]">
-                    {r.score} pts
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* ─── TAB CONTENT: DISTRICT COMPARE ──────────────────────────────── */}
-      {activeTab === "compare" && compMetrics && (
-        <div className="space-y-5">
-          {/* Comparison Selector Dropdowns */}
-          <div className="grid gap-4 md:grid-cols-2 bg-surface/40 border border-white/[0.08] p-4 rounded-2xl backdrop-blur-md">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Location A</label>
-              <select
-                value={compDistA}
-                onChange={(e) => setCompDistA(Number(e.target.value))}
-                className="bg-background border border-white/[0.08] rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
-              >
-                {districts.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Select Location B</label>
-              <select
-                value={compDistB}
-                onChange={(e) => setCompDistB(Number(e.target.value))}
-                className="bg-background border border-white/[0.08] rounded-lg py-2 px-3 text-white focus:outline-none text-xs w-full cursor-pointer"
-              >
-                {districts.map((d) => (
-                  <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
-                ))}
-              </select>
-            </div>
+            )}
           </div>
+          <span className="text-[9px] text-muted-foreground">CPCB Gridded Index</span>
+        </Card>
 
-          {/* Comparison Cards side-by-side */}
-          <div className="grid gap-5 md:grid-cols-2">
-            {/* Location A */}
-            <Card className="glass-card p-5 border-white/[0.08] bg-background/20">
-              <Badge className="border-white/[0.08] bg-brand-blue/10 text-brand-titanium">Location A</Badge>
-              <h3 className="text-lg font-bold text-white mt-1.5">{compMetrics.distA.name}</h3>
-              <p className="text-xs text-muted-foreground">{compMetrics.distA.state_name}</p>
-              
-              <div className="mt-4 space-y-3">
-                {[
-                  { label: "Sustainability Score", val: compMetrics.dataA.score, max: 100, color: "bg-brand-blue" },
-                  { label: "Water Availability", val: compMetrics.dataA.water, max: 100, color: "bg-brand-blue" },
-                  { label: "Air Quality (Score)", val: 100 - Math.min(100, Math.max(0, Math.round((compMetrics.dataA.aqi - 50) * 0.4))), max: 100, color: "bg-brand-blue" },
-                  { label: "Forest Cover", val: compMetrics.dataA.forest, max: 100, color: "bg-green-400" },
-                  { label: "Carbon Impact", val: compMetrics.dataA.carbon, max: 100, color: "bg-rose-400" },
-                  { label: "Climate Resilience", val: compMetrics.dataA.resilience, max: 100, color: "bg-indigo-400" }
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <span className="text-white font-mono font-semibold">{item.val}</span>
-                    </div>
-                    <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
-                      <div className={`h-full ${item.color}`} style={{ width: `${item.val}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            {/* Location B */}
-            <Card className="glass-card p-5 border-white/[0.08] bg-background/20">
-              <Badge className="border-white/[0.08] bg-brand-blue/10 text-brand-titanium">Location B</Badge>
-              <h3 className="text-lg font-bold text-white mt-1.5">{compMetrics.distB.name}</h3>
-              <p className="text-xs text-muted-foreground">{compMetrics.distB.state_name}</p>
-              
-              <div className="mt-4 space-y-3">
-                {[
-                  { label: "Sustainability Score", val: compMetrics.dataB.score, max: 100, color: "bg-brand-blue" },
-                  { label: "Water Availability", val: compMetrics.dataB.water, max: 100, color: "bg-brand-blue" },
-                  { label: "Air Quality (Score)", val: 100 - Math.min(100, Math.max(0, Math.round((compMetrics.dataB.aqi - 50) * 0.4))), max: 100, color: "bg-brand-blue" },
-                  { label: "Forest Cover", val: compMetrics.dataB.forest, max: 100, color: "bg-green-400" },
-                  { label: "Carbon Impact", val: compMetrics.dataB.carbon, max: 100, color: "bg-rose-400" },
-                  { label: "Climate Resilience", val: compMetrics.dataB.resilience, max: 100, color: "bg-indigo-400" }
-                ].map((item) => (
-                  <div key={item.label}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span className="text-muted-foreground">{item.label}</span>
-                      <span className="text-white font-mono font-semibold">{item.val}</span>
-                    </div>
-                    <div className="h-1.5 bg-surface-elevated rounded-full overflow-hidden">
-                      <div className={`h-full ${item.color}`} style={{ width: `${item.val}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+        {/* Water Stress */}
+        <Card className="glass-card bg-background/50 border-white/[0.08] p-4 flex flex-col justify-between min-h-[105px]">
+          <div>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Water Stress</span>
+              <Droplets className="h-3.5 w-3.5 text-sky-400" />
+            </div>
+            {loadingMetrics ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : errorMetrics ? (
+              <p className="mt-2 text-xs text-rose-400">Error</p>
+            ) : (
+              <p className="mt-2 text-2xl font-bold text-sky-400 font-mono">{metrics.avgWater}%</p>
+            )}
           </div>
+          <span className="text-[9px] text-muted-foreground">Hydrological Drawdown</span>
+        </Card>
 
-          {/* AI Comparison Summary */}
-          <Card className="glass-card p-4 space-y-2">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-titanium flex items-center gap-1.5">
-              <Sparkles className="h-4 w-4" />
-              AI Cognitive Side-by-Side Comparison
-            </h4>
-            <p className="text-xs text-secondary-foreground leading-relaxed italic bg-surface/30 p-3 rounded-lg border border-white/[0.08]">
-              Comparative analysis evaluates {compMetrics.distA.name} ({compMetrics.dataA.score} pts) against {compMetrics.distB.name} ({compMetrics.dataB.score} pts). {
-                compMetrics.dataA.score > compMetrics.dataB.score 
-                  ? `${compMetrics.distA.name} holds a distinct edge in ecological safety indexes, primarily driven by stronger forest canopy conditions (+${compMetrics.dataA.forest - compMetrics.dataB.forest}% NDVI score).` 
-                  : `${compMetrics.distB.name} leads in adaptation indicators, backed by healthier local reservoir capacities (+${compMetrics.dataB.water - compMetrics.dataA.water}% storage).`
-              } Local planners should prioritize carbon reduction grids in {compMetrics.dataA.carbon > compMetrics.dataB.carbon ? compMetrics.distA.name : compMetrics.distB.name}.
-            </p>
-            <div className="flex justify-end pt-3 border-t border-white/[0.08] mt-3">
-              <Link href={`/copilot?query=${encodeURIComponent(`Compare ${compMetrics.distA.name} and ${compMetrics.distB.name}`)}`}>
+        {/* NDVI */}
+        <Card className="glass-card bg-background/50 border-white/[0.08] p-4 flex flex-col justify-between min-h-[105px]">
+          <div>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">NDVI Cover</span>
+              <Leaf className="h-3.5 w-3.5 text-emerald-400" />
+            </div>
+            {loadingMetrics ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : errorMetrics ? (
+              <p className="mt-2 text-xs text-rose-400">Error</p>
+            ) : (
+              <p className="mt-2 text-2xl font-bold text-emerald-400 font-mono">{metrics.avgNdvi}</p>
+            )}
+          </div>
+          <span className="text-[9px] text-muted-foreground">ISRO Satellite Greenery</span>
+        </Card>
+
+        {/* High-Risk District Count */}
+        <Card className="glass-card bg-background/50 border-white/[0.08] p-4 flex flex-col justify-between min-h-[105px]">
+          <div>
+            <div className="flex justify-between items-center">
+              <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Vulnerable Blocks</span>
+              <ShieldAlert className="h-3.5 w-3.5 text-red-500" />
+            </div>
+            {loadingRankings ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : errorRankings ? (
+              <p className="mt-2 text-xs text-rose-400">Unavailable</p>
+            ) : (
+              <p className="mt-2 text-2xl font-bold text-red-500 font-mono">{highRiskDistrictCount}</p>
+            )}
+          </div>
+          <span className="text-[9px] text-muted-foreground">Districts Risk Score &gt; 60</span>
+        </Card>
+
+      </div>
+
+      {/* ─── SECTION 2 & 3: AI BRIEF & RISK MATRIX ──────────────────────── */}
+      <div className="grid gap-6 xl:grid-cols-2">
+        
+        {/* AI Climate Brief */}
+        <Card className="glass-card flex flex-col justify-between border-white/[0.08]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white text-base flex items-center gap-1.5 font-orbitron tracking-wide">
+              <Sparkles className="h-4.5 w-4.5 text-cyan-400" />
+              Cognitive Climate Summary & Intelligence Brief
+            </CardTitle>
+            <CardDescription>AI-generated national and regional ecological synopsis.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-2">
+            {loadingMetrics ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/5" />
+              </div>
+            ) : errorMetrics ? (
+              <p className="text-xs text-slate-400 italic">Could not compile AI brief due to metrics API failure.</p>
+            ) : (
+              <div className="text-xs text-secondary-foreground leading-relaxed italic bg-cyan-950/20 border border-cyan-500/10 p-4 rounded-xl">
+                "{aiInsights.summary}"
+              </div>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <Link href={`/copilot?query=${encodeURIComponent(`Give me a detailed climate summary of ${stateId ? states.find(s => s.id === stateId)?.name : 'India'} in ${year}`)}`}>
                 <Button
                   variant="outline"
                   size="sm"
                   className="text-xs gap-1.5 border-brand-blue/30 text-brand-titanium bg-brand-blue/5 hover:bg-brand-blue/15 hover:border-brand-blue font-bold"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Ask Officer to Compare in Chat
+                  <Sparkles className="h-3.5 w-3.5 text-cyan-400" /> Consult AI Copilot
                 </Button>
               </Link>
             </div>
-          </Card>
-        </div>
-      )}
+          </CardContent>
+        </Card>
+
+        {/* National / State Risk Matrix */}
+        <Card className="glass-card border-white/[0.08]">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white text-base font-orbitron tracking-wide">Climatic Hazard Risk Matrix</CardTitle>
+            <CardDescription>Sectoral vulnerability levels calculated from satellite models and weather stations.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 grid-cols-2 md:grid-cols-3 pt-2">
+            {[
+              { label: "Flood Risk", val: metrics.avgFlood, color: "text-blue-400" },
+              { label: "Drought Risk", val: metrics.avgDrought, color: "text-amber-400" },
+              { label: "Heatwave Risk", val: metrics.avgHeat, color: "text-rose-500" },
+              { label: "Air Quality Risk", val: metrics.avgAqi > 100 ? 75 : 35, color: "text-orange-400" },
+              { label: "Water Stress", val: metrics.avgWater, color: "text-sky-400" },
+              { label: "Crop Sowing Decline", val: Math.round(100 - metrics.avgNdvi * 100), color: "text-emerald-400" }
+            ].map((r, i) => (
+              <div key={i} className="rounded-xl border border-white/[0.05] bg-white/[0.01] p-3 flex flex-col justify-between">
+                <span className="text-[10px] text-muted-foreground font-semibold block">{r.label}</span>
+                {loadingMetrics ? (
+                  <Skeleton className="h-6 w-12 mt-2" />
+                ) : errorMetrics ? (
+                  <span className="text-xs text-rose-400 mt-2">N/A</span>
+                ) : (
+                  <div className="mt-2">
+                    <p className={`text-lg font-bold font-mono ${r.color}`}>{r.val}%</p>
+                    <div className="h-1 bg-slate-800 rounded-full mt-1.5 overflow-hidden">
+                      <div className="h-full bg-current" style={{ width: `${r.val}%`, color: r.color.replace("text-", "#") }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* ─── SECTION 4: INTERACTIVE TREND CHARTS ─────────────────────────── */}
+      <Card className="glass-card border-white/[0.08]">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-white text-base font-orbitron tracking-wide">Historical Timeline & Climate Trends</CardTitle>
+          <CardDescription>Monthly observation composites for key indicators. Click "Explain with AI" on any parameter to generate analysis.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6 pt-4">
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            
+            {/* Chart 1: Temperature & Rainfall */}
+            <div className="space-y-2 border border-white/[0.04] bg-white/[0.01] p-4 rounded-2xl">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white uppercase tracking-wider">Temperature & Precipitation</span>
+                <Link href={`/copilot?query=${encodeURIComponent("Analyze the correlation between temperature rises and precipitation deficits in the monthly analytics charts")}`}>
+                  <Button size="sm" variant="ghost" className="h-7 text-[10px] uppercase text-cyan-400 hover:text-white flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Explain with AI
+                  </Button>
+                </Link>
+              </div>
+              <div className="h-52">
+                {loadingMetrics ? (
+                  <Skeleton className="h-full w-full" />
+                ) : errorMetrics ? (
+                  <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={monthlyData}>
+                      <defs>
+                        <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f87171" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#f87171" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="date" stroke="#C0C8D4" fontSize={8} />
+                      <YAxis stroke="#C0C8D4" fontSize={8} />
+                      <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)", fontSize: 10 }} />
+                      <Legend wrapperStyle={{ fontSize: 9 }} />
+                      <Area type="monotone" dataKey="temperature_c" stroke="#f87171" fillOpacity={1} fill="url(#colorTemp)" name="Temp (°C)" />
+                      <Area type="monotone" dataKey="rainfall_mm" stroke="#38bdf8" fillOpacity={0.1} name="Rain (mm)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+            {/* Chart 2: AQI & Reservoir Level */}
+            <div className="space-y-2 border border-white/[0.04] bg-white/[0.01] p-4 rounded-2xl">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white uppercase tracking-wider">Air Quality & Reservoir Storage</span>
+                <Link href={`/copilot?query=${encodeURIComponent("Examine how reservoir levels and seasonal winds correlate with gridded AQI readings in the analytics trends")}`}>
+                  <Button size="sm" variant="ghost" className="h-7 text-[10px] uppercase text-cyan-400 hover:text-white flex items-center gap-1">
+                    <Sparkles className="h-3 w-3" /> Explain with AI
+                  </Button>
+                </Link>
+              </div>
+              <div className="h-52">
+                {loadingMetrics ? (
+                  <Skeleton className="h-full w-full" />
+                ) : errorMetrics ? (
+                  <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                      <XAxis dataKey="date" stroke="#C0C8D4" fontSize={8} />
+                      <YAxis stroke="#C0C8D4" fontSize={8} />
+                      <Tooltip contentStyle={{ backgroundColor: "#020617", border: "1px solid rgba(6,182,212,0.2)", fontSize: 10 }} />
+                      <Legend wrapperStyle={{ fontSize: 9 }} />
+                      <Line type="monotone" dataKey="aqi" stroke="#f59e0b" strokeWidth={2} name="AQI Index" />
+                      <Line type="monotone" dataKey="reservoir_level_pct" stroke="#10b981" strokeWidth={2} name="Reservoirs (%)" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+        </CardContent>
+      </Card>
+
+      {/* ─── SECTION 6: DECISION SUPPORT ────────────────────────────────── */}
+      <div className="grid gap-6 xl:grid-cols-3">
+        
+        {/* Hotspots Panel */}
+        <Card className="glass-card border-white/[0.08] xl:col-span-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white text-base font-orbitron tracking-wide">Vulnerability Watchlist</CardTitle>
+            <CardDescription>Districts and States displaying elevated multi-hazard composite risk scores.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-2">
+            <div>
+              <span className="text-[10px] font-bold text-brand-blue uppercase tracking-wider block mb-2">Top 5 High-Risk States</span>
+              {loadingRankings ? (
+                <div className="space-y-1.5">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              ) : errorRankings ? (
+                <p className="text-xs text-rose-400">States data unavailable</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {topStates.map((state, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-white/[0.02] border border-white/[0.08] rounded-lg p-2 text-xs">
+                      <span className="font-semibold text-white">{state.name}</span>
+                      <span className="font-mono text-rose-400 font-bold bg-rose-950/20 px-1.5 py-0.5 rounded">{state.avgRisk}/100</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <span className="text-[10px] font-bold text-brand-blue uppercase tracking-wider block mb-2">Top 10 High-Risk Districts</span>
+              {loadingRankings ? (
+                <div className="space-y-1.5">
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                </div>
+              ) : errorRankings ? (
+                <p className="text-xs text-rose-400">Districts data unavailable</p>
+              ) : (
+                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                  {topDistricts.map((d, idx) => (
+                    <div key={idx} className="flex justify-between items-center bg-white/[0.02] border border-white/[0.08] rounded-lg p-2 text-xs">
+                      <div className="leading-tight">
+                        <span className="font-semibold text-white block">{d.district_name}</span>
+                        <span className="text-[9px] text-muted-foreground">{d.state_name}</span>
+                      </div>
+                      <span className="font-mono text-red-500 font-bold bg-red-950/20 px-1.5 py-0.5 rounded">{d.composite_risk}/100</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Action Directives & Threat Assessment */}
+        <Card className="glass-card border-white/[0.08] xl:col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white text-base font-orbitron tracking-wide">Strategic Actions & Threat Matrix</CardTitle>
+            <CardDescription>Government operational guidelines based on real-time environmental factors.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-2">
+            
+            {/* Emerging Threats */}
+            <div>
+              <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider block mb-2">Active Environmental Threat Assessment</span>
+              <div className="space-y-2">
+                {emergingThreats.map((threat, idx) => (
+                  <div key={idx} className="flex gap-2 p-2.5 rounded-lg border border-red-500/10 bg-red-950/10 text-xs text-slate-300 leading-relaxed">
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-red-400 mt-0.5" />
+                    <span>{threat}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Directives */}
+            <div>
+              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-2">Recommended Operational Mitigations</span>
+              <div className="space-y-2">
+                {loadingMetrics ? (
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ) : (
+                  aiInsights.recommendations.map((rec: string, idx: number) => (
+                    <div key={idx} className="flex gap-2.5 p-2.5 rounded-lg border border-white/[0.08] bg-white/[0.01] text-xs text-slate-300 leading-normal">
+                      <Check className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
+                      <span>{rec}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* ─── SECTION 7: GOVERNMENT DATA SOURCES REGISTRY ────────────────── */}
+      <Card className="glass-card border-white/[0.08]">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-white text-base flex items-center gap-1.5 font-orbitron tracking-wide">
+            <Database className="h-5 w-5 text-brand-blue" />
+            Federal Environmental Ingestion Registry
+          </CardTitle>
+          <CardDescription>Official government integration endpoint states, synchronization frequency, and dataset availability matrix.</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-2">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-white/[0.08] text-muted-foreground">
+                  <th className="py-2.5 px-3 font-semibold">Data Feed Source</th>
+                  <th className="py-2.5 px-3 font-semibold">Federal Agency</th>
+                  <th className="py-2.5 px-3 font-semibold">Assigned Climate Indicators</th>
+                  <th className="py-2.5 px-3 font-semibold">Update Cycle</th>
+                  <th className="py-2.5 px-3 font-semibold">Last Ingest Sync</th>
+                  <th className="py-2.5 px-3 font-semibold text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {GOVERNMENT_SOURCES.map((source) => (
+                  <tr key={source.id} className="hover:bg-white/[0.01] transition-colors">
+                    <td className="py-3 px-3 font-bold text-white whitespace-nowrap">{source.name}</td>
+                    <td className="py-3 px-3 text-secondary-foreground">{source.agency}</td>
+                    <td className="py-3 px-3 text-muted-foreground whitespace-pre-wrap max-w-xs">{source.dataset}</td>
+                    <td className="py-3 px-3 text-secondary-foreground">{source.syncFrequency}</td>
+                    <td className="py-3 px-3 text-secondary-foreground font-mono text-[11px]">{source.lastSync}</td>
+                    <td className="py-3 px-3 text-center">
+                      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                        <CheckCircle className="h-3 w-3" />
+                        <span>Connected</span>
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
