@@ -632,14 +632,14 @@ export default function ClimateIntelligenceCenter() {
                   </Button>
                 </Link>
               </div>
-              <div className="h-52">
-                {loadingMetrics ? (
-                  <Skeleton className="h-full w-full" />
-                ) : errorMetrics ? (
-                  <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyData}>
+            <div className="h-52 w-full">
+              {loadingMetrics ? (
+                <Skeleton className="h-full w-full" />
+              ) : errorMetrics ? (
+                <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={monthlyData}>
                       <defs>
                         <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#f87171" stopOpacity={0.2}/>
@@ -668,14 +668,14 @@ export default function ClimateIntelligenceCenter() {
                   </Button>
                 </Link>
               </div>
-              <div className="h-52">
-                {loadingMetrics ? (
-                  <Skeleton className="h-full w-full" />
-                ) : errorMetrics ? (
-                  <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={monthlyData}>
+            <div className="h-52 w-full">
+              {loadingMetrics ? (
+                <Skeleton className="h-full w-full" />
+              ) : errorMetrics ? (
+                <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={monthlyData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
                       <XAxis dataKey="date" stroke="#C0C8D4" fontSize={8} />
                       <YAxis stroke="#C0C8D4" fontSize={8} />
