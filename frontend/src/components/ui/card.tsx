@@ -23,6 +23,9 @@ export function CardDescription({ className, ...props }: React.HTMLAttributes<HT
   return <p className={cn("text-sm text-muted-foreground", className)} {...props} />;
 }
 
-export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-5 pt-0", className)} {...props} />;
-}
+export const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div ref={ref} className={cn("p-5 pt-0", className)} {...props} />
+  )
+);
+CardContent.displayName = "CardContent";
