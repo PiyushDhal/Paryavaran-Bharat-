@@ -98,6 +98,7 @@ function CopilotPageContent() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Sidebar history state
   const [historyOpen, setHistoryOpen] = useState(true);
@@ -118,7 +119,9 @@ function CopilotPageContent() {
  
   // Auto scroll to bottom of chat
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages, loading, typedText]);
 
   // Load conversation history on mount
@@ -610,7 +613,7 @@ function CopilotPageContent() {
             </CardTitle>
           </CardHeader>
           
-          <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+          <CardContent ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col justify-center items-center py-6 px-4">
                 {/* Beautiful Welcome Screen */}
