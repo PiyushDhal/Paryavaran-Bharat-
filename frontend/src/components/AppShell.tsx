@@ -31,7 +31,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sun,
-  Moon
+  Moon,
+  Sparkles,
+  ChevronRight,
+  Play
 } from "lucide-react";
 
 import {
@@ -53,6 +56,8 @@ import { cn } from "@/lib/utils";
 import { useClimate } from "@/store/useClimateStore";
 import { DistrictSelector } from "@/components/climate/DistrictSelector";
 import { StateSelector } from "@/components/climate/StateSelector";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
 
 const navSections = [
   {
@@ -174,12 +179,15 @@ function URLSyncHandler() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLanding = pathname === "/";
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("Dr. Amit Sharma");
   const [userRole, setUserRole] = useState("Director (Operations)");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [demoOpen, setDemoOpen] = useState(false);
+  const [demoStep, setDemoStep] = useState(0);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -225,7 +233,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     selectedDistrictId, 
     setSelectedDistrictId,
     selectedStateId,
-    setSelectedStateId
+    setSelectedStateId,
+    setSelectedStateName,
+    rankings
   } = useClimate();
 
   useEffect(() => {
@@ -493,6 +503,170 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className={cn("px-4 py-5 lg:px-8 transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>{children}</main>
+
+      {/* ─── ISRO JUDGE GUIDED DEMO STORY MODE WIZARD ───────────────────────── */}
+      <div className="fixed bottom-6 right-6 z-[200] no-print">
+        {demoOpen ? (
+          <div className="w-80 rounded-2xl border border-cyan-500/30 bg-slate-950/90 p-5 backdrop-blur-xl shadow-[0_0_30px_rgba(34,211,238,0.25)] space-y-4 text-left animate-in slide-in-from-bottom-5 duration-300">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
+              <div className="flex items-center gap-1.5 text-cyan-400 font-orbitron">
+                <Sparkles className="h-4 w-4 animate-pulse" />
+                <span className="text-[11px] font-bold tracking-wider uppercase">ISRO Demo Mode</span>
+              </div>
+              <button
+                onClick={() => setDemoOpen(false)}
+                className="rounded p-1 text-slate-400 hover:bg-white/5 hover:text-white transition"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            {(() => {
+              const demoSteps = [
+                {
+                  title: "1. Select Rajasthan & Jodhpur",
+                  description: "Set active region focus to Rajasthan state and Jodhpur district to load local observations.",
+                  actionLabel: "Configure Jodhpur, RJ",
+                  action: async () => {
+                    const states = await api.states().catch(() => []);
+                    const districts = await api.districts().catch(() => []);
+                    const rjMatch = states.find(s => s.name?.toLowerCase() === "rajasthan");
+                    const jodhpurMatch = districts.find(d => d.name?.toLowerCase().includes("jodhpur"));
+                    if (rjMatch) {
+                      setSelectedStateId(rjMatch.id);
+                      setSelectedStateName(rjMatch.name);
+                    }
+                    if (jodhpurMatch) {
+                      setSelectedDistrictId(jodhpurMatch.id);
+                    } else {
+                      setSelectedDistrictId(12);
+                    }
+                    setDemoStep(1);
+                  }
+                },
+                {
+                  title: "2. View Heatwave Risk Center",
+                  description: "Navigate to the District Risk Center. Inspect the Executive Decision Support System (EDSS) cards outlining Expected Impacts & Recommended Actions.",
+                  actionLabel: "Go to Risk Center",
+                  action: () => {
+                    router.push("/risk-center");
+                    setDemoStep(2);
+                  }
+                },
+                {
+                  title: "3. Generate Climate Brief",
+                  description: "Return to Command Center dashboard and click 'Generate National Climate Brief' to view compiled multi-agency IMD/NRSC telemetry alerts.",
+                  actionLabel: "Go to Command Center",
+                  action: () => {
+                    router.push("/dashboard");
+                    setDemoStep(3);
+                  }
+                },
+                {
+                  title: "4. Run Future Simulation",
+                  description: "Launch the Scenario Simulator prefilled with +2.0°C temperature rise and -20% rainfall drought parameters.",
+                  actionLabel: "Open Scenario Simulator",
+                  action: () => {
+                    router.push("/simulator");
+                    setDemoStep(4);
+                  }
+                },
+                {
+                  title: "5. Generate District Action Plan",
+                  description: "Analyze the 1-7-30 day response plan, resource lists, and priorities using the Bharat Climate Intelligence AI Copilot.",
+                  actionLabel: "Launch AI Copilot",
+                  action: () => {
+                    router.push("/copilot?query=Generate+a+1-7-30+day+action+plan+for+Jodhpur+heatwave");
+                    setDemoStep(5);
+                  }
+                },
+                {
+                  title: "6. Discuss with AI Advisor",
+                  description: "Explore specific block-level policy recommendations and disaster preparedness guidelines in the interactive chat.",
+                  actionLabel: "Consult AI Engine",
+                  action: () => {
+                    router.push("/copilot");
+                    setDemoStep(6);
+                  }
+                },
+                {
+                  title: "7. Produce Executive Dossier",
+                  description: "Go to the AI Report Generator to download the finalized executive brief summary in professional PDF format.",
+                  actionLabel: "Open Report Center",
+                  action: () => {
+                    router.push("/reports");
+                    setDemoStep(7);
+                  }
+                }
+              ];
+              const step = demoSteps[demoStep];
+              if (!step) {
+                return (
+                  <div className="space-y-3 text-center py-2">
+                    <p className="text-xs font-semibold text-emerald-400">✓ Demo Scenario Completed</p>
+                    <p className="text-[10px] text-slate-400">All Decision Support modules verified successfully.</p>
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setDemoStep(0);
+                      }}
+                      className="w-full bg-cyan-600 hover:bg-cyan-700 text-white text-xs py-1.5 h-8 rounded-lg"
+                    >
+                      Restart Demo
+                    </Button>
+                  </div>
+                );
+              }
+              return (
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-white font-orbitron">{step.title}</p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{step.description}</p>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-cyan-500 transition-all duration-300"
+                      style={{ width: `${((demoStep + 1) / demoSteps.length) * 100}%` }}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-1.5">
+                    {demoStep > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDemoStep(demoStep - 1)}
+                        className="flex-1 border-slate-700 text-slate-300 hover:bg-slate-800 text-[10px] py-1 h-7.5"
+                      >
+                        Back
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      onClick={step.action}
+                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white text-[10px] py-1 h-7.5 flex items-center justify-center gap-1 font-bold"
+                    >
+                      <span>{step.actionLabel}</span>
+                      <ChevronRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        ) : (
+          <Button
+            onClick={() => setDemoOpen(true)}
+            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white text-xs font-bold py-2.5 px-4 shadow-[0_4px_20px_rgba(6,182,212,0.35)] active:scale-95 transition-all animate-bounce"
+            style={{ animationDuration: '3s' }}
+          >
+            <Sparkles className="h-4.5 w-4.5" />
+            <span>Launch ISRO Demo Story</span>
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

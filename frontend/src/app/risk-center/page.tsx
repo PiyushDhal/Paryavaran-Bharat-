@@ -22,6 +22,39 @@ export default function RiskCenterPage() {
   const [trends, setTrends] = useState<Array<Record<string, number | string>>>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
 
+  const [selectedHazard, setSelectedHazard] = useState<"Flood" | "Drought" | "Heatwave" | "Water Stress">("Flood");
+
+  const getDecisionDetails = () => {
+    const score = risk ? (
+      selectedHazard === "Flood" ? risk.flood_risk :
+      selectedHazard === "Drought" ? risk.drought_risk :
+      selectedHazard === "Heatwave" ? risk.heatwave_risk : risk.water_stress_risk
+    ) : 0;
+
+    const level = score > 65 ? "High" : score > 35 ? "Moderate" : "Low";
+    
+    const details = {
+      Flood: {
+        impacts: ["River Basin inundation risk", "Infrastructure displacement", "Urban drainage overflows"],
+        actions: ["Reinforce embankments & dams", "Pre-position NDRF/SDRF assets", "Establish safe evacuation zones"]
+      },
+      Drought: {
+        impacts: ["Agricultural crop drying", "Reservoir drawdown depletion", "Sowing timeline disruption"],
+        actions: ["Spool reserve groundwater storage", "Distribute drought-resistant seeds", "Implement rotation irrigation advisory"]
+      },
+      Heatwave: {
+        impacts: ["Public health heat exhaustion", "Power grid overload", "Canopy transpiration drying"],
+        actions: ["Activate urban cooling centers", "Establish hydration shelters", "Issue public safety advisory alerts"]
+      },
+      "Water Stress": {
+        impacts: ["Municipal drinking water shortage", "Hydro-power supply reductions", "Industrial raw water constraints"],
+        actions: ["Ration domestic water supplies", "Audit groundwater extraction permits", "Divert emergency storage allocations"]
+      }
+    };
+
+    return { score, level, ...details[selectedHazard] };
+  };
+
   // Sync global selectedDistrictId changes down to local state
   useEffect(() => {
     if (selectedDistrictId && selectedDistrictId !== districtId) {
@@ -162,6 +195,76 @@ export default function RiskCenterPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Executive Decision Cards */}
+      <Card className="glass-card">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-white">
+                <ShieldAlert className="h-5 w-5 text-amber-500" />
+                Executive Decision Support System (EDSS)
+              </CardTitle>
+              <CardDescription>Actionable hazard impact assessments and response recommendations.</CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["Flood", "Drought", "Heatwave", "Water Stress"] as const).map((hazard) => (
+                <Button
+                  key={hazard}
+                  variant={selectedHazard === hazard ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedHazard(hazard)}
+                  className={selectedHazard === hazard ? "bg-cyan-600 text-white hover:bg-cyan-700" : "border-slate-700 text-slate-300 hover:bg-slate-800"}
+                >
+                  {hazard}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            const details = getDecisionDetails();
+            return (
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="rounded-lg border border-white/[0.08] bg-slate-950/40 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-white text-base">Vulnerability & Expected Impacts</h3>
+                    <Badge className={details.level === "High" ? "bg-red-500/20 text-red-400 border-red-500/30" : details.level === "Moderate" ? "bg-amber-500/20 text-amber-400 border-amber-500/30" : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"}>
+                      {details.level} Risk ({Math.round(details.score)})
+                    </Badge>
+                  </div>
+                  <ul className="space-y-3">
+                    {details.impacts.map((impact, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-300">
+                        <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-400 shrink-0" />
+                        <span>{impact}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-lg border border-white/[0.08] bg-slate-950/40 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-semibold text-white text-base">Recommended Mitigation Actions</h3>
+                    <span className="text-xs text-slate-500 font-mono">Priority: Immediate</span>
+                  </div>
+                  <ul className="space-y-3">
+                    {details.actions.map((action, idx) => (
+                      <li key={idx} className="flex items-start gap-2.5 text-sm text-slate-300">
+                        <span className="mt-1 h-4 w-4 rounded border border-cyan-500/40 bg-cyan-950/20 flex items-center justify-center text-[10px] text-cyan-400 shrink-0 font-bold">
+                          ✓
+                        </span>
+                        <span>{action}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
 
       <Card className="glass-card">
         <CardHeader>
