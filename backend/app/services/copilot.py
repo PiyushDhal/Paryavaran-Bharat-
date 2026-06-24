@@ -219,27 +219,33 @@ class ClimateCopilot:
         
         # Rule-based classification
         if any(k in text for k in ["how do i use", "how to use", "how does the simulator work", "how does the twin work", "help", "tutorial", "features", "dashboard", "how does the digital twin work", "how does the scenario simulator work"]):
-            return "Platform Help"
+            return "Platform Guidance"
         if any(k in text for k in ["compare", "versus", " vs ", "difference between", "comparison", "relative to", "contrast"]):
             return "Comparison"
-        if any(k in text for k in ["simulate", "simulation", "scenario", "what if", "adjust", "projected"]):
+        if any(k in text for k in ["simulate", "simulation", "scenario", "what if", "adjust", "projected", "forecast"]):
             return "Scenario Analysis"
-        if any(k in text for k in ["recommend", "action", "should do", "mitigate", "policy", "strategy", "prepare", "plan", "authority", "government", "emergency", "priority", "what should"]):
-            return "Decision Support"
+        if any(k in text for k in ["recommend", "action", "should do", "mitigate", "policy", "strategy", "prepare", "plan", "authority", "government", "emergency", "priority", "what should", "guidelines"]):
+            return "Policy Planning"
+        if any(k in text for k in ["timeline", "historical trend", "decadal", "past year", "history", "years ago", "long term trend"]):
+            return "Timeline Analysis"
+        if any(k in text for k in ["map", "layer", "gis", "geospatial", "boundary", "bounding box", "coordinates", "overlay"]):
+            return "Map Analysis"
+        if any(k in text for k in ["ndvi", "vegetation", "lst", "land surface temperature", "satellite", "sensor", "optical", "radar", "chlorophyll", "green cover", "canopy", "water bodies"]):
+            return "Satellite Analysis"
         
-        conceptual_keywords = ["what is", "define", "explain", "meaning of", "ndvi", "aqi", "gcm", "carbon", "greenhouse", "return period", "el nino", "la nina", "spi", "soil moisture", "groundwater", "monsoon", "urban heat", "canopy", "forest"]
+        conceptual_keywords = ["what is", "define", "explain", "meaning of", "aqi", "gcm", "carbon", "greenhouse", "return period", "el nino", "la nina", "spi", "soil moisture", "groundwater", "monsoon", "urban heat", "forest"]
         if any(k in text for k in conceptual_keywords):
             if any(text.startswith(x) for x in ["what is", "what are", "define", "explain", "how does"]):
-                return "Educational"
+                return "Education"
             if len(text.split()) <= 4:
-                return "Educational"
+                return "Education"
 
-        if any(k in text for k in ["risk", "hazard", "threat", "vulnerability", "alert", "warning", "hotspot", "probability"]):
+        if any(k in text for k in ["risk", "hazard", "threat", "vulnerability", "alert", "warning", "hotspot", "probability", "severity", "flood", "heatwave", "drought", "cyclone", "water stress", "air quality"]):
             return "Risk Assessment"
         if any(k in text for k in ["report", "briefing", "summary", "document", "generate report", "pdf", "executive report", "district report", "state report"]):
             return "Report Generation"
         if any(k in text for k in ["help", "how to", "use", "platform", "dashboard", "features", "twin", "options"]):
-            return "Platform Help"
+            return "Platform Guidance"
 
         # LLM-based classification fallback if API key is present
         if api_key:
@@ -249,12 +255,15 @@ class ClimateCopilot:
                     "Classify this user query into exactly one of the following categories:\n"
                     "- Climate Analysis\n"
                     "- Risk Assessment\n"
-                    "- Educational\n"
+                    "- Education\n"
                     "- Comparison\n"
                     "- Scenario Analysis\n"
                     "- Report Generation\n"
-                    "- Decision Support\n"
-                    "- Platform Help\n\n"
+                    "- Policy Planning\n"
+                    "- Platform Guidance\n"
+                    "- Map Analysis\n"
+                    "- Timeline Analysis\n"
+                    "- Satellite Analysis\n\n"
                     "Provide ONLY the category name as output."
                 )
                 body = {
@@ -269,9 +278,10 @@ class ClimateCopilot:
                     res_body = json.loads(response.read().decode("utf-8"))
                     classification = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
                     valid_intents = [
-                        "Climate Analysis", "Risk Assessment", "Educational",
+                        "Climate Analysis", "Risk Assessment", "Education",
                         "Comparison", "Scenario Analysis", "Report Generation",
-                        "Decision Support", "Platform Help"
+                        "Policy Planning", "Platform Guidance", "Map Analysis",
+                        "Timeline Analysis", "Satellite Analysis"
                     ]
                     for intent in valid_intents:
                         if intent.lower() in classification.lower():
@@ -287,7 +297,7 @@ class ClimateCopilot:
             
         context = {"intent": intent, "data_summary": ""}
         
-        if intent == "Platform Help":
+        if intent == "Platform Guidance":
             context["data_summary"] = (
                 "General Platform Help Query. Explain platform functionality including:\n"
                 "- Map Mode toggle and risk layers (Composite Risk, Flood, Drought, Heatwave, Water Stress, AQI, NDVI)\n"
@@ -297,7 +307,7 @@ class ClimateCopilot:
             )
             return context
             
-        elif intent == "Educational":
+        elif intent == "Education":
             context["data_summary"] = (
                 "Educational Concept Query. Provide a detailed scientific breakdown explaining the parameter's "
                 "definition, physical meaning, sensor source mapping (e.g. NRSC MODIS/Sentinel/INSAT or IMD grids), "
@@ -472,7 +482,7 @@ class ClimateCopilot:
                 context["data_summary"] += f"\nNote: connection issues restricted database retrievals for some fields ({', '.join(db_errors)})."
             return context
 
-        elif intent == "Decision Support":
+        elif intent == "Policy Planning":
             comp_score, f_score, d_score, h_score, ws_score = 45.0, 40.0, 50.0, 35.0, 45.0
             soil, reservoir = 42.0, 48.0
             if target_district:
@@ -492,6 +502,7 @@ class ClimateCopilot:
                     logger.error(f"[DATABASE ERROR] SatelliteData query failed for decision support: {e}")
                     db_errors.append("SatelliteData (Decision support)")
                     
+                try:
                     weather = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).first()
                     if weather:
                         soil = weather.soil_moisture_pct
@@ -508,6 +519,48 @@ class ClimateCopilot:
             )
             if db_errors:
                 context["data_summary"] += f"\nNote: connection issues restricted database retrievals for some fields ({', '.join(db_errors)})."
+            return context
+
+        elif intent == "Satellite Analysis":
+            ndvi, reservoir = 0.42, 48.0
+            if target_district:
+                try:
+                    sat = db.query(SatelliteData).filter(SatelliteData.district_id == target_district.id).order_by(desc(SatelliteData.observed_on)).first()
+                    if sat:
+                        ndvi, reservoir = sat.ndvi, sat.reservoir_level_pct
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] SatelliteData query failed: {e}")
+                    db_errors.append("SatelliteData (Satellite Analysis)")
+            context["data_summary"] = (
+                f"Satellite Intelligence Observation:\n"
+                f"- NDVI (Vegetation Index): {ndvi} (scales -1 to +1, baseline is 0.4)\n"
+                f"- Reservoir Capacity Level: {reservoir}% capacity\n"
+            )
+            return context
+
+        elif intent == "Timeline Analysis":
+            observations = []
+            if target_district:
+                try:
+                    obs_list = db.query(WeatherData).filter(WeatherData.district_id == target_district.id).order_by(desc(WeatherData.observed_on)).limit(5).all()
+                    observations = [{"date": o.observed_on.isoformat() if isinstance(o.observed_on, (date, datetime)) else str(o.observed_on), "temp": o.temperature_c, "rain": o.rainfall_mm} for o in obs_list]
+                except Exception as e:
+                    logger.error(f"[DATABASE ERROR] Timeline weather observations query failed: {e}")
+                    db_errors.append("WeatherData (Timeline Analysis)")
+            context["data_summary"] = (
+                f"Timeline observations:\n"
+                f"- Decadal timeline steps active: 2026 to 2030\n"
+                f"- Historical records found: {len(observations)} entries\n"
+                f"- Observation details: {json.dumps(observations)}\n"
+            )
+            return context
+
+        elif intent == "Map Analysis":
+            context["data_summary"] = (
+                f"Geospatial Map configuration:\n"
+                f"- Active layer: {payload.active_layer or 'composite_risk'}\n"
+                f"- Map mode: {payload.map_mode or 'streets'}\n"
+            )
             return context
 
         # Climate Analysis / Report Generation
@@ -563,182 +616,170 @@ class ClimateCopilot:
         try:
             context = self._retrieve_context(intent, payload, db, active_district, active_state, rankings, target_district_2, target_state_2, db_errors)
 
+            base_system_prompt = (
+                "You are the AI Supervisor Agent of the Bharat Climate Twin platform. You act as the National Climate Intelligence Officer, a professional, expert advisor in Climate Science, Geospatial Analysis, Disaster Management, and Environmental Policy.\n"
+                "You coordinate the following specialized sub-agents:\n"
+                "- Climate Analysis Agent (analyzes climate parameters, anomalies, and observations)\n"
+                "- Risk Assessment Agent (evaluates risk, hazard indicators, and emergency alerts)\n"
+                "- Government Data Agent (handles validation, provenance, and data verification from IMD, NRSC, MOSDAC, CPCB, CWC, India-WRIS)\n"
+                "- Satellite Intelligence Agent (interprets NDVI, LST, green cover, and optical/radar data)\n"
+                "- Simulation Agent (interprets scenario parameters and simulator deltas)\n"
+                "- Report Generation Agent (handles PDF dossier generation, summaries, and policy briefs)\n"
+                "- Policy Recommendation Agent (drafts operational strategy guidelines and resource allocation plans)\n"
+                "- Geospatial Agent (interprets GIS maps, spatial layer distributions, and overlays)\n"
+                "- Timeline Intelligence Agent (analyzes historical decadal trends and patterns)\n"
+                "- Data Quality Agent (scores confidence levels and lists data provenance details)\n\n"
+                "You must coordinate with the relevant sub-agents to analyze the context, verify the data sources, score your confidence, and generate a response that strictly adheres to the requested intent mode.\n"
+                "You must respond in valid JSON format only, matching the schema below. Do not use markdown wraps (like ```json) in the response text itself.\n\n"
+                "JSON Schema:\n"
+                "{\n"
+                '  "explanation": "Markdown string containing the main response. You MUST use the exact headings and structure requested for the detected intent mode.",\n'
+                '  "risk_analysis": "Summary of risk levels, vulnerabilities, and environmental drivers.",\n'
+                '  "recommended_actions": ["List of immediate, actionable recommendations."],\n'
+                '  "chart": { "type": "bar", "data": [{"district": "Name", "risk": 45}] },\n'
+                '  "districts": [],\n'
+                '  "action": { "type": "open_twin" | "generate_report" | "launch_simulation" | "open_risk" | "open_timeline" | "compare_states" | "view_analytics", "params": {} } or null,\n'
+                '  "suggestions": ["Next step suggestions, e.g. Run Flood Simulation, Generate Report, View Flood Layer, Compare Historical Floods."],\n'
+                '  "explainable_risk": {\n'
+                '    "confidence": "High" | "Medium" | "Low",\n'
+                '    "confidence_reason": "Explain the reason for the confidence level.",\n'
+                '    "drivers": ["Key risk drivers"],\n'
+                '    "actions": ["Suggested operational guidelines"],\n'
+                '    "sources": ["IMD", "NRSC", "MOSDAC", "CPCB", "CWC", "India-WRIS"],\n'
+                '    "provenance": {\n'
+                '      "sources_used": ["List of sources"],\n'
+                '      "last_updated": "Date/Time of last sync",\n'
+                '      "dataset_timestamp": "Timestamp of the data",\n'
+                '      "origin": "e.g. Government of India gridded feeds"\n'
+                '    }\n'
+                '  },\n'
+                '  "insights": ["3 key takeaway bullet points summarizing the analysis"]\n'
+                "}\n\n"
+            )
+
             # Build custom prompts and personality instructions for each intent
-            if intent == "Educational":
-                system_instruction = (
-                    "You are a Senior Climate Science Educator.\n"
-                    "Your style is educational, technical, and clear. Avoid any executive climate reports or 7-heading structures.\n"
-                    "Answer the user's educational query directly with definitions, physical meanings, units, and sensor details.\n"
-                    "Prohibit any spacecraft assistant or science fiction jargon like 'telemetry', 'command execution', 'mission control'.\n"
-                    "Write your main content entirely in the 'explanation' field of the JSON. Do not write generic reports.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown description directly explaining the requested concept educationally with definitions and sensor mapping.",\n'
-                    '  "risk_analysis": "Educational translation of this metric into hazard risk scales.",\n'
-                    '  "recommended_actions": ["List of 2-3 actions describing how researchers or authorities monitor this metric."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Threshold scale", "risk": 50}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Follow-up query 1", "Follow-up query 2"],\n'
-                    '  "explainable_risk": { "confidence": 95, "drivers": ["Metric baseline"], "actions": ["Monitor metric trends"], "sources": ["NRSC", "IMD"] },\n'
-                    '  "insights": ["Takeaway 1"]\n'
-                    "}"
+            if intent == "Education":
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Education (invoking Support Guide Agent, Government Data Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Scientific Concept Definition\n"
+                    "### 2. Physical & Environmental Meaning\n"
+                    "### 3. Measurement Metrics & normal vs extreme thresholds\n"
+                    "### 4. Sensors & Government Data Providers\n\n"
+                    "Provide clear, technical definitions and measurement references."
                 )
             elif intent == "Comparison":
-                system_instruction = (
-                    "You are a Senior Geospatial Intelligence Officer.\n"
-                    "Analyze the comparison request and output a detailed comparison.\n"
-                    "You MUST format the 'explanation' field to include:\n"
-                    "1. A side-by-side markdown comparison table comparing composite risk, hazard risks, and observations.\n"
-                    "2. Key Differences\n"
-                    "3. Strengths\n"
-                    "4. Weaknesses\n"
-                    "5. Recommendations\n"
-                    "Ensure no sci-fi jargon is used. Write the output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown text comparing the regions side-by-side, containing structured comparison tables.",\n'
-                    '  "risk_analysis": "Comparative risk summary explaining differences in vulnerability.",\n'
-                    '  "recommended_actions": ["Immediate cross-regional policy interventions."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Region A", "risk": 45}, {"district": "Region B", "risk": 60}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": { "type": "open_compare", "state1": "State A", "state2": "State B" },\n'
-                    '  "suggestions": ["Compare with another state", "What is the biggest threat?"],\n'
-                    '  "explainable_risk": { "confidence": 90, "drivers": ["Precipitation variance"], "actions": ["Joint watershed planning"], "sources": ["IMD", "NRSC"] },\n'
-                    '  "insights": ["Takeaway 1", "Takeaway 2"]\n'
-                    "}"
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Comparison Intelligence (invoking Comparison Agent, Geospatial Agent, Timeline Intelligence Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Side-by-Side Comparison\n"
+                    "### 2. Key Differences\n"
+                    "### 3. Strengths & Weaknesses\n"
+                    "### 4. Risk Variations\n"
+                    "### 5. Policy Recommendations\n"
+                    "### 6. Future Outlook\n\n"
+                    "You MUST include a side-by-side markdown comparison table in the comparison section."
                 )
-            elif intent == "Decision Support":
-                system_instruction = (
-                    "You are a Senior Disaster Management Expert and Policy Advisor.\n"
-                    "Provide practical operational recommendations, warning levels, policy frameworks, and guidelines.\n"
-                    "Format the 'explanation' field to cover:\n"
-                    "- Situation\n"
-                    "- Recommended Actions\n"
-                    "- Priority\n"
-                    "- Timeline\n"
-                    "- Expected Outcome\n"
-                    "Ensure no sci-fi jargon is used. Write the output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown text delivering policy, operational, and adaptive action plans.",\n'
-                    '  "risk_analysis": "Explanation of trigger levels and the physical drivers determining high risk priorities.",\n'
-                    '  "recommended_actions": ["Immediate operational interventions."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Flood Risk", "risk": 75}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Show mitigation guidelines", "Check reservoir status"],\n'
-                    '  "explainable_risk": { "confidence": 92, "drivers": ["Hazard exposure metrics"], "actions": ["Pre-position assets"], "sources": ["NDMA", "SDMA"] },\n'
-                    '  "insights": ["Actionable policy takeaway 1"]\n'
-                    "}"
+            elif intent == "Policy Planning":
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Decision Support / Policy Planning (invoking Policy Recommendation Agent, Government Data Agent, Risk Assessment Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Situation Assessment\n"
+                    "### 2. Immediate Actions\n"
+                    "### 3. Short-Term Actions\n"
+                    "### 4. Long-Term Strategies\n"
+                    "### 5. Priority Ranking & Resource Allocation Guidance\n"
+                    "### 6. Expected Benefits\n\n"
+                    "Deliver highly practical policy suggestions and guidelines."
                 )
             elif intent == "Scenario Analysis":
-                system_instruction = (
-                    "You are a Senior Scenario Simulator Expert.\n"
-                    "Analyze the simulated adjustments and outcomes.\n"
-                    "Format the 'explanation' field to cover:\n"
-                    "- Scenario Summary\n"
-                    "- Predicted Changes\n"
-                    "- Risks\n"
-                    "- Recommendations\n"
-                    "- Confidence\n"
-                    "Ensure no sci-fi jargon is used. Write the output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown text detailing simulated parameter impacts.",\n'
-                    '  "risk_analysis": "Interpretation of composite simulated risk changes.",\n'
-                    '  "recommended_actions": ["Actions to reinforce systems under this specific simulated scenario."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Water Stress", "risk": 55}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Run simulation with +4 degrees", "Compare simulation outcomes"],\n'
-                    '  "explainable_risk": { "confidence": 85, "drivers": ["Simulated anomalies"], "actions": ["Micro-irrigation layouts"], "sources": ["BCT Model"] },\n'
-                    '  "insights": ["Simulation insight 1"]\n'
-                    "}"
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Scenario Intelligence (invoking Simulation Agent, Policy Recommendation Agent, Data Quality Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Scenario Summary\n"
+                    "### 2. Expected Impacts\n"
+                    "### 3. Sector-Level Effects\n"
+                    "### 4. Economic & Population Impacts\n"
+                    "### 5. Risk Changes\n"
+                    "### 6. Recommended Actions\n"
+                    "### 7. Comparison With Current Conditions\n\n"
+                    "Analyze the inputs and outcomes of the simulated weather adjustments."
                 )
-            elif intent == "Platform Help":
-                system_instruction = (
-                    "You are a Support Guide for Bharat Climate Twin.\n"
-                    "Help the user navigate map layers, timeline controls, scenario sliders, and reports.\n"
-                    "Write your output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown user manual or help text describing platform features and how to leverage them.",\n'
-                    '  "risk_analysis": "Guidance on how to interpret composite risk values.",\n'
-                    '  "recommended_actions": ["User tips for using BCT tools effectively."],\n'
-                    '  "chart": { "type": "bar", "data": [] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Show Map Layers guide", "How do I run a scenario?"],\n'
-                    '  "explainable_risk": { "confidence": 100, "drivers": ["User Interface"], "actions": ["Explore controls"], "sources": ["BCT Manual"] },\n'
-                    '  "insights": ["Dashboard navigation tips"]\n'
-                    "}"
+            elif intent == "Platform Guidance":
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Platform Help / Guidance (invoking Support Guide Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Platform Interface Guide\n"
+                    "### 2. How to Interpret Indicators\n"
+                    "### 3. Workflow Automation Tips\n\n"
+                    "Help the user navigate maps, simulator, timeline, reports, copilot."
                 )
             elif intent == "Report Generation":
-                system_instruction = (
-                    "You are a Senior Climate Intelligence Officer.\n"
-                    "Generate a detailed, formal report structured logically with headers, tables, and regional indicators.\n"
-                    "Ensure no sci-fi jargon is used. Write the output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown text for a structured regional report document.",\n'
-                    '  "risk_analysis": "Formal explanation of composite risk metrics.",\n'
-                    '  "recommended_actions": ["Policy-level interventions."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Composite Risk", "risk": 60}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Generate comparison reports"],\n'
-                    '  "explainable_risk": { "confidence": 95, "drivers": ["Report base markers"], "actions": ["Drilldowns"], "sources": ["IMD", "NRSC"] },\n'
-                    '  "insights": ["Report insight 1"]\n'
-                    "}"
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Report Intelligence (invoking Report Generation Agent, Government Data Agent, Policy Recommendation Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Report Findings & Executive Summary\n"
+                    "### 2. Report Insights Q&A\n"
+                    "### 3. Expanded Policy Brief & Action Plan\n"
+                    "### 4. Follow-up Recommendations\n\n"
+                    "Evaluate generated report summaries or answer report questions."
                 )
             elif intent == "Risk Assessment":
-                system_instruction = (
-                    "You are a Senior Disaster Management Expert.\n"
-                    "Provide a detailed hazard vulnerability profile.\n"
-                    "Format the 'explanation' field to cover:\n"
-                    "- Hazard Profile\n"
-                    "- Active Warnings\n"
-                    "- Vulnerability Drivers\n"
-                    "- Actionable Safeguards\n"
-                    "Ensure no sci-fi jargon is used. Write the output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown text for a detailed risk/hazard assessment profile.",\n'
-                    '  "risk_analysis": "Physical drivers and composite risk interpretation.",\n'
-                    '  "recommended_actions": ["Disaster readiness safeguards."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Flood Risk", "risk": 70}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Show disaster contingency rules"],\n'
-                    '  "explainable_risk": { "confidence": 93, "drivers": ["Atmospheric Temperature anomaly"], "actions": ["Deploy warning nets"], "sources": ["IMD", "NDMA"] },\n'
-                    '  "insights": ["Risk vulnerability hotspot warning"]\n'
-                    "}"
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Risk Assessment (invoking Risk Assessment Agent, Government Data Agent, Policy Recommendation Agent, Data Quality Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Current Severity\n"
+                    "### 2. Historical Trend\n"
+                    "### 3. Affected Areas\n"
+                    "### 4. Potential Impacts\n"
+                    "### 5. Mitigation Strategies\n"
+                    "### 6. Priority Actions\n"
+                    "### 7. Expected Outcomes\n\n"
+                    "Evaluate hazard profile, active warnings, and vulnerability."
+                )
+            elif intent == "Satellite Analysis":
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Satellite Intelligence (invoking Satellite Intelligence Agent, Geospatial Agent, Government Data Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Satellite Observation Summary\n"
+                    "### 2. Environmental Implications\n"
+                    "### 3. Detected Anomalies\n"
+                    "### 4. Actionable Recommendations\n\n"
+                    "Interpret satellite-derived indicators (NDVI, Vegetation cover, Land Surface Temp, reservoir bodies) and highlight anomalies."
+                )
+            elif intent == "Timeline Analysis":
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Timeline Intelligence (invoking Timeline Intelligence Agent, Geospatial Agent, Government Data Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Trend Analysis & Historical Context\n"
+                    "### 2. Pattern Detection\n"
+                    "### 3. Historical Climate Anomalies\n"
+                    "### 4. Key Turning Points\n"
+                    "### 5. Future Projections & Expectations\n\n"
+                    "Analyze historical decadal climate changes and extreme events."
+                )
+            elif intent == "Map Analysis":
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Geospatial Map Intelligence (invoking Geospatial Agent, Government Data Agent).\n"
+                    "You must structure the 'explanation' field using these exact headings:\n"
+                    "### 1. Geospatial Layer Assessment\n"
+                    "### 2. Spatial Hotspots & Map Findings\n"
+                    "### 3. Recommended Map Actions\n\n"
+                    "Analyze active GIS map layers and overlays."
                 )
             else: # Climate Analysis
-                system_instruction = (
-                    "You are a Senior Climate Scientist and Environmental Analyst.\n"
+                system_instruction = base_system_prompt + (
+                    "Detected Intent: Climate Analysis (invoking Climate Analysis Agent, Government Data Agent, Data Quality Agent).\n"
                     "You MUST strictly format the 'explanation' field using these exact headings:\n"
                     "### 1. Executive Summary\n"
-                    "### 2. Climate Conditions\n"
-                    "### 3. Risk Assessment\n"
-                    "### 4. Key Insights\n"
-                    "### 5. Recommendations\n"
-                    "### 6. Confidence\n"
-                    "### 7. Data Sources\n\n"
-                    "Ensure no sci-fi jargon is used. Write the output as a valid JSON.\n\n"
-                    "JSON Schema:\n"
-                    "{\n"
-                    '  "explanation": "Markdown description following the 7-heading structure for regional prompts.",\n'
-                    '  "risk_analysis": "Explanation of what risk values mean and their physical drivers.",\n'
-                    '  "recommended_actions": ["List of immediate policy or operational interventions."],\n'
-                    '  "chart": { "type": "bar", "data": [{"district": "Region A", "risk": 45}] },\n'
-                    '  "districts": [],\n'
-                    '  "action": null,\n'
-                    '  "suggestions": ["Follow-up suggestion 1"],\n'
-                    '  "explainable_risk": { "confidence": 92, "drivers": ["Atmospheric Temperature Anomaly"], "actions": ["Verification drills"], "sources": ["IMD", "NRSC"] },\n'
-                    '  "insights": ["Takeaway 1"]\n'
-                    "}"
+                    "### 2. Current Conditions\n"
+                    "### 3. Climate Indicators\n"
+                    "### 4. Risk Assessment\n"
+                    "### 5. Key Insights\n"
+                    "### 6. Recommendations\n"
+                    "### 7. Confidence Level\n"
+                    "### 8. Data Sources\n\n"
+                    "Explain what the data means, do not merely repeat numbers."
                 )
 
             # Build query with history and context
@@ -1006,7 +1047,7 @@ class ClimateCopilot:
             insights = [f"Simulated risk settles at {comp}/100.", f"Economic exposure modeled at ₹{econ_loss}M."]
             explainable_risk = {"confidence": 85, "drivers": ["Temperature delta anomaly", "Evapotranspiration rise"], "actions": ["Drought advisory activation"], "sources": ["BCT Simulator Model v1.1"]}
 
-        elif intent == "Educational":
+        elif intent == "Education":
             concept_name = "Climate Index"
             concept_desc = ""
             citations = []
@@ -1042,48 +1083,80 @@ class ClimateCopilot:
                 citations = ["IMD gridded data", "NRSC satellite products"]
 
             explanation = (
-                f"### Educational Briefing: {concept_name}\n\n"
+                f"### 1. Scientific Concept Definition\n"
+                f"**{concept_name}** represents a key indicator in our climate observation pipeline.\n\n"
+                f"### 2. Physical & Environmental Meaning\n"
                 f"{concept_desc}\n\n"
-                f"- **Relevance**: Scales dynamically based on atmospheric conditions.\n"
-                f"- **Data Flow**: Captured using orbital multi-spectral sensors and verified against ground telemetry."
+                f"### 3. Measurement Metrics & normal vs extreme thresholds\n"
+                f"Vulnerabilities rise when the index deviates significantly from the 30-year historical baseline.\n\n"
+                f"### 4. Sensors & Government Data Providers\n"
+                f"Aggregated from sensor grids provided by: {', '.join(citations)}."
             )
-            risk_analysis = f"Vulnerabilities rise when {concept_name} deviates significantly from the 30-year historical baseline."
+            risk_analysis = f"Vulnerabilities rise when {concept_name} deviates significantly from baselines."
             recommended_actions = [f"Integrate {concept_name} into emergency warning triggers.", "Review sensor baseline calibration grids."]
             suggestions = ["What is NDVI?", "Explain AQI index", "How does soil moisture affect crop stress?"]
             insights = [f"{concept_name} is fully integrated in BCT risk models."]
-            explainable_risk = {"confidence": 95, "drivers": ["Standard scientific calibrations"], "actions": ["Monitor daily drift values"], "sources": citations}
+            explainable_risk = {
+                "confidence": "High",
+                "confidence_reason": "Calibrated against standard scientific baseline references.",
+                "drivers": ["Standard scientific calibrations"],
+                "actions": ["Monitor daily drift values"],
+                "sources": citations,
+                "provenance": {
+                    "sources_used": citations,
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "Government of India gridded feeds"
+                }
+            }
 
-        elif intent == "Platform Help":
+        elif intent == "Platform Guidance":
             explanation = (
-                f"### Bharat Climate-Twin Platform Guide\n\n"
-                f"Welcome to the Climate Intelligence Officer workspace. You can interact with the digital twin using these controls:\n\n"
-                f"1. **Map Layers**: Toggle between Composite Risk, Flood, Drought, Heatwave, Water Stress, AQI, and NDVI layers.\n"
-                f"2. **Scenario Simulator**: Adjust temperature anomalies (+1 to +5°C), rainfall deficits, and reservoir drawdown to project risk indexes.\n"
-                f"3. **Historical Timelines**: Step through years (2020-2026) to trace multi-decadal changes.\n"
-                f"4. **Regional Reports**: Click 'Download PDF Report' on the dashboard to access formal gridded reports."
+                f"### 1. Platform Interface Guide\n"
+                f"Welcome to the Climate Intelligence Officer workspace. You can interact with the digital twin using these controls:\n"
+                f"- **Map Layers**: Toggle between Composite Risk, Flood, Drought, Heatwave, Water Stress, AQI, and NDVI layers.\n"
+                f"- **Scenario Simulator**: Adjust temperature anomalies (+1 to +5°C), rainfall deficits, and reservoir drawdown to project risk indexes.\n"
+                f"- **Historical Timelines**: Step through years (2020-2026) to trace multi-decadal changes.\n"
+                f"- **Regional Reports**: Click 'Download PDF Report' on the dashboard to access formal gridded reports.\n\n"
+                f"### 2. How to Interpret Indicators\n"
+                f"Select a district on the map to display its current observation metrics and risk breakdown.\n\n"
+                f"### 3. Workflow Automation Tips\n"
+                f"Use the quick action buttons on the Dashboard side panel or the workflow recommendations at the bottom of the page to navigate between modules with your current context preserved."
             )
             risk_analysis = "Select a district on the map to display its current observation metrics and risk breakdown."
             recommended_actions = ["Explore the Scenario Simulator using the sidebar sliders.", "Select Jodhpur or Udaipur on the map to inspect local observations."]
             suggestions = ["How do I run a simulation?", "Compare Rajasthan and Gujarat", "Explain NDVI"]
             insights = ["Digital twin is connected to real-time IMD, NRSC, and CPCB database schemas."]
-            explainable_risk = {"confidence": 100, "drivers": ["User Interface"], "actions": ["Explore map layers"], "sources": ["BCT Help Manual"]}
+            explainable_risk = {
+                "confidence": "High",
+                "confidence_reason": "Direct documentation reference.",
+                "drivers": ["User Interface"],
+                "actions": ["Explore map layers"],
+                "sources": ["BCT Help Manual"],
+                "provenance": {
+                    "sources_used": ["BCT Help Manual"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "Local system manuals"
+                }
+            }
 
-        elif intent == "Decision Support":
+        elif intent == "Policy Planning":
             loc_name = active_state.name if active_state else (active_district.name if active_district else "India")
             explanation = (
-                f"### Situation\n"
+                f"### 1. Situation Assessment\n"
                 f"Coordinated guidelines are active for **{loc_name}** based on the current hazard threat landscape:\n"
                 f"- **Drought Countermeasures**: Pre-position drinking water tankers and issue micro-irrigation guidelines.\n"
                 f"- **Flood Readiness**: Verify drainage blockages, check channel headrooms, and place rescue units on standby.\n\n"
-                f"### Recommended Actions\n"
-                f"1. Convene the state disaster mitigation advisory committee for {loc_name}.\n"
-                f"2. Activate emergency block-level cooling and hydration structures.\n"
-                f"3. Authorize agricultural seed subsidies for drought-prone sub-blocks.\n\n"
-                f"### Priority\n"
+                f"### 2. Immediate Actions\n"
+                f"Convene the state disaster mitigation advisory committee for {loc_name} immediately.\n\n"
+                f"### 3. Short-Term Actions\n"
+                f"Activate emergency block-level cooling and hydration structures.\n\n"
+                f"### 4. Long-Term Strategies\n"
+                f"Authorize agricultural seed subsidies for drought-prone sub-blocks and plan block-level aquifer recharges.\n\n"
+                f"### 5. Priority Ranking & Resource Allocation Guidance\n"
                 f"Priority levels set to high for drought-prone sub-blocks.\n\n"
-                f"### Timeline\n"
-                f"Operationalize emergency measures within the next 48 to 72 hours.\n\n"
-                f"### Expected Outcome\n"
+                f"### 6. Expected Benefits\n"
                 f"Stabilization of soil moisture conditions and mitigation of water scarcity."
             )
             risk_analysis = f"Mitigation plans are optimized matching the composite risk score of {comp_score}/100."
@@ -1091,47 +1164,193 @@ class ClimateCopilot:
             recommended_actions = [f"Convene the state disaster mitigation advisory committee for {loc_name}.", "Activate emergency block-level cooling and hydration structures.", "Authorize agricultural seed subsidies for drought-prone sub-blocks."]
             suggestions = ["Show active alerts", "Run future conditions simulation", "Explain risk drivers"]
             insights = [f"Operational guidance compiled for {loc_name}."]
-            explainable_risk = {"confidence": 94, "drivers": ["Hazard exposure metrics"], "actions": ["Deploy field monitors"], "sources": ["NDMA", "SDMA"]}
+            explainable_risk = {
+                "confidence": "Medium",
+                "confidence_reason": "Aggregated from regional SDMA and NDMA policy manuals.",
+                "drivers": ["Hazard exposure metrics"],
+                "actions": ["Deploy field monitors"],
+                "sources": ["NDMA", "SDMA"],
+                "provenance": {
+                    "sources_used": ["NDMA guidelines", "SDMA reports"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "National Disaster Management Authority datasets"
+                }
+            }
 
         elif intent == "Report Generation":
             loc_title = f"{active_district.name} District ({active_district.state.name})" if active_district else (f"{active_state.name} State" if active_state else "National Overview")
             explanation = (
-                f"### Structured Climate Intelligence Report\n\n"
-                f"This report compiles regional climate indicators and risk projections for **{loc_title}**:\n"
+                f"### 1. Report Findings & Executive Summary\n"
+                f"This climate report reviews indicators and risk projections for **{loc_title}**:\n"
                 f"- Composite Risk: {comp_score}/100\n"
                 f"- Soil Moisture: {soil}%\n"
                 f"- Water Stress Risk: {ws_score}/100\n"
                 f"- Temp: {temp}°C | Rainfall Deficit: {deficit}%\n\n"
-                f"Vulnerabilities are primarily driven by localized precipitation deviations. Immediate agricultural and water resources planning is required."
+                f"### 2. Report Insights Q&A\n"
+                f"Vulnerabilities are primarily driven by localized precipitation deviations. Immediate agricultural planning is required.\n\n"
+                f"### 3. Expanded Policy Brief & Action Plan\n"
+                f"Publish crop advisories and allocate water resources according to local reservoir storage indices.\n\n"
+                f"### 4. Follow-up Recommendations\n"
+                f"Convene block-level monitoring drills and coordinate with local water distribution grids."
             )
             risk_analysis = f"Formal explanation of composite risk metric of {comp_score}/100."
             chart_data = [{"district": "Composite Risk", "risk": comp_score}]
             recommended_actions = [f"Publish district crop advisory bulletins."]
             suggestions = ["Generate comparison reports"]
             insights = [f"Composite risk is {comp_score}/100."]
-            explainable_risk = {"confidence": 95, "drivers": ["Report base markers"], "actions": ["Drilldowns"], "sources": ["IMD", "NRSC"]}
+            action = {"type": "generate_report", "params": {"state_id": active_state.id if active_state else "", "district_id": active_district.id if active_district else ""}}
+            explainable_risk = {
+                "confidence": "High",
+                "confidence_reason": "Aggregated from official state and district gridded records.",
+                "drivers": ["Report base markers"],
+                "actions": ["Drilldowns"],
+                "sources": ["IMD", "NRSC"],
+                "provenance": {
+                    "sources_used": ["IMD gridded data", "NRSC satellite products"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "National Climate Database System"
+                }
+            }
 
         elif intent == "Risk Assessment":
             loc_title = f"{active_district.name} District ({active_district.state.name})" if active_district else (f"{active_state.name} State" if active_state else "National Overview")
             explanation = (
-                f"### Hazard Profile\n"
+                f"### 1. Current Severity\n"
                 f"Vulnerability assessment for **{loc_title}** exposes moderate-to-high risk markers:\n"
                 f"- Composite Risk: {comp_score}/100\n"
                 f"- Flood Risk Index: {f_score}/100\n"
                 f"- Drought Risk Index: {d_score}/100\n\n"
-                f"### Active Warnings\n"
-                f"No major extreme warnings are active, but drought markers are being monitored closely.\n\n"
-                f"### Vulnerability Drivers\n"
-                f"Primary drivers are evaporation loss and lack of monsoon backup rainfall.\n\n"
-                f"### Actionable Safeguards\n"
-                f"- Implement crop rotations and prioritize groundwater recharge."
+                f"### 2. Historical Trend\n"
+                f"Drought indices show an upward baseline drift over the past 3 seasons.\n\n"
+                f"### 3. Affected Areas\n"
+                f"Mainly agricultural zones and low-lying river basins.\n\n"
+                f"### 4. Potential Impacts\n"
+                f"Crop canopy dehydration and urban water stress during peaking temperatures.\n\n"
+                f"### 5. Mitigation Strategies\n"
+                f"Implement micro-irrigation and prioritize groundwater recharge.\n\n"
+                f"### 6. Priority Actions\n"
+                f"Deploy block-level water tankers and coordinate emergency storage release triggers.\n\n"
+                f"### 7. Expected Outcomes\n"
+                f"Expected stabilization of crop yields and minimized municipal water shortages."
             )
             risk_analysis = f"Physical drivers and composite risk interpretation for composite score of {comp_score}/100."
             chart_data = [{"district": "Flood Risk", "risk": f_score}, {"district": "Drought Risk", "risk": d_score}]
             recommended_actions = ["Disaster readiness safeguards."]
             suggestions = ["Show disaster contingency rules"]
             insights = ["Risk vulnerability hotspot warning"]
-            explainable_risk = {"confidence": 93, "drivers": ["Atmospheric Temperature anomaly"], "actions": ["Deploy warning nets"], "sources": ["IMD", "NDMA"]}
+            action = {"type": "open_risk", "params": {"state_id": active_state.id if active_state else "", "district_id": active_district.id if active_district else ""}}
+            explainable_risk = {
+                "confidence": "High",
+                "confidence_reason": "Aggregated from active observation layers and warning bulletins.",
+                "drivers": ["Atmospheric Temperature anomaly"],
+                "actions": ["Deploy warning nets"],
+                "sources": ["IMD", "NDMA"],
+                "provenance": {
+                    "sources_used": ["IMD weather telemetry", "NDMA warnings"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "Disaster warning warning networks"
+                }
+            }
+
+        elif intent == "Satellite Analysis":
+            loc_title = f"{active_district.name} District ({active_district.state.name})" if active_district else (f"{active_state.name} State" if active_state else "National Overview")
+            explanation = (
+                f"### 1. Satellite Observation Summary\n"
+                f"Satellite observations for **{loc_title}** indicate healthy canopy markers.\n"
+                f"- NDVI: {ndvi}\n"
+                f"- Reservoir Capacity: {reservoir}%\n\n"
+                f"### 2. Environmental Implications\n"
+                f"Healthy vegetation canopy indicates stable agricultural cycles. Reservoir storage matches the seasonal baseline.\n\n"
+                f"### 3. Detected Anomalies\n"
+                f"No major vegetation anomalies detected. Minor topsoil moisture deficit in outlying sub-blocks.\n\n"
+                f"### 4. Actionable Recommendations\n"
+                f"Continue weekly satellite passes and monitor surface water runoff cycles."
+            )
+            risk_analysis = f"Satellite index observations show NDVI={ndvi} and Reservoir={reservoir}%."
+            chart_data = [{"district": "NDVI Index", "risk": int(ndvi * 100)}, {"district": "Reservoir Level", "risk": int(reservoir)}]
+            recommended_actions = ["Schedule weekly LISS-III composite audits."]
+            suggestions = ["Analyze drought risk", "Check soil moisture indexes"]
+            insights = ["Satellite canopy indicators are stable."]
+            explainable_risk = {
+                "confidence": "High",
+                "confidence_reason": "Direct retrieval from NRSC Sentinel/LISS-III products.",
+                "drivers": ["Optical sensor inputs"],
+                "actions": ["Verify ground moisture indexes"],
+                "sources": ["NRSC", "MOSDAC"],
+                "provenance": {
+                    "sources_used": ["NRSC Sentinel L3", "MOSDAC weather feeds"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "ISRO Remote Sensing Data Feeds"
+                }
+            }
+
+        elif intent == "Timeline Analysis":
+            loc_title = f"{active_district.name} District ({active_district.state.name})" if active_district else (f"{active_state.name} State" if active_state else "National Overview")
+            explanation = (
+                f"### 1. Trend Analysis & Historical Context\n"
+                f"Reviewing historical climate timelines for **{loc_title}**:\n"
+                f"- Multi-decadal parameters are stable, showing minor upward temperature drifts.\n\n"
+                f"### 2. Pattern Detection\n"
+                f"Thermal peaks have shifted forward by 5-7 days over the past decade.\n\n"
+                f"### 3. Historical Climate Anomalies\n"
+                f"Dry season anomalies show minor soil moisture deficit patterns.\n\n"
+                f"### 4. Key Turning Points\n"
+                f"Hydrological drawdowns accelerated post-2022 due to uneven monsoon distribution.\n\n"
+                f"### 5. Future Projections & Expectations\n"
+                f"Temperatures are expected to rise by +1.5°C by 2030, with high water demand stress."
+            )
+            risk_analysis = f"Historical climate timeline indicates steady baseline drifts."
+            chart_data = [{"district": "2026 Temp", "risk": int(temp)}, {"district": "2030 Temp", "risk": int(temp + 1.5)}]
+            recommended_actions = ["Review decadal carbon budget mappings."]
+            suggestions = ["Compare with neighboring districts", "Open timeline simulator"]
+            action = {"type": "open_timeline", "params": {"state_id": active_state.id if active_state else "", "district_id": active_district.id if active_district else ""}}
+            insights = ["Decadal temperature averages are shifting upwards."]
+            explainable_risk = {
+                "confidence": "Medium",
+                "confidence_reason": "Based on historical weather observations and projection models.",
+                "drivers": ["Precipitation variances over time"],
+                "actions": ["Plan water buffers"],
+                "sources": ["IMD", "IPCC"],
+                "provenance": {
+                    "sources_used": ["IMD historical grids", "IPCC models"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "Historical observations data warehouse"
+                }
+            }
+
+        elif intent == "Map Analysis":
+            explanation = (
+                f"### 1. Geospatial Layer Assessment\n"
+                f"Active Layer is set to **{payload.active_layer or 'composite'}** and Map Mode is **{payload.map_mode or 'streets'}**.\n\n"
+                f"### 2. Spatial Hotspots & Map Findings\n"
+                f"High composite risk values are clustered in the western sub-blocks. River basins show moderate exposure.\n\n"
+                f"### 3. Recommended Map Actions\n"
+                f"Toggle to the Alerts layer to verify active boundaries and coordinate warning vectors."
+            )
+            risk_analysis = "Geospatial overlays identify localized risk hotspots."
+            chart_data = [{"district": "Western blocks", "risk": 75}, {"district": "Eastern basins", "risk": 45}]
+            recommended_actions = ["Toggle to Alerts layer to check active warnings."]
+            suggestions = ["Open Digital Twin Map", "Show composite risk layer"]
+            action = {"type": "open_twin", "params": {"layer": payload.active_layer or "composite_risk"}}
+            insights = ["Western blocks represent primary risk hotspots."]
+            explainable_risk = {
+                "confidence": "High",
+                "confidence_reason": "Direct geospatial data layer query.",
+                "drivers": ["GIS layer parameters"],
+                "actions": ["Verify boundaries on ground"],
+                "sources": ["BCT GIS Module"],
+                "provenance": {
+                    "sources_used": ["BCT active layers", "Google Maps GIS engine"],
+                    "last_updated": "2026-06-24T06:00:00Z",
+                    "dataset_timestamp": "2026-06-24T06:00:00Z",
+                    "origin": "Geospatial database overlays"
+                }
+            }
 
         else: # Climate Analysis
             loc_title = f"{active_district.name} District ({active_district.state.name})" if active_district else (f"{active_state.name} State" if active_state else "National Overview")

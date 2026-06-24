@@ -211,41 +211,94 @@ function CopilotPageContent() {
   const executeAction = (action: any) => {
     if (!action) return;
     
+    const params = action.params || {};
+    const districtId = action.district_id || params.district_id || params.districtId || action.districtId;
+    const districtName = action.district_name || params.district_name || params.districtName || action.districtName;
+    const stateName1 = action.state1 || params.state1 || params.stateName1 || action.stateName1;
+    const stateName2 = action.state2 || params.state2 || params.stateName2 || action.stateName2;
+    const districtA = action.districtA || params.districtA;
+    const districtB = action.districtB || params.districtB;
+
     switch (action.type) {
       case "set_layer":
-        setActiveLayer(action.layer);
-        triggerToast(`Map layer updated to "${action.layer}". Redirecting to map view...`);
+        setActiveLayer(action.layer || params.layer);
+        triggerToast(`Map layer updated to "${action.layer || params.layer}". Redirecting to map view...`);
         setTimeout(() => router.push("/map"), 1500);
         break;
       case "zoom_to_district":
-        setSelectedDistrictId(action.district_id);
-        triggerToast(`Centered map on ${action.district_name || "District"}. Redirecting to map...`);
-        setTimeout(() => router.push(`/map?district_id=${action.district_id}`), 1500);
+      case "open_twin":
+        if (districtId) {
+          setSelectedDistrictId(Number(districtId));
+          triggerToast(`Centered map on ${districtName || "District"}. Redirecting to Digital Twin...`);
+          setTimeout(() => router.push(`/map?district_id=${districtId}`), 1500);
+        } else {
+          triggerToast("Opening National Climate Digital Twin...");
+          setTimeout(() => router.push("/map"), 1200);
+        }
         break;
       case "open_compare":
-        if (action.districtA && action.districtB) {
+      case "compare_states":
+        if (districtA && districtB) {
           triggerToast(`Loading comparative dashboard. Redirecting...`);
-          setTimeout(() => router.push(`/compare?districtA=${action.districtA}&districtB=${action.districtB}`), 1200);
-        } else if (action.state1 && action.state2) {
+          setTimeout(() => router.push(`/compare?districtA=${districtA}&districtB=${districtB}`), 1200);
+        } else if (stateName1 && stateName2) {
           triggerToast(`Navigating to state comparison module...`);
-          setTimeout(() => router.push(`/compare?state1=${action.state1}&state2=${action.state2}`), 1200);
+          setTimeout(() => router.push(`/compare?state1=${stateName1}&state2=${stateName2}`), 1200);
         } else {
+          triggerToast("Navigating to comparison module...");
           setTimeout(() => router.push(`/compare`), 1200);
         }
         break;
       case "open_simulator":
-        const params = action.params || {};
+      case "launch_simulation":
         triggerToast(`Prefilling simulation variables. Opening Scenario Simulator...`);
-        const query = `district_id=${params.district_id || ""}&rainfall=${params.rainfall_delta_pct || ""}&temp=${params.temperature_delta_c || ""}&reservoir=${params.reservoir_delta_pct || ""}`;
+        const query = `district_id=${districtId || ""}&rainfall=${params.rainfall_delta_pct || params.rainfall || ""}&temp=${params.temperature_delta_c || params.temperature || ""}&reservoir=${params.reservoir_delta_pct || params.reservoir || ""}`;
         setTimeout(() => router.push(`/simulator?${query}`), 1500);
         break;
       case "download_report":
-        triggerToast(`Requesting official PDF report...`);
-        const repType = action.report_type || "district";
-        window.open(`${API_BASE_URL}/api/v1/climate/reports/${repType}/${action.id}.pdf`, "_blank");
+      case "generate_report":
+        if (action.id || params.id) {
+          triggerToast(`Requesting official PDF report...`);
+          const repType = action.report_type || params.report_type || "district";
+          window.open(`${API_BASE_URL}/api/v1/climate/reports/${repType}/${action.id || params.id}.pdf`, "_blank");
+        } else {
+          triggerToast("Redirecting to AI Report Generator...");
+          setTimeout(() => router.push("/reports"), 1200);
+        }
+        break;
+      case "open_risk":
+        triggerToast("Opening Climate Risk Center...");
+        setTimeout(() => router.push("/risk-center"), 1200);
+        break;
+      case "open_timeline":
+        triggerToast("Opening Climate Timeline...");
+        setTimeout(() => router.push("/timeline"), 1200);
+        break;
+      case "view_analytics":
+        triggerToast("Opening Climate Analytics...");
+        setTimeout(() => router.push("/analytics"), 1200);
         break;
       default:
         break;
+    }
+  };
+
+  const getActionLabel = (action: any) => {
+    if (!action) return "Execute Action";
+    switch (action.type) {
+      case "set_layer": return "Update Map Layer";
+      case "zoom_to_district": return "Zoom to Target";
+      case "open_twin": return "Open Digital Twin";
+      case "open_compare":
+      case "compare_states": return "Compare Regions";
+      case "open_simulator":
+      case "launch_simulation": return "Launch Simulator";
+      case "download_report":
+      case "generate_report": return "Generate PDF Report";
+      case "open_risk": return "Open Risk Center";
+      case "open_timeline": return "Open Climate Timeline";
+      case "view_analytics": return "View Analytics";
+      default: return "Execute Action";
     }
   };
  
@@ -799,7 +852,7 @@ function CopilotPageContent() {
                                 {msg.data?.action && (
                                   <Button variant="outline" size="sm" className="h-7.5 border-brand-blue/30 hover:border-cyan-500 text-brand-titanium text-[9px] tracking-wider uppercase bg-brand-blue/5 rounded-lg px-2.5" onClick={() => msg.data?.action && executeAction(msg.data.action)}>
                                     <Sparkles className="h-3 w-3 mr-1 text-cyan-400" />
-                                    Zoom to Target
+                                    {getActionLabel(msg.data.action)}
                                   </Button>
                                 )}
                               </div>
