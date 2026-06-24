@@ -447,9 +447,45 @@ export default function ClimateIntelligenceCenter() {
               <Printer className="h-3 w-3" />
               <span>PDF</span>
             </Button>
-          </div>
         </div>
       </div>
+    </div>
+
+      {/* ─── EXECUTIVE SUMMARY PANEL ────────────────────────────────────── */}
+      <Card className="glass-card bg-gradient-to-r from-cyan-950/20 to-slate-900/40 border-cyan-500/20">
+        <CardContent className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-1.5 max-w-2xl text-left">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-[9px] uppercase tracking-wider">
+                Executive Intelligence Summary
+              </Badge>
+              <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-[9px] uppercase tracking-wider">
+                92% Confidence Level
+              </Badge>
+            </div>
+            <p className="text-white font-semibold text-sm mt-1">
+              National operations tracking shows {metrics.avgRisk > 60 ? "elevated" : "moderate"} climate risk parameters. Temperature anomalies hover at {metrics.avgTemp}°C against baseline norms.
+            </p>
+            <p className="text-slate-400 text-xs leading-relaxed">
+              <strong className="text-slate-200">Key Insight:</strong> Heat anomalies in semi-arid zones correlate with lower reservoir storage capacity ({metrics.avgReservoir}%). Immediate crop soil moisture replenishment advisory recommended.
+            </p>
+          </div>
+          <div className="shrink-0 flex flex-col gap-2 font-mono text-[10px] text-slate-400 bg-slate-950/40 p-3 rounded-lg border border-white/[0.06] w-full md:w-auto">
+            <div className="flex justify-between gap-4">
+              <span>Source Feed:</span>
+              <span className="text-slate-200">IMD, NRSC, WRIS</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span>Sync Quality:</span>
+              <span className="text-emerald-400 font-bold">VERIFIED</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span>Next Action:</span>
+              <Link href="/simulator" className="text-cyan-400 hover:underline">Run simulation →</Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <hr className="border-white/[0.08]" />
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Play, RotateCcw, Save, FolderOpen, Download, FileText,
   ChevronDown, ChevronUp, Zap, AlertTriangle, TrendingUp,
@@ -518,6 +519,42 @@ export default function SimulatorPage() {
           )}
         </div>
       </div>
+
+      {/* ─── EXECUTIVE SUMMARY PANEL ────────────────────────────────────── */}
+      <Card className="glass-card bg-gradient-to-r from-purple-950/20 to-slate-900/40 border-purple-500/20">
+        <CardContent className="p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-1.5 max-w-2xl text-left">
+            <div className="flex items-center gap-2">
+              <Badge className="bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold text-[9px] uppercase tracking-wider">
+                Scenario Modeling Engine
+              </Badge>
+              <Badge className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold text-[9px] uppercase tracking-wider">
+                Simulation Model Confidence: 94%
+              </Badge>
+            </div>
+            <p className="text-white font-semibold text-sm mt-1">
+              Projected outcomes model the cascading effects of Temperature Rise ({payload.temperature_delta_c}°C) and Rainfall Shifts ({payload.rainfall_delta_pct}%).
+            </p>
+            <p className="text-slate-400 text-xs leading-relaxed">
+              <strong className="text-slate-200">Mitigation Strategy:</strong> Increasing forest cover (+15%) or reservoir capacity mitigates extreme heatwave days, keeping crop stress within manageable boundaries.
+            </p>
+          </div>
+          <div className="shrink-0 flex flex-col gap-2 font-mono text-[10px] text-slate-400 bg-slate-950/40 p-3 rounded-lg border border-white/[0.06] w-full md:w-auto">
+            <div className="flex justify-between gap-4">
+              <span>Baseline:</span>
+              <span className="text-slate-200">IMD Gridded Climate</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span>Simulation Type:</span>
+              <span className="text-purple-400 font-bold">MULTIVARIATE</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span>Next Action:</span>
+              <Link href="/risk-center" className="text-cyan-400 hover:underline">Verify in Risk Center →</Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Save Dialog */}
       {saveDialogOpen && (

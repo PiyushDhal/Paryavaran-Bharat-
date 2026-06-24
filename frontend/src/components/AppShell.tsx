@@ -520,82 +520,87 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
-
             {(() => {
               const demoSteps = [
                 {
-                  title: "1. Select Rajasthan & Jodhpur",
-                  description: "Set active region focus to Rajasthan state and Jodhpur district to load local observations.",
-                  actionLabel: "Configure Jodhpur, RJ",
-                  action: async () => {
-                    const states = await api.states().catch(() => []);
-                    const districts = await api.districts().catch(() => []);
-                    const rjMatch = states.find(s => s.name?.toLowerCase() === "rajasthan");
-                    const jodhpurMatch = districts.find(d => d.name?.toLowerCase().includes("jodhpur"));
-                    if (rjMatch) {
-                      setSelectedStateId(rjMatch.id);
-                      setSelectedStateName(rjMatch.name);
-                    }
-                    if (jodhpurMatch) {
-                      setSelectedDistrictId(jodhpurMatch.id);
-                    } else {
-                      setSelectedDistrictId(12);
-                    }
+                  title: "1. National Command Center",
+                  description: "Inspect the Command Center. View high-risk states, districts, and live climate status indicators.",
+                  actionLabel: "Command Center",
+                  action: () => {
+                    router.push("/dashboard");
                     setDemoStep(1);
                   }
                 },
                 {
-                  title: "2. View Heatwave Risk Center",
-                  description: "Navigate to the District Risk Center. Inspect the Executive Decision Support System (EDSS) cards outlining Expected Impacts & Recommended Actions.",
-                  actionLabel: "Go to Risk Center",
+                  title: "2. Digital Twin Map",
+                  description: "Load the interactive Digital Twin. Inspect real observations, gridded overlays, and sensor provenance.",
+                  actionLabel: "Open Digital Twin",
                   action: () => {
-                    router.push("/risk-center");
+                    router.push("/map");
                     setDemoStep(2);
                   }
                 },
                 {
-                  title: "3. Generate Climate Brief",
-                  description: "Return to Command Center dashboard and click 'Generate National Climate Brief' to view compiled multi-agency IMD/NRSC telemetry alerts.",
-                  actionLabel: "Go to Command Center",
+                  title: "3. Climate Analytics",
+                  description: "Open Climate Analytics. Analyze the root causes of climate stress, anomalies, and parameter projections.",
+                  actionLabel: "View Analytics",
                   action: () => {
-                    router.push("/dashboard");
+                    router.push("/analytics");
                     setDemoStep(3);
                   }
                 },
                 {
-                  title: "4. Run Future Simulation",
-                  description: "Launch the Scenario Simulator prefilled with +2.0°C temperature rise and -20% rainfall drought parameters.",
-                  actionLabel: "Open Scenario Simulator",
+                  title: "4. AI Climate Briefing",
+                  description: "Access the multi-agency AI National Climate Briefing for official telemetry synthesis.",
+                  actionLabel: "Generate Briefing",
                   action: () => {
-                    router.push("/simulator");
+                    router.push("/dashboard?open_brief=true");
                     setDemoStep(4);
                   }
                 },
                 {
-                  title: "5. Generate District Action Plan",
-                  description: "Analyze the 1-7-30 day response plan, resource lists, and priorities using the Bharat Climate Intelligence AI Copilot.",
-                  actionLabel: "Launch AI Copilot",
+                  title: "5. Generate Executive Report",
+                  description: "Define parameters for a ministry-level dossier. Prepare custom state & district selections.",
+                  actionLabel: "Plan Dossier",
                   action: () => {
-                    router.push("/copilot?query=Generate+a+1-7-30+day+action+plan+for+Jodhpur+heatwave");
+                    router.push("/reports");
                     setDemoStep(5);
                   }
                 },
                 {
-                  title: "6. Discuss with AI Advisor",
-                  description: "Explore specific block-level policy recommendations and disaster preparedness guidelines in the interactive chat.",
-                  actionLabel: "Consult AI Engine",
+                  title: "6. Scenario Simulator",
+                  description: "Adjust variables (temperature anomalies, rainfall shifts) to project future risk indices.",
+                  actionLabel: "Open Simulator",
                   action: () => {
-                    router.push("/copilot");
+                    router.push("/simulator");
                     setDemoStep(6);
                   }
                 },
                 {
-                  title: "7. Produce Executive Dossier",
-                  description: "Go to the AI Report Generator to download the finalized executive brief summary in professional PDF format.",
-                  actionLabel: "Open Report Center",
+                  title: "7. District Risk Center",
+                  description: "Verify calculated hazard risks and actionable expected impact EDSS recommendation cards.",
+                  actionLabel: "Inspect Risk Center",
+                  action: () => {
+                    router.push("/risk-center");
+                    setDemoStep(7);
+                  }
+                },
+                {
+                  title: "8. Policy Recommendations",
+                  description: "Consult Bharat Climate Intelligence to draft a 1-7-30 day response and resource allocation plan.",
+                  actionLabel: "Consult AI Advisor",
+                  action: () => {
+                    router.push("/copilot?query=Generate+a+1-7-30+day+action+plan+for+Jodhpur+heatwave");
+                    setDemoStep(8);
+                  }
+                },
+                {
+                  title: "9. Export Report",
+                  description: "Download the finalized government-grade executive briefing dossier in PDF format.",
+                  actionLabel: "Download PDF Dossier",
                   action: () => {
                     router.push("/reports");
-                    setDemoStep(7);
+                    setDemoStep(9);
                   }
                 }
               ];

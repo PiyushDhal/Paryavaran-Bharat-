@@ -1927,6 +1927,28 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                   activeYear
                 )}
               </div>
+
+              {/* Quick Actions */}
+              <div className="border-t border-white/[0.08] pt-2 flex gap-1.5 justify-end">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/risk-center?state_name=${encodeURIComponent(selectedStateName)}`;
+                  }}
+                  className="h-6 text-[8.5px] px-2 py-0.5 rounded border border-white/10 bg-slate-900/60 hover:bg-slate-800 text-slate-200 font-bold transition-all"
+                >
+                  Risk Center
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/simulator?state_name=${encodeURIComponent(selectedStateName)}`;
+                  }}
+                  className="h-6 text-[8.5px] px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold transition-all"
+                >
+                  Simulator
+                </button>
+              </div>
             </div>
           </div>
         )}

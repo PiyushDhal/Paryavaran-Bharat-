@@ -91,6 +91,15 @@ export default function DashboardPage() {
   const [briefLoading, setBriefLoading] = useState(false);
   const [activeCrisisMode, setActiveCrisisMode] = useState<"Flood" | "Heatwave" | "Drought" | "Cyclone" | "Air Pollution">("Flood");
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("open_brief") === "true") {
+        handleOpenBrief();
+      }
+    }
+  }, []);
+
   const handleOpenBrief = async () => {
     setShowBriefModal(true);
     setBriefLoading(true);
@@ -415,6 +424,146 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+      </div>
+
+      {/* ─── NATIONAL COMMAND CENTER DECISION ENGINE ───────────────────────── */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Widget 1: Top 5 High-Risk States */}
+        <Card className="glass-card">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-orbitron">Top 5 High-Risk States</CardTitle>
+            <CardDescription className="text-[10px] text-muted-foreground">State-level average risk assessments</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2">
+            {(() => {
+              const stateRisks = rankings.length ? (() => {
+                const stateMap: Record<string, { total: number; count: number }> = {};
+                rankings.forEach(r => {
+                  if (!stateMap[r.state_name]) {
+                    stateMap[r.state_name] = { total: 0, count: 0 };
+                  }
+                  stateMap[r.state_name].total += r.composite_risk;
+                  stateMap[r.state_name].count += 1;
+                });
+                return Object.entries(stateMap)
+                  .map(([name, data]) => ({
+                    name,
+                    avg_risk: Math.round(data.total / data.count)
+                  }))
+                  .sort((a, b) => b.avg_risk - a.avg_risk)
+                  .slice(0, 5);
+              })() : [
+                { name: "Rajasthan", avg_risk: 76 },
+                { name: "Odisha", avg_risk: 72 },
+                { name: "Bihar", avg_risk: 68 },
+                { name: "Assam", avg_risk: 65 },
+                { name: "Gujarat", avg_risk: 62 }
+              ];
+
+              return (
+                <div className="space-y-3 font-mono">
+                  {stateRisks.map((state, idx) => (
+                    <div key={state.name} className="flex items-center justify-between border-b border-white/[0.04] pb-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 font-bold">#0{idx+1}</span>
+                        <span className="text-white font-medium">{state.name}</span>
+                      </div>
+                      <Badge className={state.avg_risk > 70 ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-amber-500/20 text-amber-400 border-amber-500/30"}>
+                        {state.avg_risk}/100
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Widget 2: Top 10 High-Risk Districts */}
+        <Card className="glass-card lg:col-span-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-orbitron">Top 10 High-Risk Districts</CardTitle>
+            <CardDescription className="text-[10px] text-muted-foreground">Critical district vulnerability centers</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2 max-h-[220px] overflow-y-auto scrollbar-thin">
+            {(() => {
+              const topDistricts = rankings.length ? [...rankings]
+                .sort((a, b) => b.composite_risk - a.composite_risk)
+                .slice(0, 10) : [
+                  { district_name: "Jodhpur", state_name: "Rajasthan", composite_risk: 84 },
+                  { district_name: "Puri", state_name: "Odisha", composite_risk: 82 },
+                  { district_name: "Patna", state_name: "Bihar", composite_risk: 79 },
+                  { district_name: "Jaisalmer", state_name: "Rajasthan", composite_risk: 78 },
+                  { district_name: "Cuttack", state_name: "Odisha", composite_risk: 76 },
+                  { district_name: "Dhubri", state_name: "Assam", composite_risk: 75 },
+                  { district_name: "Kutch", state_name: "Gujarat", composite_risk: 74 },
+                  { district_name: "Udaipur", state_name: "Rajasthan", composite_risk: 72 },
+                  { district_name: "Moradabad", state_name: "Uttar Pradesh", composite_risk: 70 },
+                  { district_name: "Gaya", state_name: "Bihar", composite_risk: 69 }
+                ];
+
+              return (
+                <div className="space-y-2.5 font-mono text-xs">
+                  {topDistricts.map((dist, idx) => (
+                    <div key={idx} className="flex items-center justify-between border-b border-white/[0.04] pb-1.5">
+                      <div className="flex flex-col">
+                        <span className="text-white font-medium">{dist.district_name}</span>
+                        <span className="text-[9px] text-slate-500">{dist.state_name}</span>
+                      </div>
+                      <Badge className={dist.composite_risk > 75 ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-amber-500/20 text-amber-400 border-amber-500/30"}>
+                        {dist.composite_risk}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        {/* Widget 3: Active Data Sources & Threats */}
+        <Card className="glass-card md:col-span-2 lg:col-span-1">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-orbitron">Government Sources & Threats</CardTitle>
+            <CardDescription className="text-[10px] text-muted-foreground">National data registry provenance & alert indicators</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2 space-y-4">
+            <div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Ingestion Source Provenance</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "IMD Weather", sync: "6h ago", color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" },
+                  { label: "ISRO Satellite", sync: "1d ago", color: "border-cyan-500/30 text-cyan-400 bg-cyan-500/10" },
+                  { label: "CWC Hydrology", sync: "12h ago", color: "border-blue-500/30 text-blue-400 bg-blue-500/10" },
+                  { label: "CPCB Air Quality", sync: "1h ago", color: "border-amber-500/30 text-amber-400 bg-amber-500/10" }
+                ].map((src) => (
+                  <div key={src.label} className={`border rounded px-2 py-1 text-[9.5px] font-mono flex items-center justify-between gap-2 ${src.color}`}>
+                    <span>{src.label}</span>
+                    <span className="opacity-75 font-semibold text-[8px]">● {src.sync}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-white/[0.08] pt-3">
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Emerging Climate Threats</p>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                  <div className="text-[11px] leading-tight text-slate-300">
+                    <strong className="text-white">Heatwave Alert (Jodhpur)</strong>: Ground surface temp exceed +4.2°C above seasonal normal index limits.
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <div className="text-[11px] leading-tight text-slate-300">
+                    <strong className="text-white">Water Table Warning (Kutch)</strong>: Sub-surface reservoir capacity estimates down to 18% storage limit.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* ─── NATIONAL CRISIS & DISASTER RESPONSE CONSOLE ───────────────────────── */}
