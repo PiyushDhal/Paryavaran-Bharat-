@@ -166,89 +166,102 @@ export default function DashboardPage() {
       {/* ─── 2. 4 NATIONAL KPIs ──────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {/* KPI 1: Risk Score */}
-        <Card className="glass-card relative overflow-hidden group hover:border-white/[0.08] transition-all duration-300">
-          <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
-            <Shield className="h-24 w-24 text-white" />
-          </div>
-          <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              National Climate Risk Score
-            </p>
-            <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-brand-titanium tracking-tight glow-blue">
-              <AnimatedCounter value={nationalRiskScore} />
-              <span className="text-lg font-bold text-muted-foreground">/100</span>
+        <Link href="/risk-center" className="block">
+          <Card className="glass-card h-full relative overflow-hidden group hover:border-brand-blue/40 cursor-pointer active:scale-[0.99] transition-all duration-300">
+            <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
+              <Shield className="h-24 w-24 text-white" />
             </div>
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-white/[0.08]">
-                {nationalRiskScore >= 60 ? "Elevated" : "Standard"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-6">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+                <span>National Climate Risk Score</span>
+                <span className="opacity-0 group-hover:opacity-100 text-brand-blue text-[8px] transition-opacity">View Risk Center →</span>
+              </p>
+              <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-brand-titanium tracking-tight glow-blue">
+                <AnimatedCounter value={nationalRiskScore} />
+                <span className="text-lg font-bold text-muted-foreground">/100</span>
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-white/[0.08]">
+                  {nationalRiskScore >= 60 ? "Elevated" : "Standard"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* KPI 2: Active Alerts */}
-        <Card className="glass-card relative overflow-hidden group hover:border-rose-300/30 transition-all duration-300">
-          <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
-            <AlertTriangle className="h-24 w-24 text-white" />
-          </div>
-          <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Active Alerts
-            </p>
-            <div className="mt-2.5 text-4xl font-extrabold text-rose-400 tracking-tight glow-rose">
-              <AnimatedCounter value={activeAlertsCount} />
+        <Link href="/map?layer=alerts" className="block">
+          <Card className="glass-card h-full relative overflow-hidden group hover:border-rose-400/40 cursor-pointer active:scale-[0.99] transition-all duration-300">
+            <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
+              <AlertTriangle className="h-24 w-24 text-white" />
             </div>
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-rose-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-400 border border-rose-400/10">
-                {activeAlertsCount > 0 ? "Threat Active" : "Nominal"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-6">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+                <span>Active Alerts</span>
+                <span className="opacity-0 group-hover:opacity-100 text-rose-400 text-[8px] transition-opacity">View on Map →</span>
+              </p>
+              <div className="mt-2.5 text-4xl font-extrabold text-rose-400 tracking-tight glow-rose">
+                <AnimatedCounter value={activeAlertsCount} />
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="rounded-full bg-rose-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-400 border border-rose-400/10">
+                  {activeAlertsCount > 0 ? "Threat Active" : "Nominal"}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* KPI 3: Population at Risk */}
-        <Card className="glass-card relative overflow-hidden group hover:border-brand-blue/20 transition-all duration-300">
-          <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
-            <Users className="h-24 w-24 text-white" />
-          </div>
-          <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Population at Risk
-            </p>
-            <div className="mt-2.5 flex items-baseline gap-0.5 text-4xl font-extrabold text-brand-highlight tracking-tight glow-blue">
-              <AnimatedCounter value={Math.floor(populationAtRiskMillions)} />
-              <span className="text-xl font-bold text-muted-foreground">.</span>
-              <AnimatedCounter value={Math.round((populationAtRiskMillions % 1) * 10)} />
-              <span className="text-2xl font-bold ml-1 text-muted-foreground">M</span>
+        <Link href="/simulator" className="block">
+          <Card className="glass-card h-full relative overflow-hidden group hover:border-brand-highlight/40 cursor-pointer active:scale-[0.99] transition-all duration-300">
+            <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
+              <Users className="h-24 w-24 text-white" />
             </div>
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-brand-blue/20">
-                Direct Exposure
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-6">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+                <span>Population at Risk</span>
+                <span className="opacity-0 group-hover:opacity-100 text-brand-highlight text-[8px] transition-opacity">Run Simulator →</span>
+              </p>
+              <div className="mt-2.5 flex items-baseline gap-0.5 text-4xl font-extrabold text-brand-highlight tracking-tight glow-blue">
+                <AnimatedCounter value={Math.floor(populationAtRiskMillions)} />
+                <span className="text-xl font-bold text-muted-foreground">.</span>
+                <AnimatedCounter value={Math.round((populationAtRiskMillions % 1) * 10)} />
+                <span className="text-2xl font-bold ml-1 text-muted-foreground">M</span>
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-brand-blue/20">
+                  Direct Exposure
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* KPI 4: High-Risk Districts */}
-        <Card className="glass-card relative overflow-hidden group hover:border-purple-300/30 transition-all duration-300">
-          <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
-            <MapPin className="h-24 w-24 text-white" />
-          </div>
-          <CardContent className="p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              High-Risk Districts
-            </p>
-            <div className="mt-2.5 text-4xl font-extrabold text-purple-300 tracking-tight glow-purple">
-              <AnimatedCounter value={highRiskDistrictsCount} />
+        <Link href="/analytics" className="block">
+          <Card className="glass-card h-full relative overflow-hidden group hover:border-purple-400/40 cursor-pointer active:scale-[0.99] transition-all duration-300">
+            <div className="absolute -right-3 -bottom-3 opacity-5 pointer-events-none transition-transform duration-500 group-hover:scale-110">
+              <MapPin className="h-24 w-24 text-white" />
             </div>
-            <div className="mt-2 flex items-center gap-1.5">
-              <span className="rounded-full bg-purple-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-purple-300 border border-purple-400/10">
-                Mitigation Focus
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+            <CardContent className="p-6">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
+                <span>High-Risk Districts</span>
+                <span className="opacity-0 group-hover:opacity-100 text-purple-300 text-[8px] transition-opacity">Open Analytics →</span>
+              </p>
+              <div className="mt-2.5 text-4xl font-extrabold text-purple-300 tracking-tight glow-purple">
+                <AnimatedCounter value={highRiskDistrictsCount} />
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                <span className="rounded-full bg-purple-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-purple-300 border border-purple-400/10">
+                  Mitigation Focus
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
+
 
       {/* ─── HERO & SIDE PANEL LAYOUT ────────────────────────────────────────── */}
       <div className="grid gap-6 lg:grid-cols-3">

@@ -76,6 +76,93 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
 
   const [allDistricts, setAllDistricts] = useState<District[]>([]);
 
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const year = localStorage.getItem("bct_activeYear");
+        if (year) setActiveYear(Number(year));
+        
+        const distId = localStorage.getItem("bct_selectedDistrictId");
+        if (distId && distId !== "undefined" && distId !== "null") setSelectedDistrictId(Number(distId));
+        
+        const layer = localStorage.getItem("bct_activeLayer");
+        if (layer) setActiveLayer(layer);
+        
+        const step = localStorage.getItem("bct_timelineStep");
+        if (step) setTimelineStep(step);
+        
+        const stateName = localStorage.getItem("bct_selectedStateName");
+        if (stateName) setSelectedStateName(stateName);
+        
+        const stateId = localStorage.getItem("bct_selectedStateId");
+        if (stateId && stateId !== "undefined" && stateId !== "null") setSelectedStateId(stateId === "" ? "" : Number(stateId));
+        
+        const dataset = localStorage.getItem("bct_selectedDataset");
+        if (dataset) setSelectedDataset(dataset);
+        
+        const risk = localStorage.getItem("bct_activeRisk");
+        if (risk) setActiveRisk(risk);
+      } catch (err) {
+        console.warn("Could not hydrate BCT global store from localStorage", err);
+      }
+    }
+  }, []);
+
+  // Persist state variables to localStorage when changing
+  useEffect(() => {
+    try {
+      localStorage.setItem("bct_activeYear", String(activeYear));
+    } catch {}
+  }, [activeYear]);
+
+  useEffect(() => {
+    try {
+      if (selectedDistrictId !== undefined) {
+        localStorage.setItem("bct_selectedDistrictId", String(selectedDistrictId));
+      } else {
+        localStorage.removeItem("bct_selectedDistrictId");
+      }
+    } catch {}
+  }, [selectedDistrictId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bct_activeLayer", activeLayer);
+    } catch {}
+  }, [activeLayer]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bct_timelineStep", timelineStep);
+    } catch {}
+  }, [timelineStep]);
+
+  useEffect(() => {
+    try {
+      if (selectedStateName) localStorage.setItem("bct_selectedStateName", selectedStateName);
+      else localStorage.removeItem("bct_selectedStateName");
+    } catch {}
+  }, [selectedStateName]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bct_selectedStateId", String(selectedStateId));
+    } catch {}
+  }, [selectedStateId]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bct_selectedDataset", selectedDataset);
+    } catch {}
+  }, [selectedDataset]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("bct_activeRisk", activeRisk);
+    } catch {}
+  }, [activeRisk]);
+
   useEffect(() => {
     api.districts().then(setAllDistricts).catch(() => undefined);
   }, []);
