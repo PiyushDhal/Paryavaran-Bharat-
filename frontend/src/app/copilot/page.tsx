@@ -119,7 +119,7 @@ function CopilotPageContent() {
   // Auto scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, typedText]);
 
   // Load conversation history on mount
   useEffect(() => {
