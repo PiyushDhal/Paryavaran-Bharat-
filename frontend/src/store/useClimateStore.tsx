@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { api } from "@/lib/api";
-import type { Ranking, SimulationResult, District } from "@/lib/types";
+import type { Ranking, SimulationResult, District, State } from "@/lib/types";
 
 type ClimateContextType = {
   activeYear: number;
@@ -75,6 +75,7 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [allDistricts, setAllDistricts] = useState<District[]>([]);
+  const [allStates, setAllStates] = useState<State[]>([]);
 
   // Hydrate from localStorage on mount
   useEffect(() => {
@@ -164,9 +165,43 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   }, [activeRisk]);
 
   useEffect(() => {
-    api.districts().then(setAllDistricts).catch(() => undefined);
+    Promise.all([
+      api.states().catch(() => []),
+      api.districts().catch(() => [])
+    ]).then(([statesData, districtsData]) => {
+      setAllStates(statesData);
+      setAllDistricts(districtsData);
+    }).catch(() => undefined);
   }, []);
 
+  // Sync state id and name bi-directionally
+  useEffect(() => {
+    if (allStates.length > 0) {
+      if (selectedStateId !== "") {
+        const match = allStates.find(s => s.id === Number(selectedStateId));
+        if (match && selectedStateName !== match.name) {
+          setSelectedStateName(match.name);
+        }
+      } else if (selectedStateId === "" && selectedStateName !== null) {
+        setSelectedStateName(null);
+      }
+    }
+  }, [selectedStateId, allStates]);
+
+  useEffect(() => {
+    if (allStates.length > 0) {
+      if (selectedStateName) {
+        const match = allStates.find(s => s.name.toLowerCase() === selectedStateName.toLowerCase());
+        if (match && selectedStateId !== match.id) {
+          setSelectedStateId(match.id);
+        }
+      } else if (selectedStateName === null && selectedStateId !== "") {
+        setSelectedStateId("");
+      }
+    }
+  }, [selectedStateName, allStates]);
+
+  // Set state from district selection
   useEffect(() => {
     if (selectedDistrictId && allDistricts.length > 0) {
       const match = allDistricts.find(d => d.id === selectedDistrictId);
@@ -176,11 +211,18 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
           setSelectedStateName(match.state_name);
         }
       }
-    } else if (!selectedDistrictId) {
-      setSelectedStateId("");
-      setSelectedStateName(null);
     }
   }, [selectedDistrictId, allDistricts]);
+
+  // Clear district selection if it does not belong to the selected state
+  useEffect(() => {
+    if (selectedDistrictId && allDistricts.length > 0 && selectedStateId !== "") {
+      const match = allDistricts.find(d => d.id === selectedDistrictId);
+      if (match && match.state_id !== Number(selectedStateId)) {
+        setSelectedDistrictId(undefined);
+      }
+    }
+  }, [selectedStateId, selectedDistrictId, allDistricts]);
 
   useEffect(() => {
     if (timelineStep === "2030") {
