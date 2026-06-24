@@ -669,7 +669,7 @@ export default function ClimateIntelligenceCenter() {
               {loadingMetrics ? (
                 <Skeleton className="h-full w-full" />
               ) : errorMetrics ? (
-                <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
+                <div className="flex h-full items-center justify-center text-xs text-slate-400">Dataset temporarily unavailable.</div>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>
                   <AreaChart data={monthlyData}>
@@ -705,7 +705,7 @@ export default function ClimateIntelligenceCenter() {
               {loadingMetrics ? (
                 <Skeleton className="h-full w-full" />
               ) : errorMetrics ? (
-                <div className="flex h-full items-center justify-center text-xs text-slate-400">Trends data currently unavailable</div>
+                <div className="flex h-full items-center justify-center text-xs text-slate-400">Dataset temporarily unavailable.</div>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={monthlyData}>

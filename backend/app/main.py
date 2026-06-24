@@ -55,23 +55,71 @@ def upgrade_db() -> None:
 
 @app.on_event("startup")
 def on_startup() -> None:
-    if settings.seed_database:
-        if "sqlite" not in settings.database_url:
-            with engine.begin() as connection:
-                connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
-        
-        upgrade_db()
-        
-        db = SessionLocal()
-        try:
-            init_db(db)
-        finally:
-            db.close()
+    try:
+        if settings.seed_database:
+            if "sqlite" not in settings.database_url:
+                try:
+                    with engine.begin() as connection:
+                        connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
+                except Exception as postgis_err:
+                    logger.error(f"PostGIS extension creation failed: {postgis_err}")
+            
+            try:
+                upgrade_db()
+            except Exception as upgrade_err:
+                logger.error(f"Database upgrade failed during startup: {upgrade_err}")
+            
+            db = SessionLocal()
+            try:
+                init_db(db)
+                logger.info("Database seeding completed successfully on startup.")
+            except Exception as seed_err:
+                logger.error(f"Database seeding failed: {seed_err}. Continuing startup.")
+            finally:
+                db.close()
+    except Exception as startup_err:
+        logger.critical(f"Uncaught exception during startup: {startup_err}. Continuing startup.")
 
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": "bharat-climate-twin-api"}
+    from datetime import datetime, timezone
+    import os
+    
+    db_status = "healthy"
+    db_err_detail = None
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as db_err:
+        db_status = "unhealthy"
+        db_err_detail = str(db_err)
+        logger.error(f"Health check database connection failed: {db_err}")
+
+    # Gemini Status check
+    gemini_key = os.environ.get("GEMINI_API_KEY")
+    ai_status = "configured" if gemini_key else "unconfigured"
+    overall_status = "healthy" if db_status == "healthy" else "degraded"
+
+    return {
+        "status": overall_status,
+        "database": {
+            "status": db_status,
+            "error": db_err_detail
+        },
+        "ai": {
+            "status": ai_status,
+            "provider": "Gemini"
+        },
+        "api": {
+            "status": "online",
+            "service": "bharat-climate-twin-api"
+        },
+        "deployment": {
+            "environment": settings.environment
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
 
 
 app.include_router(auth.router, prefix=settings.api_v1_prefix)
