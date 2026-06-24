@@ -47,6 +47,10 @@ export type ClimateObservation = {
   aqi: number;
   ndvi?: number;
   reservoir_level_pct?: number;
+  data_source?: string;
+  last_updated?: string;
+  dataset_version?: string;
+  confidence?: string;
 };
 
 export type Analytics = {

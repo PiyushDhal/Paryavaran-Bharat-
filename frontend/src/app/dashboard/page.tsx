@@ -12,7 +12,8 @@ import {
   Users,
   MapPin,
   Clock,
-  ArrowRight
+  ArrowRight,
+  X
 } from "lucide-react";
 
 import { useClimate } from "@/store/useClimateStore";
@@ -83,6 +84,24 @@ export default function DashboardPage() {
   const { selectedDistrictId, activeYear, rankings } = useClimate();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [alerts, setAlerts] = useState<ClimateAlert[]>([]);
+
+  // Brief modal state
+  const [showBriefModal, setShowBriefModal] = useState(false);
+  const [briefData, setBriefData] = useState<any>(null);
+  const [briefLoading, setBriefLoading] = useState(false);
+
+  const handleOpenBrief = async () => {
+    setShowBriefModal(true);
+    setBriefLoading(true);
+    try {
+      const data = await api.nationalBrief();
+      setBriefData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setBriefLoading(false);
+    }
+  };
 
   useEffect(() => {
     Promise.all([api.analytics(activeYear), api.alerts()])
@@ -158,7 +177,11 @@ export default function DashboardPage() {
             Operations Center
           </h1>
         </div>
-        <div className="shrink-0">
+        <div className="flex items-center gap-3 shrink-0 flex-wrap">
+          <Button onClick={handleOpenBrief} className="bg-brand-blue text-slate-950 font-bold hover:bg-brand-blue/90 text-xs px-4 py-2 rounded-xl border border-white/[0.08] shadow-lg flex items-center gap-1.5 transition-all">
+            <Brain className="h-4 w-4" />
+            <span>Generate National Climate Brief</span>
+          </Button>
           <LiveClock />
         </div>
       </div>
@@ -396,6 +419,96 @@ export default function DashboardPage() {
       <div className="no-print">
         <WorkflowRecommendations currentPage="dashboard" />
       </div>
+
+      {/* ─── NATIONAL CLIMATE BRIEF OVERLAY MODAL ───────────────────────── */}
+      {showBriefModal && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-slate-950/90 p-6 backdrop-blur-xl shadow-2xl space-y-5 flex flex-col max-h-[85vh] overflow-y-auto scrollbar-thin">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 shrink-0">
+              <div className="flex items-center gap-2">
+                <Globe2 className="h-5 w-5 text-brand-blue animate-pulse" />
+                <h2 className="text-base font-bold text-white uppercase tracking-wider font-orbitron">National Climate Briefing</h2>
+              </div>
+              <button
+                onClick={() => setShowBriefModal(false)}
+                className="grid h-7 w-7 place-items-center rounded-md border border-white/[0.08] bg-white/5 text-muted-foreground hover:text-white transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {briefLoading ? (
+              <div className="flex-1 py-12 flex flex-col justify-center items-center gap-3">
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                </span>
+                <span className="text-xs font-mono text-slate-400">Compiling multi-agency telemetry data...</span>
+              </div>
+            ) : briefData ? (
+              <div className="space-y-5">
+                {/* 1. Core observed variables */}
+                <div>
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 mb-2.5">Observed Climate Normals</h4>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    {[
+                      { label: "Mean Rainfall", value: `${briefData.summary?.rainfall_mm} mm`, source: "IMD" },
+                      { label: "Mean Temp", value: `${briefData.summary?.temperature_c} °C`, source: "IMD" },
+                      { label: "Air Quality", value: `${briefData.summary?.aqi} AQI`, source: "CPCB" },
+                      { label: "Reservoir Level", value: `${briefData.summary?.reservoir_level_pct} %`, source: "WRIS" },
+                      { label: "Green Cover", value: `${briefData.summary?.ndvi} NDVI`, source: "NRSC" }
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-2.5 flex flex-col justify-between font-mono text-center">
+                        <span className="text-[7.5px] text-slate-500 uppercase tracking-wider font-semibold block">{item.label}</span>
+                        <span className="text-sm font-bold text-white my-1">{item.value}</span>
+                        <span className="text-[7px] text-slate-400 font-bold uppercase">Source: {item.source}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Hotspot Warnings */}
+                <div className="space-y-2.5">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Emerging Vulnerability Hotspots</h4>
+                  <div className="space-y-2">
+                    {briefData.threats?.map((threat: any, idx: number) => (
+                      <div key={idx} className="border border-white/[0.06] bg-slate-900/40 p-3.5 rounded-xl flex justify-between items-start gap-4 hover:border-cyan-500/20 transition-colors">
+                        <div>
+                          <span className="text-xs font-bold text-white font-orbitron">{threat.district}</span>
+                          <span className="text-[10px] text-muted-foreground ml-1.5">({threat.state})</span>
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {threat.drivers?.map((drv: string) => (
+                              <span key={drv} className="inline-flex rounded bg-rose-950/20 border border-rose-500/20 px-1.5 py-0.5 text-[8.5px] font-mono text-rose-400">
+                                {drv}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[9px] text-slate-500 block uppercase font-mono">Risk Score</span>
+                          <span className="text-sm font-bold text-rose-400 font-mono">{threat.composite_risk}/100</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 3. Provenance attributions */}
+                <div className="pt-3.5 border-t border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[10px] font-mono">
+                  <div className="text-slate-400">
+                    <span className="text-slate-500">Agencies Ingested:</span> {briefData.sources_used?.join(", ")}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => setShowBriefModal(false)} className="text-xs h-7 border-slate-700 hover:bg-surface-elevated font-semibold">
+                    Acknowledge Briefing
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground text-center py-6">Could not compile briefing data. Please try again.</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

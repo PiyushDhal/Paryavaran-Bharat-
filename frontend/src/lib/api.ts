@@ -159,7 +159,13 @@ export const api = {
     apiFetch<any[]>("/climate/analytics/sustainability/simulate", {
       method: "POST",
       body: JSON.stringify(payload),
-    })
+    }),
+
+  dataSourcesStatus: () =>
+    apiFetch<any>("/climate/data-sources/status"),
+
+  nationalBrief: () =>
+    apiFetch<any>("/climate/national-brief")
 };
 
 export { API_BASE_URL };

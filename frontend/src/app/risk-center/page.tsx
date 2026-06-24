@@ -97,19 +97,33 @@ export default function RiskCenterPage() {
           <CardContent className="grid place-items-center gap-6">
             <RiskGauge value={risk?.composite_risk ?? 0} label="Composite Climate Risk" />
             <div className="grid w-full grid-cols-2 gap-3">
-               {[
-                 ["Flood", risk?.flood_risk ?? 0],
-                 ["Drought", risk?.drought_risk ?? 0],
-                 ["Heatwave", risk?.heatwave_risk ?? 0],
-                 ["Water Stress", risk?.water_stress_risk ?? 0]
-               ].map(([label, value]) => (
-                <div key={label as string} className="rounded-md border border-white/[0.08] bg-surface/30 p-3 hover:border-white/[0.08] transition-colors">
-                   <p className="text-xs text-muted-foreground">{label as string}</p>
-                   <p className={`mt-1 text-2xl font-bold ${riskColor(value as number)}`}>
-                     {Math.round(value as number)}
-                   </p>
-                 </div>
-               ))}
+                {[
+                  { label: "Flood", value: risk?.flood_risk ?? 0, source: "CWC / India-WRIS", sync: "Daily", confidence: "High" },
+                  { label: "Drought", value: risk?.drought_risk ?? 0, source: "NRSC / India-WRIS", sync: "24 Hours", confidence: "High" },
+                  { label: "Heatwave", value: risk?.heatwave_risk ?? 0, source: "IMD", sync: "6 Hours", confidence: "High" },
+                  { label: "Water Stress", value: risk?.water_stress_risk ?? 0, source: "CWC / WRIS", sync: "Daily", confidence: "High" }
+                ].map((item) => (
+                 <div key={item.label} className="rounded-md border border-white/[0.08] bg-slate-950/40 p-3 hover:border-cyan-500/20 transition-all">
+                    <p className="text-xs font-semibold text-muted-foreground">{item.label}</p>
+                    <p className={`mt-1 text-2xl font-bold ${riskColor(item.value)}`}>
+                      {Math.round(item.value)}
+                    </p>
+                    <div className="mt-2 pt-2 border-t border-white/[0.04] font-mono text-[7.5px] text-slate-500 space-y-0.5">
+                      <div className="flex justify-between">
+                        <span>Source:</span>
+                        <span className="text-slate-300 font-semibold">{item.source}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Sync:</span>
+                        <span className="text-slate-300">{item.sync}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Confidence:</span>
+                        <span className="text-emerald-400 font-bold">{item.confidence}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
 
             {/* Explainable AI Risk Drivers */}

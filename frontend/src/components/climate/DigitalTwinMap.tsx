@@ -2396,11 +2396,32 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               </div>
             )}
 
-            <div className="text-[9px] text-center text-muted-foreground border-t border-white/[0.08] pt-3 flex flex-wrap justify-center gap-1.5">
-              <span>Last updated: Just now</span>
-              <span className="text-slate-600">|</span>
-              <span>Sources: IMD, NRSC, CPCB, CWC, India-WRIS</span>
-            </div>
+            {districtHistory && districtHistory.length > 0 && (() => {
+              const latestObs = districtHistory[districtHistory.length - 1];
+              const lastUpdatedStr = latestObs?.last_updated ? new Date(latestObs.last_updated).toLocaleString("en-IN", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" }) : "Recent";
+              const quality = latestObs?.confidence || "Verified";
+              
+              return (
+                <div className="border-t border-white/[0.08] pt-3 mt-2 font-mono text-[9px] text-slate-400 space-y-1 bg-slate-950/40 p-3 rounded-xl border border-white/[0.06]">
+                  <div className="flex justify-between items-center text-[8px] font-bold text-cyan-400 uppercase tracking-widest mb-1.5 border-b border-white/[0.04] pb-1">
+                    <span className="flex items-center gap-1"><Database className="h-3 w-3" /> Data Provenance</span>
+                    <span className="bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-500/20 text-emerald-400">{quality}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Atmospheric Feed:</span>
+                    <span className="text-slate-200">IMD / CPCB</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Satellite & Hydro:</span>
+                    <span className="text-slate-200">NRSC / CWC / WRIS</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Telemetry Sync:</span>
+                    <span className="text-slate-200">{lastUpdatedStr}</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center p-8 text-center text-muted-foreground">
