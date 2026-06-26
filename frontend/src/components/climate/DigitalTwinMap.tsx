@@ -864,6 +864,15 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const [showSelector, setShowSelector] = useState(false);
   const [isDark, setIsDark] = useState(true);
 
+  // SVG fallback map zoom & pan state
+  const [svgZoom, setSvgZoom] = useState(1);
+  const [svgPanX, setSvgPanX] = useState(0);
+  const [svgPanY, setSvgPanY] = useState(0);
+  const svgDragRef = useRef<{ active: boolean; startX: number; startY: number; panX: number; panY: number }>(
+    { active: false, startX: 0, startY: 0, panX: 0, panY: 0 }
+  );
+  const svgContainerRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     setIsDark(document.documentElement.classList.contains("dark"));
@@ -1549,21 +1558,84 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         ) : (
           /* Premium Fallback Geographic Vector Map */
           <div 
-            onClick={() => {
-              setSelectedStateName(null);
-              setTooltipCoords(null);
+            ref={svgContainerRef}
+            onClick={(e) => {
+              // Only clear state if not ending a drag
+              if (!svgDragRef.current.active) {
+                setSelectedStateName(null);
+                setTooltipCoords(null);
+              }
             }}
-            className={`relative w-full h-full overflow-hidden ${themeConfig.bg} select-none transition-colors duration-700`}
+            onMouseDown={(e) => {
+              if (e.button !== 0) return;
+              svgDragRef.current = {
+                active: false,
+                startX: e.clientX,
+                startY: e.clientY,
+                panX: svgPanX,
+                panY: svgPanY
+              };
+              // Set active after slight movement (prevents accidental click suppression)
+              const onMove = (ev: MouseEvent) => {
+                const dx = ev.clientX - svgDragRef.current.startX;
+                const dy = ev.clientY - svgDragRef.current.startY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                  svgDragRef.current.active = true;
+                }
+                setSvgPanX(svgDragRef.current.panX + dx);
+                setSvgPanY(svgDragRef.current.panY + dy);
+              };
+              const onUp = () => {
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+              };
+              window.addEventListener('mousemove', onMove);
+              window.addEventListener('mouseup', onUp);
+            }}
+            onWheel={(e) => {
+              e.preventDefault();
+              const rect = svgContainerRef.current?.getBoundingClientRect();
+              if (!rect) return;
+              const factor = e.deltaY < 0 ? 1.15 : 0.87;
+              const newZoom = Math.min(Math.max(svgZoom * factor, 0.5), 8);
+              // Zoom toward cursor position
+              const cursorX = e.clientX - rect.left;
+              const cursorY = e.clientY - rect.top;
+              setSvgPanX(cursorX - (cursorX - svgPanX) * (newZoom / svgZoom));
+              setSvgPanY(cursorY - (cursorY - svgPanY) * (newZoom / svgZoom));
+              setSvgZoom(newZoom);
+            }}
+            className={`relative w-full h-full overflow-hidden ${themeConfig.bg} select-none transition-colors duration-700 cursor-grab active:cursor-grabbing`}
+            style={{ touchAction: 'none' }}
           >
             <div className="absolute inset-0 bg-radar-grid bg-[size:40px_40px] opacity-25" />
             
+            {/* SVG Zoom Controls */}
+            <div className="absolute top-4 right-4 z-20 flex flex-col gap-1" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={() => { setSvgZoom(z => Math.min(z * 1.3, 8)); }}
+                className="w-7 h-7 rounded border border-white/[0.08] bg-background/85 backdrop-blur text-white hover:bg-surface flex items-center justify-center text-sm font-bold transition-all"
+                title="Zoom in"
+              >+</button>
+              <button
+                onClick={() => { setSvgZoom(z => Math.max(z * 0.77, 0.5)); }}
+                className="w-7 h-7 rounded border border-white/[0.08] bg-background/85 backdrop-blur text-white hover:bg-surface flex items-center justify-center text-sm font-bold transition-all"
+                title="Zoom out"
+              >−</button>
+              <button
+                onClick={() => { setSvgZoom(1); setSvgPanX(0); setSvgPanY(0); }}
+                className="w-7 h-7 rounded border border-white/[0.08] bg-background/85 backdrop-blur text-muted-foreground hover:bg-surface hover:text-white flex items-center justify-center text-[9px] font-bold transition-all"
+                title="Reset view"
+              >⌂</button>
+            </div>
+
             <svg
               width="100%"
               height="100%"
               viewBox={`0 0 ${SVG_W} ${SVG_H}`}
               className="absolute inset-0 w-full h-full p-6 transition-colors duration-700"
               onMouseMove={(e) => {
-                if (!selectedStateName) {
+                if (!selectedStateName && !svgDragRef.current.active) {
                   const rect = e.currentTarget.getBoundingClientRect();
                   setHoverCoords({
                     x: e.clientX - rect.left,
@@ -1573,7 +1645,13 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               }}
               onMouseLeave={() => setHoverCoords(null)}
             >
-              <g style={{ transform: zoomTransform, transition: 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)', transformOrigin: '0 0' }}>
+              <g style={{
+                transform: selectedStateName
+                  ? zoomTransform
+                  : `translate(${svgPanX * (SVG_W / (svgContainerRef.current?.clientWidth || SVG_W))}px, ${svgPanY * (SVG_H / (svgContainerRef.current?.clientHeight || SVG_H))}px) scale(${svgZoom})`,
+                transition: selectedStateName ? 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
+                transformOrigin: '0 0'
+              }}>
               {/* SVG Map Projection Grid Lines */}
               {[70, 75, 80, 85, 90, 95].map((lon) => {
                 const x = lonToX(lon, 22.5);
