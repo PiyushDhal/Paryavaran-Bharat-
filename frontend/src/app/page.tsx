@@ -444,7 +444,9 @@ export default function LandingPage() {
             {/* Inner pulsing ring */}
             <div className="absolute inset-2.5 rounded-full border border-brand-highlight/20 hud-pulse-glow" />
             {/* System core icon */}
-            <Satellite className="w-10 h-10 text-brand-blue animate-pulse" />
+            <div className="w-14 h-14 rounded-full overflow-hidden border border-brand-blue/30 shadow-[0_0_20px_rgba(77,168,218,0.3)]">
+              <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat" width={56} height={56} className="object-cover w-full h-full" />
+            </div>
           </div>
 
           <div className="text-center font-mono space-y-4 relative z-10 px-6">
@@ -478,7 +480,7 @@ export default function LandingPage() {
               <div>[STATUS] SYSTEM OPERATIONAL : OK</div>
             </div>
             <div className="text-right space-y-1">
-              <div>PLATFORM ADDR: BCT_HUD_LND_V2</div>
+              <div>PLATFORM ADDR: PB_HUD_LND_V2</div>
               <div>RESOLUTION ACC: 0.25d x 0.25d GRID</div>
               <div>GEOLOCATION: 20.5937° N, 78.9629° E</div>
             </div>
