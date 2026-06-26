@@ -564,7 +564,7 @@ function CopilotPageContent() {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-widest">CLIMATE DATA BASELINE SYNCHRONIZED</span>
           </div>
-          <h1 className="mt-2 text-2xl font-bold text-white font-orbitron tracking-widest uppercase flex items-center gap-2">
+          <h1 className="mt-2 text-2xl font-bold text-white font-sans tracking-widest uppercase flex items-center gap-2">
             <Bot className="h-6 w-6 text-brand-blue animate-pulse" />
             Climate Intelligence Workspace
           </h1>
@@ -596,7 +596,7 @@ function CopilotPageContent() {
         {historyOpen && (
           <div className="w-full xl:w-[250px] flex flex-col gap-4 border border-white/[0.08] bg-slate-950/40 rounded-2xl p-4 animate-fade-in no-print">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
-              <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-orbitron">
+              <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-sans">
                 <History className="h-3.5 w-3.5 text-brand-blue animate-pulse" /> Chat Session History
               </span>
               <button 
@@ -677,7 +677,7 @@ function CopilotPageContent() {
                       <Bot className="h-10 w-10 text-brand-blue animate-bounce" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white tracking-widest uppercase font-orbitron">Welcome to the Climate Intelligence Workspace</h3>
+                  <h3 className="text-lg font-bold text-white tracking-widest uppercase font-sans">Welcome to the Climate Intelligence Workspace</h3>
                   <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
                     The Climate Intelligence Officer is ready. Select a pre-configured query below to start a regional assessment or input your request directly:
                   </p>
@@ -917,7 +917,7 @@ function CopilotPageContent() {
         {/* Right Side: Copilot Context Status Panel */}
         <Card className="glass-card border-white/[0.08] bg-slate-950/40 rounded-2xl flex flex-col justify-between overflow-hidden shadow-xl">
           <CardHeader className="border-b border-white/[0.08] py-3.5 bg-slate-950/50">
-            <CardTitle className="text-white text-xs tracking-widest uppercase flex items-center gap-2 font-orbitron">
+            <CardTitle className="text-white text-xs tracking-widest uppercase flex items-center gap-2 font-sans">
               <Activity className="h-4.5 w-4.5 text-brand-blue animate-pulse" />
               Active Climate Context
             </CardTitle>
@@ -938,14 +938,14 @@ function CopilotPageContent() {
               </div>
               <div className="absolute w-10 h-10 border-t border-l border-cyan-500/60 rounded-tl-full origin-bottom-right bottom-1/2 right-1/2 animate-spin duration-[4000ms] pointer-events-none" />
               <div className="relative text-center z-10 select-none">
-                <p className="text-[8.5px] uppercase tracking-widest text-cyan-400 font-bold font-orbitron animate-pulse">REGIONAL SCAN STATUS</p>
+                <p className="text-[8.5px] uppercase tracking-widest text-cyan-400 font-bold font-sans animate-pulse">REGIONAL SCAN STATUS</p>
                 <p className="text-[7.5px] text-slate-500 font-mono mt-0.5">MONITORING CLIMATE GRIDS...</p>
               </div>
             </div>
 
             {/* System Health stats grid */}
             <div className="rounded-xl border border-white/[0.06] bg-slate-950/30 p-2.5 space-y-1.5">
-              <p className="text-[8px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1 font-orbitron">
+              <p className="text-[8px] uppercase font-bold text-slate-400 tracking-wider flex items-center gap-1 font-sans">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
                 System Status
               </p>

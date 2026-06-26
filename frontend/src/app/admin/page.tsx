@@ -22,7 +22,7 @@ export default function AdminPage() {
     <div className="grid gap-5">
       <div>
         <Badge>Admin Panel</Badge>
-        <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">Platform Operations</h1>
+        <h1 className="mt-3 text-3xl font-semibold text-white font-sans tracking-tight">Platform Operations</h1>
         <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
           Role-protected overview of users, feeds, climate records, predictions, simulations, and integration readiness.
         </p>

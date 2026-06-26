@@ -8,7 +8,7 @@ export default function MapPage() {
     <div className="grid gap-4">
       <div>
         <Badge>Full-screen GIS dashboard</Badge>
-        <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">Interactive Digital Twin Map</h1>
+        <h1 className="mt-3 text-3xl font-semibold text-white font-sans tracking-tight">Interactive Digital Twin Map</h1>
         <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
           Toggle temperature, rainfall, NDVI, air quality, soil moisture, reservoirs, flood, and drought overlays.
         </p>

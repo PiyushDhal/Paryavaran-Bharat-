@@ -450,11 +450,11 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center font-mono space-y-4 relative z-10 px-6">
-            <h2 className="font-orbitron text-2xl md:text-3xl font-bold tracking-[0.25em] text-white glow-space-blue uppercase">
+            <h2 className="font-sans text-2xl md:text-3xl font-bold tracking-tight text-white glow-space-blue">
               Paryavaran Bharat
             </h2>
             <div className="h-6 flex items-center justify-center">
-              <p className="font-rajdhani text-brand-titanium tracking-[0.18em] text-xs md:text-sm uppercase font-semibold">
+              <p className="font-sans text-brand-titanium tracking-wide text-xs md:text-sm uppercase font-semibold">
                 {loadingStep === 0 && "Initializing Climate Intelligence..."}
                 {loadingStep === 1 && "Connecting Digital Twin..."}
                 {loadingStep === 2 && "Loading Government Datasets..."}
@@ -583,16 +583,16 @@ export default function LandingPage() {
               </div>
 
               <div className="space-y-4">
-                <h1 className="font-orbitron text-5xl lg:text-7xl font-bold tracking-[0.24em] text-white leading-tight uppercase animate-fade-in-title glow-space-blue">
+                <h1 className="font-sans text-5xl lg:text-7xl font-bold tracking-tight text-white leading-tight animate-fade-in-title glow-space-blue">
                   Paryavaran<br />Bharat
                 </h1>
 
                 {/* Subtitle & Tagline Section */}
                 <div className="space-y-2 animate-fade-in-subtitle">
-                  <div className="font-rajdhani font-semibold tracking-[0.18em] text-brand-blue uppercase text-sm sm:text-base glow-titanium-blue">
+                  <div className="font-sans font-semibold tracking-wide text-brand-blue uppercase text-sm sm:text-base glow-titanium-blue">
                     AI Powered Climate Intelligence Platform
                   </div>
-                  <div className="font-rajdhani font-medium tracking-[0.22em] text-brand-titanium/80 uppercase text-[10px] sm:text-xs">
+                  <div className="font-sans font-medium tracking-wide text-brand-titanium/80 uppercase text-[10px] sm:text-xs">
                     Insights • Action • Resilience
                   </div>
                 </div>
@@ -644,8 +644,8 @@ export default function LandingPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center p-8 rounded-2xl border border-white/[0.08] bg-background/30">
-              <p className="text-4xl lg:text-5xl font-bold text-brand-blue glow-blue font-orbitron tracking-wider">{stat.value}</p>
-              <p className="mt-2 text-sm text-muted-foreground font-medium font-rajdhani tracking-widest uppercase">{stat.label}</p>
+              <p className="text-4xl lg:text-5xl font-bold text-brand-blue glow-blue font-sans tracking-wider">{stat.value}</p>
+              <p className="mt-2 text-sm text-muted-foreground font-medium font-sans tracking-widest uppercase">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -658,7 +658,7 @@ export default function LandingPage() {
             <Database className="w-4 h-4" />
             National Climate Datasets
           </div>
-          <h2 className="mt-6 text-3xl lg:text-5xl font-bold text-white font-orbitron tracking-[0.12em] uppercase leading-tight">Powered by India&apos;s Climate Data Infrastructure</h2>
+          <h2 className="mt-6 text-3xl lg:text-5xl font-bold text-white font-sans tracking-tight leading-tight">Powered by India&apos;s Climate Data Infrastructure</h2>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl font-sans">
             Paryavaran Bharat integrates meteorological observations, satellite products, and national climate datasets to power AI-driven forecasting and risk assessment.
           </p>
@@ -686,7 +686,7 @@ export default function LandingPage() {
 
         {/* Pipeline visualization */}
         <div className="mt-12 glass-card p-8 rounded-2xl bg-background/20">
-          <h3 className="text-lg font-semibold text-white mb-8 font-orbitron tracking-[0.1em] uppercase">Climate Data Fusion Pipeline</h3>
+          <h3 className="text-lg font-semibold text-white mb-8 font-sans tracking-normal uppercase">Climate Data Fusion Pipeline</h3>
           <div className="flex flex-wrap items-center gap-4">
             {pipeline.map((step, i) => (
               <div key={step} className="flex items-center gap-4">
@@ -729,7 +729,7 @@ export default function LandingPage() {
                 <div className="grid h-10 w-10 place-items-center rounded-md bg-brand-blue/10 border border-white/[0.08]">
                   <Satellite className="h-5 w-5 text-brand-blue" />
                 </div>
-                <span className="text-lg font-bold text-white font-orbitron tracking-wider">Paryavaran Bharat</span>
+                <span className="text-lg font-bold text-white font-sans tracking-wider">Paryavaran Bharat</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-md font-sans">
                 AI-powered digital twin of India&apos;s climate system. Built for national resilience with indigenous data sources from IMD, ISRO, NRSC, India-WRIS, and CPCB.

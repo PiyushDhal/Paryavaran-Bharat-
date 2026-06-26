@@ -54,7 +54,7 @@ export default function ValidationPage() {
           <ShieldCheck className="w-3.5 h-3.5" />
           Production Validation Layer v1.0.4
         </div>
-        <h1 className="text-4xl lg:text-5xl font-bold text-white flex flex-wrap items-center gap-4 font-orbitron tracking-[0.12em] uppercase">
+        <h1 className="text-4xl lg:text-5xl font-bold text-white flex flex-wrap items-center gap-4 font-sans tracking-tight">
           Model Performance & Validation
           <span className="text-sm font-normal text-muted-foreground bg-surface-elevated/50 px-3 py-1 rounded border border-slate-700">Pilot Region: Kutch, Gujarat</span>
         </h1>

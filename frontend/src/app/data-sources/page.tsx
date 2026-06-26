@@ -89,7 +89,7 @@ export default function DataSourcesPage() {
     <div className="mx-auto max-w-7xl px-4 py-6 text-slate-100">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
         <div>
-          <h1 className="text-3xl font-bold text-white sm:text-4xl font-orbitron tracking-[0.12em] uppercase flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-white sm:text-4xl font-sans tracking-tight flex items-center gap-2">
             <Activity className="h-8 w-8 text-brand-blue animate-pulse" />
             Data Provenance Registry
           </h1>
@@ -135,7 +135,7 @@ export default function DataSourcesPage() {
                 <div className="flex-1 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-white/[0.04] pb-3">
                     <div>
-                      <h2 className="text-lg font-bold text-white flex flex-wrap items-center gap-2 font-orbitron">
+                      <h2 className="text-lg font-bold text-white flex flex-wrap items-center gap-2 font-sans">
                         {source.name}
                         <span className="inline-flex items-center rounded-full border border-white/[0.08] bg-slate-900/40 px-2 py-0.5 text-[9px] font-mono font-medium text-slate-400">
                           {source.category}

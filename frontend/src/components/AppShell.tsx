@@ -267,8 +267,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat Logo" width={40} height={40} className="object-cover" />
             </span>
             {!isCollapsed && (
-              <span className="whitespace-nowrap overflow-hidden font-orbitron">
-                <span className="block text-[9px] font-bold uppercase tracking-[0.22em] text-brand-titanium leading-none mb-1">
+              <span className="whitespace-nowrap overflow-hidden font-sans">
+                <span className="block text-[9px] font-bold uppercase tracking-wide text-brand-titanium leading-none mb-1">
                   Paryavaran
                 </span>
                 <span className="block text-sm font-bold tracking-[0.08em] text-white leading-none">
@@ -509,7 +509,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {demoOpen ? (
           <div className="w-80 rounded-2xl border border-cyan-500/30 bg-slate-950/90 p-5 backdrop-blur-xl shadow-[0_0_30px_rgba(34,211,238,0.25)] space-y-4 text-left animate-in slide-in-from-bottom-5 duration-300">
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-2">
-              <div className="flex items-center gap-1.5 text-cyan-400 font-orbitron">
+              <div className="flex items-center gap-1.5 text-cyan-400 font-sans">
                 <Sparkles className="h-4 w-4 animate-pulse" />
                 <span className="text-[11px] font-bold tracking-wider uppercase">ISRO Demo Mode</span>
               </div>
@@ -625,7 +625,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               return (
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-white font-orbitron">{step.title}</p>
+                    <p className="text-xs font-bold text-white font-sans">{step.title}</p>
                     <p className="text-[11px] text-slate-400 leading-relaxed">{step.description}</p>
                   </div>
 

@@ -375,7 +375,7 @@ export default function ClimateIntelligenceCenter() {
       <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-4">
         <div>
           <Badge className="border-white/[0.08] bg-brand-blue/10 text-brand-titanium mb-2">ISRO Bharat Antariksh Hackathon</Badge>
-          <h1 className="text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">Climate Intelligence Center</h1>
+          <h1 className="text-3xl font-semibold text-white font-sans tracking-tight">Climate Intelligence Center</h1>
           <p className="mt-1 text-sm text-secondary-foreground">
             Multi-agency decision-support console for state-level climatic anomalies, risk models, and resource monitoring.
           </p>
@@ -610,7 +610,7 @@ export default function ClimateIntelligenceCenter() {
         {/* AI Climate Brief */}
         <Card className="glass-card flex flex-col justify-between border-white/[0.08]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base flex items-center gap-1.5 font-orbitron tracking-wide">
+            <CardTitle className="text-white text-base flex items-center gap-1.5 font-sans tracking-wide">
               <Sparkles className="h-4.5 w-4.5 text-cyan-400" />
               Cognitive Climate Summary & Intelligence Brief
             </CardTitle>
@@ -648,7 +648,7 @@ export default function ClimateIntelligenceCenter() {
         {/* National / State Risk Matrix */}
         <Card className="glass-card border-white/[0.08]">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base font-orbitron tracking-wide">Climatic Hazard Risk Matrix</CardTitle>
+            <CardTitle className="text-white text-base font-sans tracking-wide">Climatic Hazard Risk Matrix</CardTitle>
             <CardDescription>Sectoral vulnerability levels calculated from satellite models and weather stations.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-3 grid-cols-2 md:grid-cols-3 pt-2">
@@ -684,7 +684,7 @@ export default function ClimateIntelligenceCenter() {
       {/* ─── SECTION 4: INTERACTIVE TREND CHARTS ─────────────────────────── */}
       <Card className="glass-card border-white/[0.08]">
         <CardHeader className="pb-2">
-          <CardTitle className="text-white text-base font-orbitron tracking-wide">Historical Timeline & Climate Trends</CardTitle>
+          <CardTitle className="text-white text-base font-sans tracking-wide">Historical Timeline & Climate Trends</CardTitle>
           <CardDescription>Monthly observation composites for key indicators. Click "Explain with AI" on any parameter to generate analysis.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-4">
@@ -769,7 +769,7 @@ export default function ClimateIntelligenceCenter() {
         {/* Hotspots Panel */}
         <Card className="glass-card border-white/[0.08] xl:col-span-1">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base font-orbitron tracking-wide">Vulnerability Watchlist</CardTitle>
+            <CardTitle className="text-white text-base font-sans tracking-wide">Vulnerability Watchlist</CardTitle>
             <CardDescription>Districts and States displaying elevated multi-hazard composite risk scores.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-2">
@@ -823,7 +823,7 @@ export default function ClimateIntelligenceCenter() {
         {/* Action Directives & Threat Assessment */}
         <Card className="glass-card border-white/[0.08] xl:col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base font-orbitron tracking-wide">Strategic Actions & Threat Matrix</CardTitle>
+            <CardTitle className="text-white text-base font-sans tracking-wide">Strategic Actions & Threat Matrix</CardTitle>
             <CardDescription>Government operational guidelines based on real-time environmental factors.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-2">
@@ -869,7 +869,7 @@ export default function ClimateIntelligenceCenter() {
       {/* ─── SECTION 7: GOVERNMENT DATA SOURCES REGISTRY ────────────────── */}
       <Card className="glass-card border-white/[0.08]">
         <CardHeader className="pb-2">
-          <CardTitle className="text-white text-base flex items-center gap-1.5 font-orbitron tracking-wide">
+          <CardTitle className="text-white text-base flex items-center gap-1.5 font-sans tracking-wide">
             <Database className="h-5 w-5 text-brand-blue" />
             Federal Environmental Ingestion Registry
           </CardTitle>

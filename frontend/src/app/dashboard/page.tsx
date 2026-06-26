@@ -183,7 +183,7 @@ export default function DashboardPage() {
           <Badge className="bg-surface-elevated text-brand-titanium hover:bg-brand-blue/10 border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             National Climate Command Center
           </Badge>
-          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-orbitron tracking-[0.12em] uppercase">
+          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-sans tracking-tight">
             National Climate Command Center
           </h1>
         </div>
@@ -431,7 +431,7 @@ export default function DashboardPage() {
         {/* Widget 1: Top 5 High-Risk States */}
         <Card className="glass-card">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-orbitron">Top 5 High-Risk States</CardTitle>
+            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-sans">Top 5 High-Risk States</CardTitle>
             <CardDescription className="text-[10px] text-muted-foreground">State-level average risk assessments</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
@@ -482,7 +482,7 @@ export default function DashboardPage() {
         {/* Widget 2: Top 10 High-Risk Districts */}
         <Card className="glass-card lg:col-span-1">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-orbitron">Top 10 High-Risk Districts</CardTitle>
+            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-sans">Top 10 High-Risk Districts</CardTitle>
             <CardDescription className="text-[10px] text-muted-foreground">Critical district vulnerability centers</CardDescription>
           </CardHeader>
           <CardContent className="pt-2 max-h-[220px] overflow-y-auto scrollbar-thin">
@@ -524,7 +524,7 @@ export default function DashboardPage() {
         {/* Widget 3: Active Data Sources & Threats */}
         <Card className="glass-card md:col-span-2 lg:col-span-1">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-orbitron">Government Sources & Threats</CardTitle>
+            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider font-sans">Government Sources & Threats</CardTitle>
             <CardDescription className="text-[10px] text-muted-foreground">National data registry provenance & alert indicators</CardDescription>
           </CardHeader>
           <CardContent className="pt-2 space-y-4">
@@ -667,7 +667,7 @@ export default function DashboardPage() {
                   </div>
                   
                   <div>
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider font-orbitron">Situation Assessment</h4>
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider font-sans">Situation Assessment</h4>
                     <p className="mt-2 text-xs leading-relaxed text-slate-300">{activeData.assessment}</p>
                   </div>
 
@@ -685,7 +685,7 @@ export default function DashboardPage() {
 
                 {/* Timeline Tasks Right Panel */}
                 <div className="space-y-4">
-                  <h4 className="text-sm font-bold text-white uppercase tracking-wider px-1 font-orbitron">Response Protocol Checklist</h4>
+                  <h4 className="text-sm font-bold text-white uppercase tracking-wider px-1 font-sans">Response Protocol Checklist</h4>
                   <div className="grid gap-4 md:grid-cols-3">
                     {activeData.timeline.map((item: any, idx: number) => (
                       <div key={idx} className="rounded-lg border border-white/[0.08] bg-slate-950/20 p-4 space-y-3 flex flex-col justify-between">
@@ -725,7 +725,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <Globe2 className="h-5 w-5 text-brand-blue animate-pulse" />
-                <h2 className="text-base font-bold text-white uppercase tracking-wider font-orbitron">National Climate Briefing</h2>
+                <h2 className="text-base font-bold text-white uppercase tracking-wider font-sans">National Climate Briefing</h2>
               </div>
               <button
                 onClick={() => setShowBriefModal(false)}
@@ -772,7 +772,7 @@ export default function DashboardPage() {
                     {briefData.threats?.map((threat: any, idx: number) => (
                       <div key={idx} className="border border-white/[0.06] bg-slate-900/40 p-3.5 rounded-xl flex justify-between items-start gap-4 hover:border-cyan-500/20 transition-colors">
                         <div>
-                          <span className="text-xs font-bold text-white font-orbitron">{threat.district}</span>
+                          <span className="text-xs font-bold text-white font-sans">{threat.district}</span>
                           <span className="text-[10px] text-muted-foreground ml-1.5">({threat.state})</span>
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {threat.drivers?.map((drv: string) => (

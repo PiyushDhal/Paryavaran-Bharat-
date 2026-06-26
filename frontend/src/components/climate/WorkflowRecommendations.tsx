@@ -397,7 +397,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
           </span>
-          <span className="text-white font-bold uppercase tracking-wider font-orbitron text-[9px]">WORKSPACE WORKFLOW STATE SYNC</span>
+          <span className="text-white font-bold uppercase tracking-wider font-sans text-[9px]">WORKSPACE WORKFLOW STATE SYNC</span>
         </div>
         <div className="flex flex-wrap gap-x-4.5 gap-y-1.5 items-center">
           <div className="flex items-center gap-1">
@@ -450,7 +450,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
  
       {/* ─── Next-Step Actions panel ─── */}
       <Card className="glass-card border-white/[0.08] p-5">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-brand-titanium mb-3.5 flex items-center gap-1.5 font-orbitron">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-brand-titanium mb-3.5 flex items-center gap-1.5 font-sans">
           <SlidersHorizontal className="h-4 w-4" />
           Climate Intelligence Workflow Decisions
         </h4>

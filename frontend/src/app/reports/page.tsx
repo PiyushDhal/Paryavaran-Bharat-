@@ -845,7 +845,7 @@ export default function ReportsPage() {
           <Badge className="bg-surface-elevated text-brand-titanium border border-white/[0.08] px-3 py-1 font-semibold text-[10px] tracking-wider uppercase">
             Strategic Decision Dashboard
           </Badge>
-          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-orbitron tracking-[0.12em] uppercase">
+          <h1 className="mt-2 text-3xl font-bold text-white md:text-4xl font-sans tracking-tight">
             Reports & Decision Intelligence Center
           </h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
@@ -1299,21 +1299,21 @@ export default function ReportsPage() {
                   <div className="py-6 space-y-6 text-sm font-serif text-secondary-foreground relative z-10">
                     
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <FileText className="w-3.5 h-3.5 text-brand-blue" /> I. Executive Summary
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.summary}</p>
                     </div>
 
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <Activity className="w-3.5 h-3.5 text-brand-blue" /> II. Observations & Current Conditions
                       </h4>
                       <p className="text-justify indent-8 leading-relaxed font-normal">{reportNarrative?.condition}</p>
                     </div>
                     {/* SPATIAL INTELLIGENCE MAPS */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <Globe2 className="w-3.5 h-3.5 text-brand-blue" /> III. Spatial Intelligence & Multi-Hazard Mapping
                       </h4>
                       <div className="grid gap-4 md:grid-cols-3 no-print mb-6">
@@ -1623,7 +1623,7 @@ export default function ReportsPage() {
 
                     {/* CHARTS CONTAINER (Publication-ready visuals) */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-4 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <TrendingUp className="w-3.5 h-3.5 text-brand-blue" /> IV. Climate Charts & Analytical Trends
                       </h4>
                       
@@ -1723,7 +1723,7 @@ export default function ReportsPage() {
 
                     {/* RISK & EXPOSURE METRICS (GRID) */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-3 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-3 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <Layers className="w-3.5 h-3.5 text-brand-blue" /> V. Socio-Economic Exposure & Impact Index
                       </h4>
                       <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 font-sans text-center">
@@ -1772,7 +1772,7 @@ export default function ReportsPage() {
 
                     {/* DECISION INTELLIGENCE BLOCK */}
                     <div className="space-y-4">
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-2.5 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" /> VI. Decision Intelligence Advisories
                       </h4>
                       
@@ -1821,7 +1821,7 @@ export default function ReportsPage() {
 
                     {/* KEY FINDINGS */}
                     <div>
-                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-[0.12em] text-brand-titanium mb-2 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
+                      <h4 className="text-[10px] font-bold font-sans uppercase tracking-tight text-brand-titanium mb-2 flex items-center gap-1.5 border-b border-white/[0.08] pb-1">
                         <Sparkles className="w-3.5 h-3.5 text-brand-blue" /> VII. Key Findings & Confidence Levels
                       </h4>
                       <div className="grid gap-2 font-sans text-xs">
@@ -1951,7 +1951,7 @@ export default function ReportsPage() {
               {currentSlide === 0 && (
                 <div className="space-y-6 animate-fade-in font-serif leading-relaxed text-slate-200">
                   <div className="text-center py-4 border-b border-slate-800">
-                    <h3 className="text-xl font-bold uppercase tracking-wider text-white font-orbitron">Government of India — Command Operations</h3>
+                    <h3 className="text-xl font-bold uppercase tracking-wider text-white font-sans">Government of India — Command Operations</h3>
                     <p className="text-[10px] text-brand-titanium tracking-widest font-sans uppercase font-bold mt-1">National Security Advisory & Mitigation Memorandum</p>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-sans p-4 border border-slate-800 bg-background/20 rounded-xl my-4">

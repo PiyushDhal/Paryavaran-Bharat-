@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Orbitron, Rajdhani } from "next/font/google";
+import { Inter } from "next/font/google";
 
 import { AppShell } from "@/components/AppShell";
 import { ClimateProvider } from "@/store/useClimateStore";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const orbitron = Orbitron({ subsets: ["latin"], variable: "--font-orbitron" });
-const rajdhani = Rajdhani({ 
-  subsets: ["latin"], 
-  weight: ["300", "400", "500", "600", "700"], 
-  variable: "--font-rajdhani" 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
       </head>
-      <body className={`${inter.variable} ${orbitron.variable} ${rajdhani.variable} font-sans bg-background text-foreground min-h-screen antialiased`}>
+      <body className={`${inter.variable} font-sans bg-background text-foreground min-h-screen antialiased`}>
         <ClimateProvider>
           <AppShell>{children}</AppShell>
         </ClimateProvider>

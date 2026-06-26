@@ -111,7 +111,7 @@ export default function RiskCenterPage() {
       <div className="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
         <div>
           <Badge>Climate Risk Engine</Badge>
-          <h1 className="mt-3 text-3xl font-semibold text-white font-orbitron tracking-[0.12em] uppercase">District Risk Center</h1>
+          <h1 className="mt-3 text-3xl font-semibold text-white font-sans tracking-tight">District Risk Center</h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Transparent 0-100 scoring for flood, drought, heatwave, and water stress with trend analytics.
           </p>
