@@ -571,10 +571,10 @@ export default function LandingPage() {
               <div className="flex justify-start animate-fade-in-logo">
                 <div className="flex items-center gap-3 bg-surface/50 border border-white/5 pl-3 pr-4 py-2 rounded-2xl backdrop-blur-md">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-blue shadow-[0_0_20px_rgba(77,168,218,0.25)] border border-white/10 overflow-hidden">
-                    <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover animate-spin-slow" />
+                    <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat Logo" width={40} height={40} className="object-cover animate-spin-slow" />
                   </span>
                   <div className="font-mono text-[9px] tracking-[0.16em] text-brand-titanium uppercase leading-tight">
-                    BCT CORE UNIT<br/>
+                    PB CORE UNIT<br/>
                     <span className="text-brand-blue font-bold">SYSTEM ACTIVE</span>
                   </div>
                 </div>
@@ -582,7 +582,7 @@ export default function LandingPage() {
 
               <div className="space-y-4">
                 <h1 className="font-orbitron text-5xl lg:text-7xl font-bold tracking-[0.24em] text-white leading-tight uppercase animate-fade-in-title glow-space-blue">
-                  Bharat Climate<br />Twin
+                  Paryavaran<br />Bharat
                 </h1>
 
                 {/* Subtitle & Tagline Section */}

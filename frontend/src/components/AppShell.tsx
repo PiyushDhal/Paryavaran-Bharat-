@@ -264,15 +264,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between px-2 mb-6">
           <Link href="/" className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-[12px] bg-brand-blue shadow-[0_4px_14px_0_rgba(77,168,218,0.25)] overflow-hidden">
-              <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover" />
+              <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat Logo" width={40} height={40} className="object-cover" />
             </span>
             {!isCollapsed && (
               <span className="whitespace-nowrap overflow-hidden font-orbitron">
                 <span className="block text-[9px] font-bold uppercase tracking-[0.22em] text-brand-titanium leading-none mb-1">
-                  Bharat
+                  Paryavaran
                 </span>
                 <span className="block text-sm font-bold tracking-[0.08em] text-white leading-none">
-                  Climate Twin
+                  Bharat
                 </span>
               </span>
             )}
@@ -343,7 +343,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </p>
           ) : (
             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-[6px] overflow-hidden mx-auto opacity-50">
-              <Image src="/logo.jpg" alt="Logo" width={20} height={20} className="object-cover grayscale" />
+              <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat Logo" width={20} height={20} className="object-cover grayscale" />
             </span>
           )}
         </div>
@@ -357,9 +357,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between mb-6">
               <Link href="/" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 border border-brand-blue/20 overflow-hidden">
-                  <Image src="/logo.jpg" alt="Logo" width={48} height={48} className="object-cover" />
+                  <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat Logo" width={48} height={48} className="object-cover" />
                 </span>
-                <span className="font-semibold text-white">Bharat Climate Twin</span>
+                <span className="font-semibold text-white">Paryavaran Bharat</span>
               </Link>
               <button onClick={() => setMobileOpen(false)} className="text-muted-foreground hover:text-white">
                 <X className="h-5 w-5" />
@@ -409,9 +409,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
             <Link href="/" className="flex items-center gap-2 lg:hidden shrink-0">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-blue/10 border border-brand-blue/20 overflow-hidden">
-                <Image src="/logo.jpg" alt="Logo" width={40} height={40} className="object-cover" />
+                <Image src="/paryavaran-logo.jpg" alt="Paryavaran Bharat Logo" width={40} height={40} className="object-cover" />
               </span>
-              <span className="font-semibold text-sm">Bharat Climate Twin</span>
+              <span className="font-semibold text-sm">Paryavaran Bharat</span>
             </Link>
             
             {/* ── Global Context Command Bar ── */}

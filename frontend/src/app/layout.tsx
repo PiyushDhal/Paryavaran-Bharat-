@@ -14,11 +14,11 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "Bharat Climate Twin — National Climate Digital Twin",
+  title: "Paryavaran Bharat — Insights. Action. Resilience.",
   description:
-    "AI-powered digital twin of India's climate system for prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks.",
+    "Paryavaran Bharat: AI-powered platform for India's environmental intelligence — prediction, simulation, and visualization of flood, drought, heat, water, air, and crop risks.",
   icons: {
-    icon: "/favicon.jpg"
+    icon: "/paryavaran-logo.jpg"
   }
 };
 
