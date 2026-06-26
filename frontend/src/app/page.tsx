@@ -349,7 +349,7 @@ export default function LandingPage() {
   useEffect(() => {
     // Elegant system readiness load sequence (approx 3s)
     const steps = [
-      { duration: 700 }, // BHARAT CLIMATE TWIN
+      { duration: 700 }, // PARYAVARAN BHARAT
       { duration: 600 }, // Initializing Climate Intelligence...
       { duration: 600 }, // Connecting Digital Twin...
       { duration: 600 }, // Loading Government Datasets...
@@ -449,7 +449,7 @@ export default function LandingPage() {
 
           <div className="text-center font-mono space-y-4 relative z-10 px-6">
             <h2 className="font-orbitron text-2xl md:text-3xl font-bold tracking-[0.25em] text-white glow-space-blue uppercase">
-              Bharat Climate Twin
+              Paryavaran Bharat
             </h2>
             <div className="h-6 flex items-center justify-center">
               <p className="font-rajdhani text-brand-titanium tracking-[0.18em] text-xs md:text-sm uppercase font-semibold">
@@ -658,7 +658,7 @@ export default function LandingPage() {
           </div>
           <h2 className="mt-6 text-3xl lg:text-5xl font-bold text-white font-orbitron tracking-[0.12em] uppercase leading-tight">Powered by India&apos;s Climate Data Infrastructure</h2>
           <p className="mt-6 text-lg text-muted-foreground max-w-2xl font-sans">
-            Bharat Climate Twin integrates meteorological observations, satellite products, and national climate datasets to power AI-driven forecasting and risk assessment.
+            Paryavaran Bharat integrates meteorological observations, satellite products, and national climate datasets to power AI-driven forecasting and risk assessment.
           </p>
         </div>
 
@@ -727,7 +727,7 @@ export default function LandingPage() {
                 <div className="grid h-10 w-10 place-items-center rounded-md bg-brand-blue/10 border border-white/[0.08]">
                   <Satellite className="h-5 w-5 text-brand-blue" />
                 </div>
-                <span className="text-lg font-bold text-white font-orbitron tracking-wider">Bharat Climate Twin</span>
+                <span className="text-lg font-bold text-white font-orbitron tracking-wider">Paryavaran Bharat</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-md font-sans">
                 AI-powered digital twin of India&apos;s climate system. Built for national resilience with indigenous data sources from IMD, ISRO, NRSC, India-WRIS, and CPCB.
@@ -741,7 +741,7 @@ export default function LandingPage() {
                   { name: "Digital Twin Map", href: "/map" },
                   { name: "Risk Center", href: "/risk-center" },
                   { name: "Simulator", href: "/simulator" },
-                  { name: "Bharat Climate Intelligence", href: "/copilot" }
+                  { name: "Paryavaran Intelligence", href: "/copilot" }
                 ].map((item) => (
                   <Link key={item.name} href={item.href} className="text-sm text-muted-foreground hover:text-brand-titanium transition-colors">
                     {item.name}
@@ -761,7 +761,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-white/5 text-center text-xs text-muted-foreground">
-            © 2026 Bharat Climate Twin. Government-tech climate resilience platform.
+            © 2026 Paryavaran Bharat. Government-tech climate resilience platform.
           </div>
         </div>
       </footer>

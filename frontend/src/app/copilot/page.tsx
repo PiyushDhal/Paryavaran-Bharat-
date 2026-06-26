@@ -662,7 +662,7 @@ function CopilotPageContent() {
                 <Activity className="h-4 w-4 text-brand-blue animate-pulse" />
                 CLIMATE CONSULTATION SESSION
               </span>
-              <span className="font-mono text-[9px] text-slate-400">SESSION ID: BCT-CIO-748</span>
+              <span className="font-mono text-[9px] text-slate-400">SESSION ID: PB-CIO-748</span>
             </CardTitle>
           </CardHeader>
           

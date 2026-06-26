@@ -139,13 +139,13 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
           desc: "Run atmospheric or hydrological stress models"
         });
         list.push({
-          label: "Ask Bharat Climate Intelligence",
+          label: "Ask Paryavaran Intelligence",
           icon: Bot,
           onClick: () => {
             const query = `Analyze the current climate risk profiles for ${locationName} in ${activeYear}`;
             router.push(`/copilot?query=${encodeURIComponent(query)}`);
           },
-          desc: "Consult Bharat Climate Intelligence on regional indicators"
+          desc: "Consult Paryavaran Intelligence on regional indicators"
         });
         break;
 
@@ -175,7 +175,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
           desc: "Test climate resilience under future anomalies"
         });
         list.push({
-          label: "Ask Bharat Climate Intelligence",
+          label: "Ask Paryavaran Intelligence",
           icon: Bot,
           onClick: () => {
             const query = `Provide an emergency assessment for ${locationName} given the active map layers.`;
@@ -194,7 +194,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
             const query = `Explain the current monthly ${metricLabel} trends for ${locationName} in the year ${activeYear}.`;
             router.push(`/copilot?query=${encodeURIComponent(query)}`);
           },
-          desc: "Analyze gridded chart values using Bharat Climate Intelligence"
+          desc: "Analyze gridded chart values using Paryavaran Intelligence"
         });
         list.push({
           label: "Generate Executive Report",
@@ -273,7 +273,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
             const query = `Explain the results of my future climate scenario simulation for ${locationName} ${simOutput}.`;
             router.push(`/copilot?query=${encodeURIComponent(query)}`);
           },
-          desc: "Consult Bharat Climate Intelligence on simulated paths"
+          desc: "Consult Paryavaran Intelligence on simulated paths"
         });
         list.push({
           label: "Open Risk Center",
@@ -315,7 +315,7 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
 
       case "reports":
         list.push({
-          label: "Discuss Report with Bharat Climate Intelligence",
+          label: "Discuss Report with Paryavaran Intelligence",
           icon: Bot,
           onClick: () => {
             const rTitle = currentGeneratedReport?.title || "Latest Regional Assessment";

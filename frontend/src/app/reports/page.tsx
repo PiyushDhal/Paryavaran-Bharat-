@@ -1263,7 +1263,7 @@ export default function ReportsPage() {
                       <ShieldCheck className="h-6 w-6" />
                     </div>
                     <h2 className="text-base font-extrabold tracking-[0.15em] text-white uppercase font-sans">
-                      Government of India — Climate Twin Command
+                      Government of India — Paryavaran Bharat Command
                     </h2>
                     <p className="text-[9px] tracking-widest text-brand-titanium font-sans font-bold mt-1.5 uppercase">
                       National Security Advisory & Mitigation Memorandum
@@ -1840,7 +1840,7 @@ export default function ReportsPage() {
                   <div className="border-t border-slate-800 pt-6 mt-6 flex justify-between items-center text-[10px] font-sans text-muted-foreground relative z-10">
                     <span className="flex items-center gap-1">
                       <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" />
-                      Certified by Bharat Climate Twin AI Forecaster Layer v2.1.0
+                      Certified by Paryavaran Bharat AI Forecaster Layer v2.1.0
                     </span>
                     <span className="italic">Authorized digital signature — Command operations center</span>
                   </div>
@@ -2218,7 +2218,7 @@ export default function ReportsPage() {
               <div className="border-t border-white/[0.08] pt-4 mt-6 flex justify-between items-center text-xs font-sans text-muted-foreground no-print">
                 <span className="flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-brand-blue" />
-                  BCT Operations Center presentation deck
+                  PB Operations Center presentation deck
                 </span>
                 <div className="flex gap-4">
                   <button 

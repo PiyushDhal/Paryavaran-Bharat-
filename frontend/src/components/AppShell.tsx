@@ -75,7 +75,7 @@ const navSections = [
     items: [
       { href: "/simulator", label: "Scenario Simulator", icon: FilledSimulator },
       { href: "/timeline", label: "Climate Timeline", icon: FilledTimeline },
-      { href: "/copilot", label: "Bharat Climate Intelligence", icon: FilledCopilot },
+      { href: "/copilot", label: "Paryavaran Intelligence", icon: FilledCopilot },
       { href: "/reports", label: "AI Report", icon: FilledReport }
     ]
   },
@@ -587,7 +587,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 },
                 {
                   title: "8. Policy Recommendations",
-                  description: "Consult Bharat Climate Intelligence to draft a 1-7-30 day response and resource allocation plan.",
+                  description: "Consult Paryavaran Intelligence to draft a 1-7-30 day response and resource allocation plan.",
                   actionLabel: "Consult AI Advisor",
                   action: () => {
                     router.push("/copilot?query=Generate+a+1-7-30+day+action+plan+for+Jodhpur+heatwave");

@@ -94,7 +94,7 @@ export default function DataSourcesPage() {
             Data Provenance Registry
           </h1>
           <p className="mt-2 text-xs text-muted-foreground max-w-2xl">
-            Official government integration endpoints power the Bharat Climate Twin. Live telemetry sync rates, coverage bounds, and validation metrics are checked hourly.
+            Official government integration endpoints power Paryavaran Bharat. Live telemetry sync rates, coverage bounds, and validation metrics are checked hourly.
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-xl bg-brand-blue/15 border border-brand-blue/30 px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-cyan-400">
