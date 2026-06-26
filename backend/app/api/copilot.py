@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
@@ -9,6 +11,7 @@ from app.models.user import User
 from app.schemas.climate import CopilotRequest, CopilotResponse
 from app.services.copilot import ClimateCopilot
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/copilot", tags=["copilot"])
 copilot_service = ClimateCopilot()
 

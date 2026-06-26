@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "Bharat Climate Twin API"
+    app_name: str = "Paryavaran Bharat API"
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
     database_url: str = Field(
@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     "https://bharat-climate-twin-frontend.onrender.com",
 ]
     seed_database: bool = True
+    gemini_api_key: str = Field(default="")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

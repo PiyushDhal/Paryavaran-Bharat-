@@ -39,14 +39,14 @@ def run_simulation(
         .first()
     )
     baseline = {
-        "rainfall_mm": weather.rainfall_mm,
-        "rainfall_deficit_pct": weather.rainfall_deficit_pct,
-        "temperature_c": weather.temperature_c,
-        "humidity_pct": weather.humidity_pct,
-        "river_level_m": weather.river_level_m,
-        "soil_moisture_pct": weather.soil_moisture_pct,
-        "ndvi": satellite.ndvi,
-        "reservoir_level_pct": satellite.reservoir_level_pct,
+        "rainfall_mm": weather.rainfall_mm if weather else 115.0,
+        "rainfall_deficit_pct": weather.rainfall_deficit_pct if weather else -2.5,
+        "temperature_c": weather.temperature_c if weather else 31.5,
+        "humidity_pct": weather.humidity_pct if weather else 65.0,
+        "river_level_m": weather.river_level_m if weather else 2.1,
+        "soil_moisture_pct": weather.soil_moisture_pct if weather else 42.0,
+        "ndvi": satellite.ndvi if satellite else 0.42,
+        "reservoir_level_pct": satellite.reservoir_level_pct if satellite else 48.0,
     }
     scenario = payload.model_dump()
     results = simulator.run(baseline, scenario)

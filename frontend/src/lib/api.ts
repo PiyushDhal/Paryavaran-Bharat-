@@ -35,19 +35,24 @@ async function apiFetch<T>(path: string, options: RequestInit = {}, retries = 2)
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  
+
   for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12s timeout
     try {
       const response = await fetch(`${API_PREFIX}${path}`, {
         ...options,
         headers,
-        cache: "no-store"
+        cache: "no-store",
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
       if (!response.ok) {
         throw new Error(`Request failed: ${response.status}`);
       }
       return await (response.json() as Promise<T>);
     } catch (error) {
+      clearTimeout(timeoutId);
       if (attempt === retries) {
         throw error;
       }

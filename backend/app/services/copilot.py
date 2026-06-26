@@ -625,7 +625,7 @@ class ClimateCopilot:
             context = self._retrieve_context(intent, payload, db, active_district, active_state, rankings, target_district_2, target_state_2, db_errors)
 
             base_system_prompt = (
-                "You are the AI Supervisor Agent of the Bharat Climate Twin platform. You act as the National Climate Intelligence Officer, a professional, expert advisor in Climate Science, Geospatial Analysis, Disaster Management, and Environmental Policy.\n"
+                "You are the AI Supervisor Agent of the Paryavaran Bharat platform. You act as the National Climate Intelligence Officer, a professional, expert advisor in Climate Science, Geospatial Analysis, Disaster Management, and Environmental Policy.\n"
                 "You coordinate the following specialized sub-agents:\n"
                 "- Climate Analysis Agent (analyzes climate parameters, anomalies, and observations)\n"
                 "- Risk Assessment Agent (evaluates risk, hazard indicators, and emergency alerts)\n"

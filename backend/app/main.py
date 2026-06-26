@@ -1,3 +1,8 @@
+import logging
+import os
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
@@ -8,34 +13,23 @@ from app.db.base import Base
 from app.db.init_db import init_db
 from app.db.session import SessionLocal, engine
 
-settings = get_settings()
-
-app = FastAPI(
-    title=settings.app_name,
-    version="1.0.0",
-    description="AI-powered digital twin API for India's climate risk system.",
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[str(origin) for origin in settings.backend_cors_origins],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-import logging
-from alembic.config import Config
-from alembic import command
-
 logger = logging.getLogger(__name__)
 
+settings = get_settings()
+
+
 def upgrade_db() -> None:
+    from alembic.config import Config
+    from alembic import command
+
     logger.info("Applying database migrations via Alembic...")
     alembic_cfg = Config("alembic.ini")
     alembic_cfg.set_main_option("sqlalchemy.url", settings.database_url)
-    
+
     try:
         command.upgrade(alembic_cfg, "head")
         logger.info("Database migrations applied successfully.")
@@ -53,8 +47,22 @@ def upgrade_db() -> None:
         else:
             raise err
 
-@app.on_event("startup")
-def on_startup() -> None:
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # ── Startup ──────────────────────────────────────────────────────────
+    logger.info("=== Paryavaran Bharat API — Starting Up ===")
+
+    # Gemini API key check
+    gemini_key = os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
+    if not gemini_key:
+        logger.warning(
+            "[AI] GEMINI_API_KEY is not configured. "
+            "The AI Copilot will operate in offline fallback mode."
+        )
+    else:
+        logger.info("[AI] Gemini API key detected. AI Copilot is online.")
+
     try:
         if settings.seed_database:
             if "sqlite" not in settings.database_url:
@@ -63,29 +71,47 @@ def on_startup() -> None:
                         connection.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
                 except Exception as postgis_err:
                     logger.error(f"PostGIS extension creation failed: {postgis_err}")
-            
+
             try:
                 upgrade_db()
             except Exception as upgrade_err:
                 logger.error(f"Database upgrade failed during startup: {upgrade_err}")
-            
+
             db = SessionLocal()
             try:
                 init_db(db)
-                logger.info("Database seeding completed successfully on startup.")
+                logger.info("Database seeding completed successfully.")
             except Exception as seed_err:
                 logger.error(f"Database seeding failed: {seed_err}. Continuing startup.")
             finally:
                 db.close()
     except Exception as startup_err:
-        logger.critical(f"Uncaught exception during startup: {startup_err}. Continuing startup.")
+        logger.critical(f"Uncaught exception during startup: {startup_err}. Continuing.")
+
+    logger.info("=== Paryavaran Bharat API — Ready ===")
+    yield
+    # ── Shutdown ─────────────────────────────────────────────────────────
+    logger.info("=== Paryavaran Bharat API — Shutting Down ===")
+
+
+app = FastAPI(
+    title=settings.app_name,
+    version="2.0.0",
+    description="AI-powered Paryavaran Bharat — India's Climate Intelligence Platform.",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[str(origin) for origin in settings.backend_cors_origins],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
 def health() -> dict:
-    from datetime import datetime, timezone
-    import os
-    
     db_status = "healthy"
     db_err_detail = None
     try:
@@ -96,8 +122,7 @@ def health() -> dict:
         db_err_detail = str(db_err)
         logger.error(f"Health check database connection failed: {db_err}")
 
-    # Gemini Status check
-    gemini_key = os.environ.get("GEMINI_API_KEY")
+    gemini_key = os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
     ai_status = "configured" if gemini_key else "unconfigured"
     overall_status = "healthy" if db_status == "healthy" else "degraded"
 
@@ -105,20 +130,21 @@ def health() -> dict:
         "status": overall_status,
         "database": {
             "status": db_status,
-            "error": db_err_detail
+            "error": db_err_detail,
         },
         "ai": {
             "status": ai_status,
-            "provider": "Gemini"
+            "provider": "Gemini",
         },
         "api": {
             "status": "online",
-            "service": "bharat-climate-twin-api"
+            "service": "paryavaran-bharat-api",
+            "version": "2.0.0",
         },
         "deployment": {
-            "environment": settings.environment
+            "environment": settings.environment,
         },
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

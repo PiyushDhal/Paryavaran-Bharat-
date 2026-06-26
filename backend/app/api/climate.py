@@ -233,9 +233,9 @@ def draw_pdf_header(pdf, title, subtitle):
     # White text in banner
     pdf.setFillColorRGB(1.0, 1.0, 1.0)
     pdf.setFont("Helvetica-Bold", 20)
-    pdf.drawString(54, 796, "BHARAT CLIMATE TWIN")
+    pdf.drawString(54, 796, "PARYAVARAN BHARAT")
     pdf.setFont("Helvetica", 9)
-    pdf.drawString(54, 778, "AI Climate Intelligence Officer | ISRO Antariksh Hackathon Decision-Support")
+    pdf.drawString(54, 778, "AI Climate Intelligence Platform | ISRO Antariksh Hackathon Decision-Support")
     
     # Sub-government seal text
     pdf.drawRightString(541.27, 796, "GOVERNMENT OF INDIA")
@@ -507,7 +507,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
             ["Reservoir Level Percentages", f"{sat.reservoir_level_pct if sat else 50.0}%", "India-WRIS Basin Registry", "Storage status"],
             ["Regional River Runoffs", f"{weather.river_level_m if weather else 2.1} m", "Central Water Commission (CWC)", "River channel volume status"],
             ["Hydrologic Soil moisture", f"{weather.soil_moisture_pct if weather else 45.0}%", "NRSC Scatterometer observations", "Infiltration capacity"],
-            ["Aquifer Water Stress score", f"{risk.water_stress_risk if risk else 40.0}/100", "BCT Hydrology risk calculations", "Vulnerability alert rating"]
+            ["Aquifer Water Stress score", f"{risk.water_stress_risk if risk else 40.0}/100", "PB Hydrology Engine", "Vulnerability alert rating"]
         ]
         score = risk.water_stress_risk if risk else 40.0
         bullet_points = [
@@ -519,7 +519,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
         rows = [
             ["Ambient Temperature", f"{weather.temperature_c if weather else 30.0}°C", "IMD Gridded Daily Observations", "High Temperature Anomaly" if not weather or weather.temperature_c > 35 else "Seasonal Temp"],
             ["Relative Atmospheric Humidity", f"{weather.humidity_pct if weather else 55.0}%", "IMD Gridded Sensors", "Humidex Anomaly" if not weather or weather.humidity_pct > 60 else "Nominal Humidity"],
-            ["Calculated Heatwave Risk Score", f"{risk.heatwave_risk if risk else 35.0}/100", "BCT Thermal Assessment", "Critical Heat Warning" if not risk or risk.heatwave_risk > 60 else "Moderate Exposure"],
+            ["Calculated Heatwave Risk Score", f"{risk.heatwave_risk if risk else 35.0}/100", "PB Thermal Assessment", "Critical Heat Warning" if not risk or risk.heatwave_risk > 60 else "Moderate Exposure"],
             ["Peak Power Grid Load Reserves", "92% Grid Margin", "State Power Dispatch Center", "Elevated Cooling Demand"]
         ]
         score = risk.heatwave_risk if risk else 35.0
@@ -531,7 +531,7 @@ def _generate_themed_pdf(district_id: int, db: Session, theme: str) -> BytesIO:
     elif theme == "resilience":
         score = 100.0 - (risk.composite_risk if risk else 48.0)
         rows = [
-            ["Calculated Resilience Index", f"{score}/100", "BCT Resilience calculations", "Robust capacity" if score > 60 else "Vulnerable state"],
+            ["Calculated Resilience Index", f"{score}/100", "PB Resilience Engine", "Robust capacity" if score > 60 else "Vulnerable state"],
             ["Groundwater table recharge index", "Adequate" if not sat or sat.reservoir_level_pct > 40 else "Depleted", "India-WRIS Basin Registry", "Groundwater level drawdown"],
             ["Forest & Vegetative Canopy Cover", f"{sat.ndvi if sat else 0.45}", "NRSC MODIS/Sentinel LISS-III", "Canopy coverage health"],
             ["Composite Disaster risk buffer", f"{risk.composite_risk if risk else 48.0}/100", "Multi-hazard planning registry", "Mitigation margins"]
