@@ -174,40 +174,40 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
     }).catch(() => undefined);
   }, []);
 
-  // Sync state id and name bi-directionally
+  // Sync state id and name bi-directionally in a single, guarded effect to avoid render loops
   useEffect(() => {
-    if (allStates.length > 0) {
-      if (selectedStateId !== "") {
-        const match = allStates.find(s => s.id === Number(selectedStateId));
-        if (match && selectedStateName !== match.name) {
+    if (allStates.length === 0) return;
+
+    if (selectedStateId !== "") {
+      const match = allStates.find(s => s.id === Number(selectedStateId));
+      if (match) {
+        if (selectedStateName !== match.name) {
           setSelectedStateName(match.name);
         }
-      } else if (selectedStateId === "" && selectedStateName !== null) {
-        setSelectedStateName(null);
       }
-    }
-  }, [selectedStateId, allStates]);
-
-  useEffect(() => {
-    if (allStates.length > 0) {
-      if (selectedStateName) {
-        const match = allStates.find(s => s.name.toLowerCase() === selectedStateName.toLowerCase());
-        if (match && selectedStateId !== match.id) {
+    } else if (selectedStateName) {
+      const match = allStates.find(s => s.name.toLowerCase() === selectedStateName.toLowerCase());
+      if (match) {
+        if (selectedStateId === "" || selectedStateId !== match.id) {
           setSelectedStateId(match.id);
         }
-      } else if (selectedStateName === null && selectedStateId !== "") {
-        setSelectedStateId("");
+      } else {
+        setSelectedStateName(null);
       }
+    } else if (selectedStateId === "" && selectedStateName !== null) {
+      setSelectedStateName(null);
     }
-  }, [selectedStateName, allStates]);
+  }, [selectedStateId, selectedStateName, allStates]);
 
   // Set state from district selection
   useEffect(() => {
     if (selectedDistrictId && allDistricts.length > 0) {
       const match = allDistricts.find(d => d.id === selectedDistrictId);
       if (match) {
-        setSelectedStateId(match.state_id);
-        if (match.state_name) {
+        if (selectedStateId === "" || selectedStateId !== match.state_id) {
+          setSelectedStateId(match.state_id);
+        }
+        if (match.state_name && selectedStateName !== match.state_name) {
           setSelectedStateName(match.state_name);
         }
       }
