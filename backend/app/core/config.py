@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     "https://bharat-climate-twin-frontend.onrender.com",
 ]
-    seed_database: bool = True
+    seed_database: bool = False
     gemini_api_key: str = Field(default="")
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
