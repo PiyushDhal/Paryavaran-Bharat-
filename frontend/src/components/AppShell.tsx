@@ -181,9 +181,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const isLanding = pathname === "/";
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("Dr. Amit Sharma");
-  const [userRole, setUserRole] = useState("Director (Operations)");
+  const [userRole, setUserRole] = useState("Director (Ops)");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [demoOpen, setDemoOpen] = useState(false);
@@ -242,13 +241,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem("bct_sidebar_collapsed");
       if (stored) setIsCollapsed(stored === "true");
-
-      const token = window.localStorage.getItem("bct_token");
-      setIsLoggedIn(!!token);
-      if (token) {
-        setUserName("Dr. Amit Sharma");
-        setUserRole("Director (Ops)");
-      }
     }
   }, [pathname]);
 
@@ -465,39 +457,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </button>
 
-            {/* Profile / Auth Relocation */}
+            {/* Profile Section */}
             <div className="h-8 w-px bg-surface-elevated" />
-            {isLoggedIn ? (
-              <div className="flex items-center gap-3">
-                <div className="hidden text-right md:block">
-                  <p className="text-xs font-semibold text-white">{userName}</p>
-                  <p className="text-[10px] text-muted-foreground">{userRole}</p>
-                </div>
-                <div className="grid h-9 w-9 place-items-center rounded-full border border-white/[0.08] bg-brand-blue/10 text-emerald-200" title={`${userName} (${userRole})`}>
-                  <UserCheck className="h-4 w-4" />
-                </div>
-                <button
-                  onClick={() => {
-                    window.localStorage.removeItem("bct_token");
-                    setIsLoggedIn(false);
-                    window.location.href = "/login";
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition-all"
-                  title="Sign Out"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Logout</span>
-                </button>
+            <div className="flex items-center gap-3">
+              <div className="hidden text-right md:block">
+                <p className="text-xs font-semibold text-white">{userName}</p>
+                <p className="text-[10px] text-muted-foreground">{userRole}</p>
               </div>
-            ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 hover:bg-brand-blue/10 transition-all shadow-glow"
-              >
-                <LockKeyhole className="h-3.5 w-3.5" />
-                Operator Sign In
-              </Link>
-            )}
+              <div className="grid h-9 w-9 place-items-center rounded-full border border-white/[0.08] bg-brand-blue/10 text-emerald-200" title={`${userName} (${userRole})`}>
+                <UserCheck className="h-4 w-4" />
+              </div>
+            </div>
           </div>
         </div>
       </header>
