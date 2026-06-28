@@ -1,14 +1,17 @@
 from functools import lru_cache
+from pathlib import Path
 from pydantic import AnyHttpUrl, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+DB_PATH = BASE_DIR / "bharat_climate.db"
 
 class Settings(BaseSettings):
     app_name: str = "Paryavaran Bharat API"
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
     database_url: str = Field(
-        default="sqlite:///./bharat_climate.db"
+        default=f"sqlite:///{DB_PATH.as_posix()}"
     )
     jwt_secret_key: str = Field(default="change-me-in-production")
     jwt_algorithm: str = "HS256"
