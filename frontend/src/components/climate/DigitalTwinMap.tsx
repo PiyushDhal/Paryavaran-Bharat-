@@ -1223,6 +1223,22 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       });
 
       map.addLayer({
+        id: "district-risk-glow",
+        type: "circle",
+        source: "district-risk",
+        paint: {
+          "circle-color": [
+            "step",
+            ["get", "active_val"],
+            ...getMapboxColorSteps(activeLayer)
+          ],
+          "circle-radius": compact ? 16 : 22,
+          "circle-opacity": activeLayer === "none" ? 0 : 0.18,
+          "circle-blur": 0.8
+        }
+      });
+
+      map.addLayer({
         id: "district-risk-fill",
         type: "circle",
         source: "district-risk",
@@ -1233,9 +1249,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             ...getMapboxColorSteps(activeLayer)
           ],
           "circle-radius": compact ? 7 : 9,
-          "circle-opacity": 0.8,
-          "circle-stroke-width": 1.5,
-          "circle-stroke-color": "#ffffff"
+          "circle-opacity": activeLayer === "none" ? 0 : 0.8,
+          "circle-stroke-width": activeLayer === "none" ? 0 : 2,
+          "circle-stroke-color": "rgba(255, 255, 255, 0.45)"
         }
       });
 
@@ -1318,6 +1334,15 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const colors = getMapboxColorSteps(activeLayer);
 
     // Set paint colors dynamically to match color mapping
+    if (mapRef.current.getLayer("district-risk-glow")) {
+      mapRef.current.setPaintProperty("district-risk-glow", "circle-color", [
+        "step",
+        ["get", "active_val"],
+        ...colors
+      ]);
+      mapRef.current.setPaintProperty("district-risk-glow", "circle-opacity", activeLayer === "none" ? 0 : 0.18);
+    }
+
     if (mapRef.current.getLayer("district-risk-fill")) {
       mapRef.current.setPaintProperty("district-risk-fill", "circle-color", [
         "step",
@@ -1325,7 +1350,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         ...colors
       ]);
       mapRef.current.setPaintProperty("district-risk-fill", "circle-opacity", activeLayer === "none" ? 0 : 0.8);
-      mapRef.current.setPaintProperty("district-risk-fill", "circle-stroke-width", activeLayer === "none" ? 0 : 1.5);
+      mapRef.current.setPaintProperty("district-risk-fill", "circle-stroke-width", activeLayer === "none" ? 0 : 2);
     }
 
     if (mapRef.current.getLayer("state-fill")) {
@@ -1424,6 +1449,22 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           data: { type: "FeatureCollection", features: mappedFeatures }
         });
         map.addLayer({
+          id: "district-risk-glow",
+          type: "circle",
+          source: "district-risk",
+          paint: {
+            "circle-color": [
+              "step",
+              ["get", "active_val"],
+              ...getMapboxColorSteps(activeLayer)
+            ],
+            "circle-radius": compact ? 16 : 22,
+            "circle-opacity": activeLayer === "none" ? 0 : 0.18,
+            "circle-blur": 0.8
+          }
+        });
+
+        map.addLayer({
           id: "district-risk-fill",
           type: "circle",
           source: "district-risk",
@@ -1434,9 +1475,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               ...getMapboxColorSteps(activeLayer)
             ],
             "circle-radius": compact ? 7 : 9,
-            "circle-opacity": 0.8,
-            "circle-stroke-width": 1.5,
-            "circle-stroke-color": "#ffffff"
+            "circle-opacity": activeLayer === "none" ? 0 : 0.8,
+            "circle-stroke-width": activeLayer === "none" ? 0 : 2,
+            "circle-stroke-color": "rgba(255, 255, 255, 0.45)"
           }
         });
       }
@@ -1565,6 +1606,15 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     <div className={`relative w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-background ${compact ? "h-full" : "h-[calc(100vh-112px)]"}`}>
       {/* Map Content Container */}
       <div className="relative w-full h-full">
+        {/* HUD Corner Decorators */}
+        <div className="absolute top-3 left-3 w-3 h-3 border-t-2 border-l-2 border-cyan-500/40 pointer-events-none z-10 rounded-tl-sm" />
+        <div className="absolute top-3 right-3 w-3 h-3 border-t-2 border-r-2 border-cyan-500/40 pointer-events-none z-10 rounded-tr-sm" />
+        <div className="absolute bottom-3 left-3 w-3 h-3 border-b-2 border-l-2 border-cyan-500/40 pointer-events-none z-10 rounded-bl-sm" />
+        <div className="absolute bottom-3 right-3 w-3 h-3 border-b-2 border-r-2 border-cyan-500/40 pointer-events-none z-10 rounded-br-sm" />
+        
+        {/* Cyber Scanning Sweep Line */}
+        <div className="absolute inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-500/25 to-transparent opacity-40 animate-hud-scan pointer-events-none z-10" />
+
         {token ? (
           <div ref={mapNode} className="w-full h-full" />
         ) : (
