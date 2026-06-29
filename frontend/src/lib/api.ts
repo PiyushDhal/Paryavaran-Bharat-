@@ -11,6 +11,7 @@ import type {
   SimulationResult,
   State
 } from "@/lib/types";
+import { getMockDataForPath } from "./mockData";
 
 
 const API_BASE_URL = typeof window === "undefined"
@@ -55,7 +56,8 @@ async function apiFetch<T>(path: string, options: RequestInit = {}, retries = 2)
     } catch (error) {
       clearTimeout(timeoutId);
       if (attempt === retries) {
-        throw error;
+        console.warn(`[API Fallback] Fetch failed for path: ${path}. Falling back to client-side mock data.`);
+        return getMockDataForPath(path) as T;
       }
       await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
     }
