@@ -183,6 +183,13 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (allStates.length === 0) return;
 
+    if (selectedStateName === null || selectedStateName === "") {
+      if (selectedStateId !== "") {
+        setSelectedStateId("");
+      }
+      return;
+    }
+
     if (selectedStateId !== "") {
       const match = allStates.find(s => s.id === Number(selectedStateId));
       if (match) {
@@ -199,8 +206,6 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
       } else {
         setSelectedStateName(null);
       }
-    } else if (selectedStateId === "" && selectedStateName !== null) {
-      setSelectedStateName(null);
     }
   }, [selectedStateId, selectedStateName, allStates]);
 
