@@ -13,8 +13,9 @@ import type {
 } from "@/lib/types";
 
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
+const API_BASE_URL = typeof window === "undefined"
+  ? (process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "http://localhost:8000")
+  : "";
 const API_PREFIX = `${API_BASE_URL}/api/v1`;
 
 export function getToken() {
