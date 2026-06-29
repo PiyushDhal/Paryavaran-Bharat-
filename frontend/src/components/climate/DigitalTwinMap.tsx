@@ -250,7 +250,7 @@ function getLayerColor(layer: string, value: number): string {
 
 function getMapboxColorSteps(layer: string): any[] {
   const meta = layerMeta[layer];
-  if (!meta) return ["#4DA8DA"];
+  if (!meta) return ["#4DA8DA", 0, "#4DA8DA"];
   const steps: any[] = [meta.colors[0]];
   for (let i = 0; i < meta.thresholds.length; i++) {
     steps.push(meta.thresholds[i]);
@@ -1314,6 +1314,8 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         ["get", "active_val"],
         ...colors
       ]);
+      mapRef.current.setPaintProperty("district-risk-fill", "circle-opacity", activeLayer === "none" ? 0 : 0.8);
+      mapRef.current.setPaintProperty("district-risk-fill", "circle-stroke-width", activeLayer === "none" ? 0 : 1.5);
     }
 
     if (mapRef.current.getLayer("state-fill")) {
@@ -1332,8 +1334,8 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       mapRef.current.setPaintProperty("state-fill", "fill-opacity", [
         "case",
         ["==", ["get", "name"], hoveredStateName || ""],
-        0.65, // Hover opacity
-        0.25  // Default opacity
+        activeLayer === "none" ? 0 : 0.65, // Hover opacity
+        activeLayer === "none" ? 0 : 0.25  // Default opacity
       ]);
     }
     if (mapRef.current.getLayer("state-line")) {
@@ -1713,7 +1715,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               {/* Geographic States outlines */}
               {INDIA_STATES.map((state) => {
                 const stateVal = getStateMetricValue(state.name, activeLayer, rankings, allDistricts, timelineStep, features);
-                const stateColor = getLayerColor(activeLayer, stateVal);
+                const stateColor = activeLayer === "none" ? "rgba(8, 20, 34, 0.45)" : getLayerColor(activeLayer, stateVal);
                 return (
                   <g key={state.name} id={`fallback-state-${state.name.toLowerCase().replace(/\s+/g, '-')}`}>
                     {state.paths.map((path, idx) => {
@@ -1729,7 +1731,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                           key={idx}
                           d={pathData}
                           fill={stateColor}
-                          fillOpacity={hoveredStateName === state.name ? 0.65 : (selectedStateName === state.name ? 0.8 : 0.25)}
+                          fillOpacity={activeLayer === "none" ? (hoveredStateName === state.name ? 0.8 : (selectedStateName === state.name ? 0.95 : 0.5)) : (hoveredStateName === state.name ? 0.65 : (selectedStateName === state.name ? 0.8 : 0.25))}
                           stroke={hoveredStateName === state.name ? "#4DA8DA" : (selectedStateName === state.name ? "#22d3ee" : themeConfig.stateStroke)}
                           strokeWidth={hoveredStateName === state.name ? 1.5 : (selectedStateName === state.name ? 2.5 : 0.6)}
                           filter={selectedStateName === state.name ? "drop-shadow(0px 0px 4px rgba(34, 211, 238, 0.6))" : "none"}
@@ -1837,7 +1839,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 const isSelected = d.id === selectedDistrictId;
                 
                 const val = getTimelineMetricValue(d.id, activeLayer, rankings, allDistricts, [], timelineStep);
-                const color = getLayerColor(activeLayer, val);
+                const color = activeLayer === "none" ? "#94a3b8" : getLayerColor(activeLayer, val);
 
                 return (
                   <g 
@@ -1851,7 +1853,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                     className="cursor-pointer"
                   >
                     {/* Animated High-Risk Radar Ping */}
-                    {val > 75 && (
+                    {(activeLayer !== "none" && val > 75) && (
                       <circle
                         cx={x}
                         cy={y}
@@ -2070,7 +2072,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       {["composite_risk", "flood_risk", "heatwave_risk", "drought_risk", "water_stress_risk"].map((lyr) => (
                         <button
                           key={lyr}
-                          onClick={() => setActiveLayer(lyr)}
+                          onClick={() => setActiveLayer(activeLayer === lyr ? "none" : lyr)}
                           title={`Display ${layerMeta[lyr]?.label} distribution map`}
                           className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
@@ -2091,7 +2093,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       {["rainfall", "temperature", "aqi", "humidity", "soil_moisture", "ndvi"].map((lyr) => (
                         <button
                           key={lyr}
-                          onClick={() => setActiveLayer(lyr)}
+                          onClick={() => setActiveLayer(activeLayer === lyr ? "none" : lyr)}
                           title={`Display real-time ${layerMeta[lyr]?.label} data layer`}
                           className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
@@ -2112,7 +2114,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                       {["reservoir_level", "river_level", "population_density"].map((lyr) => (
                         <button
                           key={lyr}
-                          onClick={() => setActiveLayer(lyr)}
+                          onClick={() => setActiveLayer(activeLayer === lyr ? "none" : lyr)}
                           title={`Display ${layerMeta[lyr]?.label} infrastructure layer`}
                           className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
                             activeLayer === lyr
