@@ -1714,6 +1714,35 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 transition: selectedStateName ? 'transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)' : 'none',
                 transformOrigin: '0 0'
               }}>
+                {/* Satellite Weather Cloud Systems */}
+                {mapMode === "satellite" && (
+                  <g className="pointer-events-none opacity-40">
+                    <path
+                      d="M120,80 Q140,60 160,80 T200,80 T240,90 Q220,110 180,115 T130,105 Z"
+                      fill="rgba(255, 255, 255, 0.45)"
+                      filter="blur(16px)"
+                      className="animate-cloud-1"
+                    />
+                    <path
+                      d="M260,180 Q290,150 320,170 T380,180 Q360,220 310,215 Z"
+                      fill="rgba(255, 255, 255, 0.4)"
+                      filter="blur(20px)"
+                      className="animate-cloud-2"
+                    />
+                  </g>
+                )}
+
+                {/* Cyber HUD Radar overlay (Hybrid mode) */}
+                {mapMode === "hybrid" && (
+                  <g className="pointer-events-none opacity-15">
+                    <circle cx={SVG_W / 2} cy={SVG_H / 2} r={90} fill="none" stroke="#a78bfa" strokeWidth={1} strokeDasharray="3 6" />
+                    <circle cx={SVG_W / 2} cy={SVG_H / 2} r={160} fill="none" stroke="#a78bfa" strokeWidth={1.5} />
+                    <circle cx={SVG_W / 2} cy={SVG_H / 2} r={230} fill="none" stroke="#a78bfa" strokeWidth={0.8} strokeDasharray="6 12" />
+                    <line x1={SVG_W / 2 - 250} y1={SVG_H / 2} x2={SVG_W / 2 + 250} y2={SVG_H / 2} stroke="#a78bfa" strokeWidth={0.6} strokeDasharray="4 4" />
+                    <line x1={SVG_W / 2} y1={SVG_H / 2 - 250} x2={SVG_W / 2} y2={SVG_H / 2 + 250} stroke="#a78bfa" strokeWidth={0.6} strokeDasharray="4 4" />
+                  </g>
+                )}
+
               {/* SVG Map Projection Grid Lines */}
               {[70, 75, 80, 85, 90, 95].map((lon) => {
                 const x = lonToX(lon, 22.5);
@@ -1775,7 +1804,12 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               {/* Geographic States outlines */}
               {INDIA_STATES.map((state) => {
                 const stateVal = getStateMetricValue(state.name, activeLayer, rankings, allDistricts, timelineStep, features);
-                const stateColor = activeLayer === "none" ? "rgba(8, 20, 34, 0.45)" : getLayerColor(activeLayer, stateVal);
+                const stateColor = activeLayer === "none" ? (() => {
+                  if (mapMode === "satellite") return "rgba(12, 54, 34, 0.6)"; // Forest canopy green
+                  if (mapMode === "terrain") return "rgba(54, 40, 20, 0.65)"; // Basalt earth brown
+                  if (mapMode === "hybrid") return "rgba(17, 24, 39, 0.75)"; // Dark hybrid space slate
+                  return "rgba(8, 20, 34, 0.45)"; // Streets baseline
+                })() : getLayerColor(activeLayer, stateVal);
                 return (
                   <g key={state.name} id={`fallback-state-${state.name.toLowerCase().replace(/\s+/g, '-')}`}>
                     {state.paths.map((path, idx) => {
@@ -1787,32 +1821,63 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                         })
                         .join(" ") + " Z";
                       return (
-                        <path
-                          key={idx}
-                          d={pathData}
-                          fill={stateColor}
-                          fillOpacity={activeLayer === "none" ? (hoveredStateName === state.name ? 0.8 : (selectedStateName === state.name ? 0.95 : 0.5)) : (hoveredStateName === state.name ? 0.65 : (selectedStateName === state.name ? 0.8 : 0.25))}
-                          stroke={hoveredStateName === state.name ? "#4DA8DA" : (selectedStateName === state.name ? "#22d3ee" : themeConfig.stateStroke)}
-                          strokeWidth={hoveredStateName === state.name ? 1.5 : (selectedStateName === state.name ? 2.5 : 0.6)}
-                          filter={selectedStateName === state.name ? "drop-shadow(0px 0px 4px rgba(34, 211, 238, 0.6))" : "none"}
-                          strokeLinejoin="round"
-                          className="transition-all duration-300 cursor-pointer"
-                          onMouseEnter={() => setHoveredStateName(state.name)}
-                          onMouseLeave={() => {
-                            setHoveredStateName(null);
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                            if (rect) {
-                              setSelectedStateName(state.name);
-                              setTooltipCoords({
-                                x: e.clientX - rect.left,
-                                y: e.clientY - rect.top
-                              });
-                            }
-                          }}
-                        />
+                        <g key={idx}>
+                          <path
+                            d={pathData}
+                            fill={stateColor}
+                            fillOpacity={activeLayer === "none" ? (hoveredStateName === state.name ? 0.85 : (selectedStateName === state.name ? 0.95 : 0.5)) : (hoveredStateName === state.name ? 0.65 : (selectedStateName === state.name ? 0.8 : 0.25))}
+                            stroke={hoveredStateName === state.name ? "#4DA8DA" : (selectedStateName === state.name ? "#22d3ee" : themeConfig.stateStroke)}
+                            strokeWidth={hoveredStateName === state.name ? 1.5 : (selectedStateName === state.name ? 2.5 : 0.6)}
+                            filter={selectedStateName === state.name ? "drop-shadow(0px 0px 4px rgba(34, 211, 238, 0.6))" : "none"}
+                            strokeLinejoin="round"
+                            className="transition-all duration-300 cursor-pointer"
+                            onMouseEnter={() => setHoveredStateName(state.name)}
+                            onMouseLeave={() => {
+                              setHoveredStateName(null);
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                              if (rect) {
+                                setSelectedStateName(state.name);
+                                setTooltipCoords({
+                                  x: e.clientX - rect.left,
+                                  y: e.clientY - rect.top
+                                });
+                              }
+                            }}
+                          />
+                          {/* Topographic Contour lines (terrain mode) */}
+                          {mapMode === "terrain" && activeLayer === "none" && (
+                            <>
+                              <path
+                                d={pathData}
+                                fill="none"
+                                stroke="rgba(217, 119, 6, 0.14)"
+                                strokeWidth={0.4}
+                                style={{ transform: "scale(0.85)", transformOrigin: "50% 50%", pointerEvents: "none" }}
+                              />
+                              <path
+                                d={pathData}
+                                fill="none"
+                                stroke="rgba(217, 119, 6, 0.07)"
+                                strokeWidth={0.4}
+                                style={{ transform: "scale(0.7)", transformOrigin: "50% 50%", pointerEvents: "none" }}
+                              />
+                            </>
+                          )}
+                          {/* Urban street grid lines overlay (streets/hybrid mode) */}
+                          {mapMode === "streets" && activeLayer === "none" && hoveredStateName === state.name && (
+                            <path
+                              d={pathData}
+                              fill="none"
+                              stroke="rgba(34, 211, 238, 0.15)"
+                              strokeWidth={0.5}
+                              strokeDasharray="2 3"
+                              style={{ transform: "scale(0.92)", transformOrigin: "50% 50%", pointerEvents: "none" }}
+                            />
+                          )}
+                        </g>
                       );
                     })}
                   </g>
