@@ -1148,6 +1148,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
       style: initialStyle,
       center: [78.9629, 22.5937],
       zoom: compact ? 3.2 : 4.2,
+      projection: { name: "globe" },
       attributionControl: false
     });
     mapRef.current = map;
@@ -1160,7 +1161,24 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           tileSize: 512,
           maxzoom: 14
         });
-        map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      }
+      
+      const isDetailedMode = ["satellite", "terrain", "hybrid"].includes(mapMode);
+      map.setTerrain({ 
+        source: "mapbox-dem", 
+        exaggeration: isDetailedMode ? 2.0 : 1.5 
+      });
+
+      if (isDetailedMode) {
+        map.setFog({
+          color: isDark ? "rgba(10, 20, 30, 0.95)" : "rgba(220, 235, 255, 0.95)",
+          "high-color": isDark ? "rgba(15, 30, 45, 0.98)" : "rgba(160, 200, 240, 0.95)",
+          "horizon-blend": 0.12,
+          "space-color": isDark ? "rgba(3, 7, 12, 1)" : "rgba(140, 185, 235, 1)",
+          "star-intensity": isDark ? 0.8 : 0.0
+        });
+      } else {
+        map.setFog({});
       }
 
       map.addSource("state-boundaries", {
@@ -1181,6 +1199,20 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           "fill-opacity": 0.25
         }
       });
+
+      if (isDetailedMode) {
+        map.addLayer({
+          id: "hillshading",
+          source: "mapbox-dem",
+          type: "hillshade",
+          paint: {
+            "hillshade-exaggeration": 0.85,
+            "hillshade-shadow-color": isDark ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.4)",
+            "hillshade-highlight-color": isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.4)",
+            "hillshade-illumination-anchor": "viewport"
+          }
+        }, "state-fill");
+      }
 
       map.addLayer({
         id: "state-line",
@@ -1414,7 +1446,24 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           tileSize: 512,
           maxzoom: 14
         });
-        map.setTerrain({ source: "mapbox-dem", exaggeration: 1.5 });
+      }
+      
+      const isDetailedMode = ["satellite", "terrain", "hybrid"].includes(mapMode);
+      map.setTerrain({ 
+        source: "mapbox-dem", 
+        exaggeration: isDetailedMode ? 2.0 : 1.5 
+      });
+
+      if (isDetailedMode) {
+        map.setFog({
+          color: isDark ? "rgba(10, 20, 30, 0.95)" : "rgba(220, 235, 255, 0.95)",
+          "high-color": isDark ? "rgba(15, 30, 45, 0.98)" : "rgba(160, 200, 240, 0.95)",
+          "horizon-blend": 0.12,
+          "space-color": isDark ? "rgba(3, 7, 12, 1)" : "rgba(140, 185, 235, 1)",
+          "star-intensity": isDark ? 0.8 : 0.0
+        });
+      } else {
+        map.setFog({});
       }
 
       if (!map.getSource("state-boundaries")) {
@@ -1441,6 +1490,22 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             "line-width": 0.6
           }
         });
+      }
+
+      if (isDetailedMode) {
+        if (!map.getLayer("hillshading")) {
+          map.addLayer({
+            id: "hillshading",
+            source: "mapbox-dem",
+            type: "hillshade",
+            paint: {
+              "hillshade-exaggeration": 0.85,
+              "hillshade-shadow-color": isDark ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.4)",
+              "hillshade-highlight-color": isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.4)",
+              "hillshade-illumination-anchor": "viewport"
+            }
+          }, "state-fill");
+        }
       }
 
       if (!map.getSource("district-risk")) {
