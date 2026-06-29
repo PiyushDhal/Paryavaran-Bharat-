@@ -18,7 +18,12 @@ import {
   Shield,
   AlertTriangle,
   Compass,
-  Users
+  Users,
+  Wind,
+  Waves,
+  TreePine,
+  Flame,
+  Percent
 } from "lucide-react";
 import mapboxgl from "mapbox-gl";
 
@@ -2374,7 +2379,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
 
         {/* 2. Floating Layer Control Panel */}
         {!compact && (
-          <div className="absolute top-4 left-4 z-20 max-w-[155px] md:max-w-[185px] pointer-events-auto">
+          <div className="absolute top-4 left-4 z-20 max-w-[220px] md:max-w-[260px] pointer-events-auto">
             <div className="bg-background/85 backdrop-blur border border-white/[0.08] rounded-lg overflow-hidden shadow-lg">
               <button
                 onClick={() => setIsLayerPanelExpanded(!isLayerPanelExpanded)}
@@ -2384,67 +2389,110 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <Layers className="h-3.5 w-3.5" />
               </button>
               {isLayerPanelExpanded && (
-                <div className="p-1 max-h-56 overflow-y-auto space-y-2 select-none text-[9.5px] scrollbar-thin animate-slide-down-in">
+                <div className="p-2 max-h-96 overflow-y-auto space-y-4 select-none text-[9.5px] scrollbar-thin animate-slide-down-in">
+                  {/* Category 1: Risk Models */}
                   <div>
-                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest">Risk Models</p>
-                    <div className="mt-0.5 space-y-0.5">
-                      {["composite_risk", "flood_risk", "heatwave_risk", "drought_risk", "water_stress_risk"].map((lyr) => (
-                        <button
-                          key={lyr}
-                          onClick={() => setActiveLayer(activeLayer === lyr ? "none" : lyr)}
-                          title={`Display ${layerMeta[lyr]?.label} distribution map`}
-                          className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
-                            activeLayer === lyr
-                              ? "bg-brand-blue/10 text-brand-titanium font-semibold"
-                              : "text-secondary-foreground hover:bg-white/5"
-                          }`}
-                        >
-                          <span>{layerMeta[lyr]?.label}</span>
-                          {activeLayer === lyr && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
-                        </button>
-                      ))}
+                    <p className="px-1 py-0.5 text-[8px] font-bold text-muted-foreground uppercase tracking-widest border-b border-white/[0.04] mb-1.5">Risk Models</p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {[
+                        { id: "composite_risk", label: "Composite", icon: <Shield className="h-3.5 w-3.5" />, delay: "delay-50" },
+                        { id: "flood_risk", label: "Flood", icon: <Waves className="h-3.5 w-3.5 text-blue-400" />, delay: "delay-100" },
+                        { id: "heatwave_risk", label: "Heatwave", icon: <Flame className="h-3.5 w-3.5 text-orange-400" />, delay: "delay-150" },
+                        { id: "drought_risk", label: "Drought", icon: <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />, delay: "delay-200" },
+                        { id: "water_stress_risk", label: "Water Stress", icon: <Droplets className="h-3.5 w-3.5 text-cyan-400" />, delay: "delay-250" }
+                      ].map((item) => {
+                        const isSelected = activeLayer === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setActiveLayer(isSelected ? "none" : item.id)}
+                            title={`Display ${layerMeta[item.id]?.label} distribution map`}
+                            className={`flex flex-col items-center justify-center p-2 rounded-md border text-center transition-all animate-slide-left ${item.delay} ${
+                              isSelected
+                                ? "bg-brand-blue/15 border-brand-blue/50 text-white shadow-[0_0_10px_rgba(77,168,218,0.2)]"
+                                : "bg-white/[0.02] border-white/[0.06] text-secondary-foreground hover:bg-white/[0.06] hover:border-white/[0.12] hover:text-white"
+                            }`}
+                          >
+                            <div className="mb-1">{item.icon}</div>
+                            <span className="text-[8.5px] font-medium leading-tight">{item.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
+                  {/* Category 2: Climate Observations */}
                   <div>
-                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Climate Observations</p>
-                    <div className="mt-0.5 space-y-0.5">
-                      {["rainfall", "temperature", "aqi", "humidity", "soil_moisture", "ndvi"].map((lyr) => (
-                        <button
-                          key={lyr}
-                          onClick={() => setActiveLayer(activeLayer === lyr ? "none" : lyr)}
-                          title={`Display real-time ${layerMeta[lyr]?.label} data layer`}
-                          className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
-                            activeLayer === lyr
-                              ? "bg-brand-blue/10 text-brand-titanium font-semibold"
-                              : "text-secondary-foreground hover:bg-white/5"
-                          }`}
-                        >
-                          <span>{layerMeta[lyr]?.label}</span>
-                          {activeLayer === lyr && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
-                        </button>
-                      ))}
+                    <p className="px-1 py-0.5 text-[8px] font-bold text-muted-foreground uppercase tracking-widest border-b border-white/[0.04] mb-1.5">Climate Observations</p>
+                    <div className="space-y-1">
+                      {[
+                        { id: "rainfall", label: "Rainfall", icon: <CloudRain className="h-3.5 w-3.5 text-sky-400" />, delay: "delay-50", barColor: "bg-sky-400" },
+                        { id: "temperature", label: "Temperature", icon: <Thermometer className="h-3.5 w-3.5 text-red-400" />, delay: "delay-100", barColor: "bg-red-400" },
+                        { id: "aqi", label: "Air Quality", icon: <Wind className="h-3.5 w-3.5 text-teal-400" />, delay: "delay-150", barColor: "bg-teal-400" },
+                        { id: "humidity", label: "Humidity", icon: <Droplets className="h-3.5 w-3.5 text-indigo-400" />, delay: "delay-200", barColor: "bg-indigo-400" },
+                        { id: "soil_moisture", label: "Soil Moisture", icon: <Database className="h-3.5 w-3.5 text-amber-600" />, delay: "delay-250", barColor: "bg-amber-600" },
+                        { id: "ndvi", label: "NDVI Index", icon: <TreePine className="h-3.5 w-3.5 text-emerald-400" />, delay: "delay-300", barColor: "bg-emerald-400" }
+                      ].map((item) => {
+                        const isSelected = activeLayer === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setActiveLayer(isSelected ? "none" : item.id)}
+                            title={`Display real-time ${layerMeta[item.id]?.label} data`}
+                            className={`w-full flex flex-col justify-start text-left p-1.5 rounded-md border transition-all animate-scale-pop ${item.delay} ${
+                              isSelected
+                                ? "bg-brand-blue/15 border-brand-blue/50 text-white"
+                                : "bg-white/[0.01] border-white/[0.04] text-secondary-foreground hover:bg-white/[0.05] hover:border-white/[0.08] hover:text-white"
+                            }`}
+                          >
+                            <div className="w-full flex items-center justify-between">
+                              <div className="flex items-center gap-1.5">
+                                {item.icon}
+                                <span className="text-[8.5px] font-semibold">{item.label}</span>
+                              </div>
+                              {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
+                            </div>
+                            <div className="w-full mt-1.5 bg-white/10 h-1 rounded-full overflow-hidden">
+                              <div className={`h-full ${item.barColor} rounded-full transition-all duration-500 ${isSelected ? "w-4/5" : "w-1/3"}`} />
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
+                  {/* Category 3: Infrastructures */}
                   <div>
-                    <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Infrastructures</p>
-                    <div className="mt-0.5 space-y-0.5">
-                      {["reservoir_level", "river_level", "population_density"].map((lyr) => (
-                        <button
-                          key={lyr}
-                          onClick={() => setActiveLayer(activeLayer === lyr ? "none" : lyr)}
-                          title={`Display ${layerMeta[lyr]?.label} infrastructure layer`}
-                          className={`w-full flex items-center justify-between text-left px-2 py-1 rounded transition ${
-                            activeLayer === lyr
-                              ? "bg-brand-blue/10 text-brand-titanium font-semibold"
-                              : "text-secondary-foreground hover:bg-white/5"
-                          }`}
-                        >
-                          <span>{layerMeta[lyr]?.label}</span>
-                          {activeLayer === lyr && <div className="h-1.5 w-1.5 rounded-full bg-brand-blue" />}
-                        </button>
-                      ))}
+                    <p className="px-1 py-0.5 text-[8px] font-bold text-muted-foreground uppercase tracking-widest border-b border-white/[0.04] mb-1.5">Infrastructures</p>
+                    <div className="space-y-1.5">
+                      {[
+                        { id: "reservoir_level", label: "Reservoir Levels", icon: <Database className="h-3.5 w-3.5 text-cyan-500" />, delay: "delay-50", desc: "Hydrological storage capacity" },
+                        { id: "river_level", label: "River Discharge", icon: <Activity className="h-3.5 w-3.5 text-sky-500" />, delay: "delay-100", desc: "Real-time flow & surge monitor" },
+                        { id: "population_density", label: "Population Grid", icon: <Users className="h-3.5 w-3.5 text-purple-400" />, delay: "delay-150", desc: "Density & hazard exposure index" }
+                      ].map((item) => {
+                        const isSelected = activeLayer === item.id;
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setActiveLayer(isSelected ? "none" : item.id)}
+                            title={`Display detailed ${layerMeta[item.id]?.label} layer`}
+                            className={`w-full text-left p-2 rounded-md border flex items-start gap-2 transition-all animate-slide-up-elastic ${item.delay} ${
+                              isSelected
+                                ? "bg-brand-blue/15 border-brand-blue/50 text-white"
+                                : "bg-white/[0.01] border-white/[0.04] text-secondary-foreground hover:bg-white/[0.05] hover:border-white/[0.08] hover:text-white"
+                            }`}
+                          >
+                            <div className="p-1 rounded bg-white/5 mt-0.5">{item.icon}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[8.5px] font-bold tracking-wide">{item.label}</span>
+                                {isSelected && <span className="text-[7.5px] px-1 rounded bg-brand-blue/20 text-brand-blue font-bold">ACTIVE</span>}
+                              </div>
+                              <p className="text-[7.5px] text-muted-foreground mt-0.5 truncate leading-tight">{item.desc}</p>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
