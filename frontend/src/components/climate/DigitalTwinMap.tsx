@@ -1201,7 +1201,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             ["get", "active_val"],
             ...getMapboxColorSteps(activeLayer)
           ],
-          "fill-opacity": 0.25
+          "fill-color-transition": { duration: 900, delay: 0 },
+          "fill-opacity": 0.25,
+          "fill-opacity-transition": { duration: 600 }
         }
       });
 
@@ -1212,6 +1214,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           type: "hillshade",
           paint: {
             "hillshade-exaggeration": 0.85,
+            "hillshade-exaggeration-transition": { duration: 800 },
             "hillshade-shadow-color": isDark ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.4)",
             "hillshade-highlight-color": isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.4)",
             "hillshade-illumination-anchor": "viewport"
@@ -1225,7 +1228,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         source: "state-boundaries",
         paint: {
           "line-color": "rgba(52, 211, 153, 0.15)",
-          "line-width": 0.6
+          "line-color-transition": { duration: 500 },
+          "line-width": 0.6,
+          "line-width-transition": { duration: 500 }
         }
       });
 
@@ -1269,8 +1274,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             ["get", "active_val"],
             ...getMapboxColorSteps(activeLayer)
           ],
+          "circle-color-transition": { duration: 900 },
           "circle-radius": compact ? 16 : 22,
+          "circle-radius-transition": { duration: 700 },
           "circle-opacity": activeLayer === "none" ? 0 : 0.18,
+          "circle-opacity-transition": { duration: 600 },
           "circle-blur": 0.8
         }
       });
@@ -1285,8 +1293,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             ["get", "active_val"],
             ...getMapboxColorSteps(activeLayer)
           ],
+          "circle-color-transition": { duration: 900 },
           "circle-radius": compact ? 7 : 9,
+          "circle-radius-transition": { duration: 700 },
           "circle-opacity": activeLayer === "none" ? 0 : 0.8,
+          "circle-opacity-transition": { duration: 600 },
           "circle-stroke-width": activeLayer === "none" ? 0 : 2,
           "circle-stroke-color": "rgba(255, 255, 255, 0.45)"
         }
@@ -1483,7 +1494,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               ["get", "active_val"],
               ...getMapboxColorSteps(activeLayer)
             ],
-            "fill-opacity": 0.25
+            "fill-color-transition": { duration: 900, delay: 0 },
+            "fill-opacity": 0.25,
+            "fill-opacity-transition": { duration: 600 }
           }
         });
         map.addLayer({
@@ -1492,7 +1505,9 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
           source: "state-boundaries",
           paint: {
             "line-color": "rgba(52, 211, 153, 0.15)",
-            "line-width": 0.6
+            "line-color-transition": { duration: 500 },
+            "line-width": 0.6,
+            "line-width-transition": { duration: 500 }
           }
         });
       }
@@ -1505,6 +1520,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
             type: "hillshade",
             paint: {
               "hillshade-exaggeration": 0.85,
+              "hillshade-exaggeration-transition": { duration: 800 },
               "hillshade-shadow-color": isDark ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.4)",
               "hillshade-highlight-color": isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(255, 255, 255, 0.4)",
               "hillshade-illumination-anchor": "viewport"
@@ -1528,8 +1544,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               ["get", "active_val"],
               ...getMapboxColorSteps(activeLayer)
             ],
+            "circle-color-transition": { duration: 900 },
             "circle-radius": compact ? 16 : 22,
+            "circle-radius-transition": { duration: 700 },
             "circle-opacity": activeLayer === "none" ? 0 : 0.18,
+            "circle-opacity-transition": { duration: 600 },
             "circle-blur": 0.8
           }
         });
@@ -1544,8 +1563,11 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               ["get", "active_val"],
               ...getMapboxColorSteps(activeLayer)
             ],
+            "circle-color-transition": { duration: 900 },
             "circle-radius": compact ? 7 : 9,
+            "circle-radius-transition": { duration: 700 },
             "circle-opacity": activeLayer === "none" ? 0 : 0.8,
+            "circle-opacity-transition": { duration: 600 },
             "circle-stroke-width": activeLayer === "none" ? 0 : 2,
             "circle-stroke-color": "rgba(255, 255, 255, 0.45)"
           }
