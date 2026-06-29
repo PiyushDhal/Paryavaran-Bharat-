@@ -624,11 +624,11 @@ function RegionSelectorModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-modal-backdrop"
       onClick={onClose}
     >
       <div
-        className="glass-panel relative mx-4 flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-background"
+        className="glass-panel relative mx-4 flex max-h-[88vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-background animate-modal-content"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
@@ -863,6 +863,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const [isLayerPanelExpanded, setIsLayerPanelExpanded] = useState(true);
   const [showSelector, setShowSelector] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const [isClosingStateCard, setIsClosingStateCard] = useState(false);
 
   // SVG fallback map zoom & pan state
   const [svgZoom, setSvgZoom] = useState(1);
@@ -918,6 +919,15 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const setMapMode = climateContext?.setMapMode ?? (() => undefined);
   const selectedStateName = climateContext?.selectedStateName ?? null;
   const setSelectedStateName = climateContext?.setSelectedStateName ?? (() => undefined);
+ 
+  const [lastTooltipCoords, setLastTooltipCoords] = useState<{ x: number; y: number } | null>(null);
+  const [lastSelectedStateName, setLastSelectedStateName] = useState<string | null>(null);
+  useEffect(() => {
+    if (tooltipCoords) setLastTooltipCoords(tooltipCoords);
+  }, [tooltipCoords]);
+  useEffect(() => {
+    if (selectedStateName) setLastSelectedStateName(selectedStateName);
+  }, [selectedStateName]);
 
   const zoomTransform = useMemo(() => {
     if (!selectedStateName) return "";
@@ -1912,7 +1922,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         {/* Hover Tooltip (Instant Preview) */}
         {!selectedStateName && hoveredStateName && hoverCoords && (
           <div 
-            className="absolute z-[1000] pointer-events-none transition-all duration-75 ease-out select-none"
+            className="absolute z-[1000] pointer-events-none select-none animate-premium-tooltip"
             style={{ 
               left: `${hoverCoords.x + 15}px`, 
               top: `${hoverCoords.y + 15}px`,
@@ -1943,25 +1953,31 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
         )}
 
         {/* Floating Tooltip Cloud for State Click */}
-        {selectedStateName && tooltipCoords && (
+        {((selectedStateName && tooltipCoords) || isClosingStateCard) && lastTooltipCoords && lastSelectedStateName && (
           <div 
-            className="absolute z-[1000] pointer-events-auto transition-all duration-75 ease-out select-none"
+            className={`absolute z-[1000] pointer-events-auto select-none ${
+              isClosingStateCard ? "animate-premium-popout" : "animate-premium-popup"
+            }`}
             style={{ 
-              left: `${tooltipCoords.x + 15}px`, 
-              top: `${tooltipCoords.y + 15}px`,
-              transform: `translate(${tooltipCoords.x > 350 ? -240 : 0}px, ${tooltipCoords.y > 300 ? -200 : 0}px)`
+              left: `${lastTooltipCoords.x + 15}px`, 
+              top: `${lastTooltipCoords.y + 15}px`,
+              transform: `translate(${lastTooltipCoords.x > 350 ? -240 : 0}px, ${lastTooltipCoords.y > 300 ? -200 : 0}px)`
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="glass-panel backdrop-blur-md bg-background/90 border border-white/[0.08] rounded-2xl p-3.5 shadow-2xl shadow-black/50 shadow-none w-[210px] space-y-2.5">
               {/* Header */}
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-1.5">
-                <span className="font-bold text-xs text-white leading-none tracking-wide">{selectedStateName}</span>
+                <span className="font-bold text-xs text-white leading-none tracking-wide">{lastSelectedStateName}</span>
                 <button
                   onClick={() => {
+                    setIsClosingStateCard(true);
                     setSelectedStateName(null);
                     setSelectedDistrictId(undefined);
                     setTooltipCoords(null);
+                    setTimeout(() => {
+                      setIsClosingStateCard(false);
+                    }, 250);
                   }}
                   className="text-muted-foreground hover:text-white transition"
                   aria-label="Close state tooltip"
@@ -1975,45 +1991,45 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Temperature</span>
                   <span className="font-mono font-bold text-brand-titanium mt-0.5">
-                    {getStateMetricValue(selectedStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
+                    {getStateMetricValue(lastSelectedStateName, "temperature", rankings, allDistricts, timelineStep, features).toFixed(1)}°C
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Rainfall</span>
                   <span className="font-mono font-bold text-brand-titanium mt-0.5">
-                    {getStateMetricValue(selectedStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
+                    {getStateMetricValue(lastSelectedStateName, "rainfall", rankings, allDistricts, timelineStep, features).toFixed(0)} mm
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">AQI</span>
                   <span className="font-mono font-bold text-brand-titanium mt-0.5">
-                    {getStateMetricValue(selectedStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
+                    {getStateMetricValue(lastSelectedStateName, "aqi", rankings, allDistricts, timelineStep, features).toFixed(0)}
                   </span>
                 </div>
                 <div className="flex flex-col bg-white/[0.02] border border-white/[0.08] rounded p-1.5">
                   <span className="text-muted-foreground font-semibold uppercase text-[7.5px]">Risk Index</span>
                   <span className="font-mono font-bold text-rose-400 mt-0.5">
-                    {getStateMetricValue(selectedStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
+                    {getStateMetricValue(lastSelectedStateName, "composite_risk", rankings, allDistricts, timelineStep, features).toFixed(0)}%
                   </span>
                 </div>
               </div>
-
+ 
               {/* Dynamic Forecast Summary */}
               <div className="border-t border-white/[0.08] pt-2 text-[9px] text-secondary-foreground leading-normal font-sans italic">
                 {getStateForecastText(
-                  selectedStateName,
+                  lastSelectedStateName,
                   activeLayer,
-                  getStateMetricValue(selectedStateName, activeLayer, rankings, allDistricts, timelineStep, features),
+                  getStateMetricValue(lastSelectedStateName, activeLayer, rankings, allDistricts, timelineStep, features),
                   activeYear
                 )}
               </div>
-
+ 
               {/* Quick Actions */}
               <div className="border-t border-white/[0.08] pt-2 flex gap-1.5 justify-end">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = `/risk-center?state_name=${encodeURIComponent(selectedStateName)}`;
+                    window.location.href = `/risk-center?state_name=${encodeURIComponent(lastSelectedStateName)}`;
                   }}
                   className="h-6 text-[8.5px] px-2 py-0.5 rounded border border-white/10 bg-slate-900/60 hover:bg-slate-800 text-slate-200 font-bold transition-all"
                 >
@@ -2022,7 +2038,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    window.location.href = `/simulator?state_name=${encodeURIComponent(selectedStateName)}`;
+                    window.location.href = `/simulator?state_name=${encodeURIComponent(lastSelectedStateName)}`;
                   }}
                   className="h-6 text-[8.5px] px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold transition-all"
                 >
@@ -2065,7 +2081,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 <Layers className="h-3.5 w-3.5" />
               </button>
               {isLayerPanelExpanded && (
-                <div className="p-1 max-h-56 overflow-y-auto space-y-2 select-none text-[9.5px] scrollbar-thin">
+                <div className="p-1 max-h-56 overflow-y-auto space-y-2 select-none text-[9.5px] scrollbar-thin animate-slide-down-in">
                   <div>
                     <p className="px-2 py-0.5 text-[7.5px] font-bold text-muted-foreground uppercase tracking-widest">Risk Models</p>
                     <div className="mt-0.5 space-y-0.5">
