@@ -1707,6 +1707,40 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
               }}
               onMouseLeave={() => setHoverCoords(null)}
             >
+              <defs>
+                {/* Satellite Gradients */}
+                <linearGradient id="sat-forest" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#082b1b" />
+                  <stop offset="50%" stopColor="#124a2e" />
+                  <stop offset="100%" stopColor="#0a2c1a" />
+                </linearGradient>
+                <linearGradient id="sat-desert" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#2e2b12" stopOpacity={0.9} />
+                  <stop offset="60%" stopColor="#544c20" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#221e0b" stopOpacity={0.9} />
+                </linearGradient>
+                <linearGradient id="sat-snow" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity={0.8} />
+                  <stop offset="60%" stopColor="#a5c4d4" stopOpacity={0.7} />
+                  <stop offset="100%" stopColor="#0e3a24" stopOpacity={0.6} />
+                </linearGradient>
+                
+                {/* Terrain Gradients */}
+                <linearGradient id="terr-low" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#1a1813" />
+                  <stop offset="100%" stopColor="#2c281e" />
+                </linearGradient>
+                <linearGradient id="terr-mid" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#2c281e" />
+                  <stop offset="100%" stopColor="#453d2d" />
+                </linearGradient>
+                <linearGradient id="terr-high" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stopColor="#453d2d" />
+                  <stop offset="70%" stopColor="#6b5f46" />
+                  <stop offset="100%" stopColor="#8c8270" />
+                </linearGradient>
+              </defs>
+
               <g style={{
                 transform: selectedStateName
                   ? zoomTransform
@@ -1801,12 +1835,101 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 );
               })}
 
+              {/* Detailed River & Mountain Ridge Networks (for Satellite & Terrain Modes) */}
+              {(mapMode === "satellite" || mapMode === "terrain") && (
+                <g className="pointer-events-none transition-opacity duration-500">
+                  {/* Rivers */}
+                  {(() => {
+                    const rivers = [
+                      {
+                        name: "Ganga",
+                        coords: [{ lat: 31.0, lon: 79.0 }, { lat: 30.0, lon: 78.0 }, { lat: 27.0, lon: 80.0 }, { lat: 25.5, lon: 83.0 }, { lat: 25.3, lon: 85.0 }, { lat: 24.0, lon: 88.0 }, { lat: 22.5, lon: 88.4 }]
+                      },
+                      {
+                        name: "Brahmaputra",
+                        coords: [{ lat: 29.0, lon: 95.0 }, { lat: 28.0, lon: 95.5 }, { lat: 27.0, lon: 94.0 }, { lat: 26.2, lon: 92.0 }, { lat: 26.0, lon: 90.0 }]
+                      },
+                      {
+                        name: "Narmada",
+                        coords: [{ lat: 22.8, lon: 81.5 }, { lat: 22.3, lon: 78.0 }, { lat: 22.0, lon: 75.0 }, { lat: 21.7, lon: 72.8 }]
+                      },
+                      {
+                        name: "Godavari",
+                        coords: [{ lat: 20.0, lon: 74.0 }, { lat: 19.0, lon: 76.0 }, { lat: 18.5, lon: 79.0 }, { lat: 16.5, lon: 82.0 }]
+                      },
+                      {
+                        name: "Indus",
+                        coords: [{ lat: 32.5, lon: 79.0 }, { lat: 34.0, lon: 77.0 }, { lat: 34.5, lon: 76.0 }]
+                      }
+                    ];
+                    return rivers.map((river) => {
+                      const d = river.coords.map((c, i) => {
+                        const x = lonToX(c.lon, c.lat);
+                        const y = latToY(c.lat);
+                        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+                      }).join(" ");
+                      return (
+                        <path
+                          key={river.name}
+                          d={d}
+                          fill="none"
+                          stroke={mapMode === "satellite" ? "rgba(56, 189, 248, 0.45)" : "rgba(34, 211, 238, 0.35)"}
+                          strokeWidth={1.2}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      );
+                    });
+                  })()}
+
+                  {/* Mountain Ridges */}
+                  {(() => {
+                    const ridges = [
+                      {
+                        name: "Himalayas",
+                        coords: [{ lat: 34.5, lon: 76.0 }, { lat: 33.0, lon: 78.0 }, { lat: 31.0, lon: 80.0 }, { lat: 28.0, lon: 88.0 }, { lat: 28.5, lon: 92.0 }, { lat: 28.0, lon: 96.0 }]
+                      },
+                      {
+                        name: "Western Ghats",
+                        coords: [{ lat: 20.0, lon: 73.5 }, { lat: 18.0, lon: 73.5 }, { lat: 16.0, lon: 74.0 }, { lat: 14.0, lon: 74.5 }, { lat: 11.0, lon: 76.5 }, { lat: 8.5, lon: 77.2 }]
+                      }
+                    ];
+                    return ridges.map((ridge) => {
+                      const d = ridge.coords.map((c, i) => {
+                        const x = lonToX(c.lon, c.lat);
+                        const y = latToY(c.lat);
+                        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+                      }).join(" ");
+                      return (
+                        <path
+                          key={ridge.name}
+                          d={d}
+                          fill="none"
+                          stroke={mapMode === "terrain" ? "rgba(217, 119, 6, 0.45)" : "rgba(255, 255, 255, 0.25)"}
+                          strokeWidth={1.5}
+                          strokeDasharray="2 4"
+                          strokeLinecap="round"
+                        />
+                      );
+                    });
+                  })()}
+                </g>
+              )}
+
               {/* Geographic States outlines */}
               {INDIA_STATES.map((state) => {
                 const stateVal = getStateMetricValue(state.name, activeLayer, rankings, allDistricts, timelineStep, features);
                 const stateColor = activeLayer === "none" ? (() => {
-                  if (mapMode === "satellite") return "rgba(12, 54, 34, 0.6)"; // Forest canopy green
-                  if (mapMode === "terrain") return "rgba(54, 40, 20, 0.65)"; // Basalt earth brown
+                  if (mapMode === "satellite") {
+                    if (state.name === "Rajasthan" || state.name === "Gujarat") return "url(#sat-desert)";
+                    if (["Jammu and Kashmir", "Ladakh", "Himachal Pradesh", "Uttarakhand"].includes(state.name)) return "url(#sat-snow)";
+                    return "url(#sat-forest)";
+                  }
+                  if (mapMode === "terrain") {
+                    if (["Jammu and Kashmir", "Ladakh", "Himachal Pradesh", "Sikkim", "Arunachal Pradesh", "Uttarakhand"].includes(state.name)) return "url(#terr-high)";
+                    if (["Maharashtra", "Madhya Pradesh", "Karnataka", "Tamil Nadu", "Kerala", "Andhra Pradesh", "Telangana", "Chhattisgarh", "Odisha", "Jharkhand", "Rajasthan", "Gujarat"].includes(state.name)) return "url(#terr-mid)";
+                    return "url(#terr-low)";
+                  }
                   if (mapMode === "hybrid") return "rgba(17, 24, 39, 0.75)"; // Dark hybrid space slate
                   return "rgba(8, 20, 34, 0.45)"; // Streets baseline
                 })() : getLayerColor(activeLayer, stateVal);
