@@ -80,12 +80,12 @@ export const MOCK_DISTRICTS: District[] = [
 
 export const MOCK_RANKINGS: Ranking[] = MOCK_DISTRICTS.map((d, index) => {
   const risks = [
-    0.1 + (d.id % 5) * 0.15,
-    0.2 + (d.id % 4) * 0.18,
-    0.05 + (d.id % 6) * 0.12,
-    0.25 + (d.id % 3) * 0.2
+    Math.round((0.1 + (d.id % 5) * 0.15) * 100),
+    Math.round((0.2 + (d.id % 4) * 0.18) * 100),
+    Math.round((0.05 + (d.id % 6) * 0.12) * 100),
+    Math.round((0.25 + (d.id % 3) * 0.2) * 100)
   ];
-  const comp = Number(((risks[0] + risks[1] + risks[2] + risks[3]) / 4).toFixed(2));
+  const comp = Math.round((risks[0] + risks[1] + risks[2] + risks[3]) / 4);
   return {
     district_id: d.id,
     district_name: d.name,
@@ -182,11 +182,11 @@ export function getMockDataForPath(path: string): any {
           state_name: d.state_name,
           population: d.population,
           area_sq_km: d.area_sq_km,
-          composite_risk: 0.15 + (d.id % 7) * 0.1,
-          flood_risk: 0.1 + (d.id % 5) * 0.15,
-          drought_risk: 0.2 + (d.id % 4) * 0.18,
-          heatwave_risk: 0.05 + (d.id % 6) * 0.12,
-          water_stress_risk: 0.25 + (d.id % 3) * 0.2
+          composite_risk: Math.round((0.15 + (d.id % 7) * 0.1) * 100),
+          flood_risk: Math.round((0.1 + (d.id % 5) * 0.15) * 100),
+          drought_risk: Math.round((0.2 + (d.id % 4) * 0.18) * 100),
+          heatwave_risk: Math.round((0.05 + (d.id % 6) * 0.12) * 100),
+          water_stress_risk: Math.round((0.25 + (d.id % 3) * 0.2) * 100)
         }
       }))
     };
@@ -237,7 +237,7 @@ export function getMockDataForPath(path: string): any {
       for (let y = 2020; y <= 2026; y++) {
         trendsList.push({
           year: y,
-          composite_risk: ranking.composite_risk + (y - 2020) * 0.02 * (id % 2 === 0 ? 1 : -1)
+          composite_risk: Math.round(ranking.composite_risk + (y - 2020) * 2.5 * (id % 2 === 0 ? 1 : -1))
         });
       }
       return trendsList;
@@ -283,11 +283,11 @@ export function getMockDataForPath(path: string): any {
       results: {
         water_availability: 85,
         crop_stress: 40,
-        drought_risk: 0.35,
-        heatwave_risk: 0.25,
-        flood_risk: 0.15,
-        water_stress_risk: 0.45,
-        composite_risk: 0.3,
+        drought_risk: 35,
+        heatwave_risk: 25,
+        flood_risk: 15,
+        water_stress_risk: 45,
+        composite_risk: 30,
         population_at_risk: 450000,
         economic_loss_m_inr: 120,
         infrastructure_risk: 0.2,
@@ -307,7 +307,7 @@ export function getMockDataForPath(path: string): any {
   if (pathname.endsWith("/copilot/chat")) {
     return {
       explanation: "I am currently running in client-side simulation mode. Based on local climate twin metrics, central and southern zones of India are experiencing elevated composite risk due to delayed monsoon precipitation trends. I recommend implementing watershed harvesting strategies and heat stress limits for municipal construction.",
-      risk_analysis: "Composite Risk: 0.42 (Elevated). Drivers include soil moisture deficits (-12% vs baseline) and elevated daily max temperatures (+1.8°C).",
+      risk_analysis: "Composite Risk: 42% (Elevated). Drivers include soil moisture deficits (-12% vs baseline) and elevated daily max temperatures (+1.8°C).",
       recommended_actions: [
         "Implement rain-water harvesting mandates for commercial building plans.",
         "Configure shaded municipal resting hubs during peak daylight hours.",
@@ -316,9 +316,9 @@ export function getMockDataForPath(path: string): any {
       chart: {
         type: "bar",
         data: [
-          { district: "Mumbai", risk: 0.55 },
-          { district: "Jaipur", risk: 0.62 },
-          { district: "Bengaluru", risk: 0.38 }
+          { district: "Mumbai", risk: 55 },
+          { district: "Jaipur", risk: 62 },
+          { district: "Bengaluru", risk: 38 }
         ]
       },
       districts: MOCK_RANKINGS.slice(0, 3)
@@ -327,9 +327,9 @@ export function getMockDataForPath(path: string): any {
 
   if (pathname.endsWith("/climate/timeline")) {
     return [
-      { id: 1, year: 2026, status: "Current", risk: 0.42 },
-      { id: 2, year: 2030, status: "Projected Mid-Term", risk: 0.49 },
-      { id: 3, year: 2050, status: "Projected Long-Term", risk: 0.61 }
+      { id: 1, year: 2026, status: "Current", risk: 42 },
+      { id: 2, year: 2030, status: "Projected Mid-Term", risk: 49 },
+      { id: 3, year: 2050, status: "Projected Long-Term", risk: 61 }
     ];
   }
 
