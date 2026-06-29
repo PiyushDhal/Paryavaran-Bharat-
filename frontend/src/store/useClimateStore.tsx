@@ -77,14 +77,14 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   const [allDistricts, setAllDistricts] = useState<District[]>([]);
   const [allStates, setAllStates] = useState<State[]>([]);
 
-  // Hydrate from localStorage on mount
+  // Hydrate from localStorage/sessionStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
       try {
         const year = localStorage.getItem("bct_activeYear");
         if (year) setActiveYear(Number(year));
         
-        const distId = localStorage.getItem("bct_selectedDistrictId");
+        const distId = sessionStorage.getItem("bct_selectedDistrictId") || localStorage.getItem("bct_selectedDistrictId");
         if (distId && distId !== "undefined" && distId !== "null") setSelectedDistrictId(Number(distId));
         
         const layer = localStorage.getItem("bct_activeLayer");
@@ -93,10 +93,10 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
         const step = localStorage.getItem("bct_timelineStep");
         if (step) setTimelineStep(step);
         
-        const stateName = localStorage.getItem("bct_selectedStateName");
+        const stateName = sessionStorage.getItem("bct_selectedStateName") || localStorage.getItem("bct_selectedStateName");
         if (stateName) setSelectedStateName(stateName);
         
-        const stateId = localStorage.getItem("bct_selectedStateId");
+        const stateId = sessionStorage.getItem("bct_selectedStateId") || localStorage.getItem("bct_selectedStateId");
         if (stateId && stateId !== "undefined" && stateId !== "null") setSelectedStateId(stateId === "" ? "" : Number(stateId));
         
         const dataset = localStorage.getItem("bct_selectedDataset");
@@ -104,8 +104,13 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
         
         const risk = localStorage.getItem("bct_activeRisk");
         if (risk) setActiveRisk(risk);
+
+        // Clean up legacy localStorage items to prevent lingering locks
+        localStorage.removeItem("bct_selectedDistrictId");
+        localStorage.removeItem("bct_selectedStateName");
+        localStorage.removeItem("bct_selectedStateId");
       } catch (err) {
-        console.warn("Could not hydrate BCT global store from localStorage", err);
+        console.warn("Could not hydrate BCT global store", err);
       }
     }
   }, []);
@@ -120,9 +125,9 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       if (selectedDistrictId !== undefined) {
-        localStorage.setItem("bct_selectedDistrictId", String(selectedDistrictId));
+        sessionStorage.setItem("bct_selectedDistrictId", String(selectedDistrictId));
       } else {
-        localStorage.removeItem("bct_selectedDistrictId");
+        sessionStorage.removeItem("bct_selectedDistrictId");
       }
     } catch {}
   }, [selectedDistrictId]);
@@ -141,14 +146,14 @@ export function ClimateProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      if (selectedStateName) localStorage.setItem("bct_selectedStateName", selectedStateName);
-      else localStorage.removeItem("bct_selectedStateName");
+      if (selectedStateName) sessionStorage.setItem("bct_selectedStateName", selectedStateName);
+      else sessionStorage.removeItem("bct_selectedStateName");
     } catch {}
   }, [selectedStateName]);
 
   useEffect(() => {
     try {
-      localStorage.setItem("bct_selectedStateId", String(selectedStateId));
+      sessionStorage.setItem("bct_selectedStateId", String(selectedStateId));
     } catch {}
   }, [selectedStateId]);
 
