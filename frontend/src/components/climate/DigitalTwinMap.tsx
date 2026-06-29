@@ -1899,7 +1899,7 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
                 const isSelected = d.id === selectedDistrictId;
                 
                 const val = getTimelineMetricValue(d.id, activeLayer, rankings, allDistricts, [], timelineStep);
-                const color = activeLayer === "none" ? "#94a3b8" : getLayerColor(activeLayer, val);
+                const color = activeLayer === "none" ? "#38bdf8" : getLayerColor(activeLayer, val);
 
                 return (
                   <g 
