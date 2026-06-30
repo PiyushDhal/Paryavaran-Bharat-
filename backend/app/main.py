@@ -53,15 +53,16 @@ async def lifespan(app: FastAPI):
     # ── Startup ──────────────────────────────────────────────────────────
     logger.info("=== Paryavaran Bharat API — Starting Up ===")
 
-    # Gemini API key check
-    gemini_key = os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
-    if not gemini_key:
-        logger.warning(
-            "[AI] GEMINI_API_KEY is not configured. "
-            "The AI Copilot will operate in offline fallback mode."
-        )
-    else:
-        logger.info("[AI] Gemini API key detected. AI Copilot is online.")
+    # Initialize and validate Gemini API Key
+    from app.services.gemini import gemini_service
+    try:
+        gemini_service.initialize()
+        if not gemini_service.validate_key():
+            logger.error("[STARTUP ERROR] GEMINI_API_KEY validation failed during startup! Live API requests may fail.")
+        else:
+            logger.info("[STARTUP] GEMINI_API_KEY validated successfully.")
+    except Exception as e:
+        logger.error(f"[STARTUP ERROR] Gemini service initialization failed: {e}")
 
     try:
         if settings.seed_database:

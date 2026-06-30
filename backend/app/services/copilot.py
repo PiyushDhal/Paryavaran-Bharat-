@@ -12,33 +12,16 @@ from app.schemas.climate import CopilotRequest
 from app.services.prediction import DisasterPredictionService
 from app.services.simulation import ScenarioSimulator
 from app.core.config import get_settings
+from app.services.gemini import gemini_service
+
 
 logger = logging.getLogger(__name__)
 
 def get_dynamic_api_key() -> str | None:
     key = os.environ.get("GEMINI_API_KEY")
-    if key:
+    if key and key != "your-gemini-api-key-here":
         return key
-    try:
-        from pathlib import Path
-        env_path = Path("c:/Users/Asus/Bharat Climate-Twin/Bharat-Climate-Twin/backend/.env")
-        if env_path.exists():
-            for line in env_path.read_text(encoding="utf-8").splitlines():
-                if line.strip().startswith("GEMINI_API_KEY="):
-                    val = line.split("=", 1)[1].strip()
-                    if val.startswith('"') and val.endswith('"'):
-                        val = val[1:-1]
-                    if val.startswith("'") and val.endswith("'"):
-                        val = val[1:-1]
-                    if val:
-                        return val
-    except Exception:
-        pass
-    try:
-        settings = get_settings()
-        return settings.gemini_api_key
-    except Exception:
-        return None
+    return None
 
 def sanitize_ai_jargon(text: str) -> str:
     jargon_replacements = {
@@ -290,7 +273,6 @@ class ClimateCopilot:
         # LLM-based classification fallback if API key is present
         if api_key:
             try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
                 system_instruction = (
                     "Classify this user query into exactly one of the following categories:\n"
                     "- Climate Analysis\n"
@@ -306,28 +288,24 @@ class ClimateCopilot:
                     "- Satellite Analysis\n\n"
                     "Provide ONLY the category name as output."
                 )
-                body = {
-                    "contents": [{"parts": [{"text": f"Instruction: {system_instruction}\nQuery: {prompt}"}]}],
-                    "generationConfig": {"temperature": 0.0, "maxOutputTokens": 15}
-                }
-                req = urllib.request.Request(
-                    url, data=json.dumps(body).encode("utf-8"),
-                    headers={"Content-Type": "application/json"}, method="POST"
+                classification = gemini_service.generate_content(
+                    prompt=prompt,
+                    system_instruction=system_instruction,
+                    temperature=0.0,
+                    max_output_tokens=15
                 )
-                with urllib.request.urlopen(req, timeout=3) as response:
-                    res_body = json.loads(response.read().decode("utf-8"))
-                    classification = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    valid_intents = [
-                        "Climate Analysis", "Risk Assessment", "Education",
-                        "Comparison", "Scenario Analysis", "Report Generation",
-                        "Policy Planning", "Platform Guidance", "Map Analysis",
-                        "Timeline Analysis", "Satellite Analysis"
-                    ]
-                    for intent in valid_intents:
-                        if intent.lower() in classification.lower():
-                            return intent
+                valid_intents = [
+                    "Climate Analysis", "Risk Assessment", "Education",
+                    "Comparison", "Scenario Analysis", "Report Generation",
+                    "Policy Planning", "Platform Guidance", "Map Analysis",
+                    "Timeline Analysis", "Satellite Analysis"
+                ]
+                for intent in valid_intents:
+                    if intent.lower() in classification.lower():
+                        return intent
             except Exception as e:
                 logger.error(f"[LLM ERROR] Error in LLM classification: {e}")
+
 
         return "Climate Analysis"
 
@@ -877,40 +855,30 @@ class ClimateCopilot:
             logger.info(f"[COPILOT DEBUG] [Request ID: {request_id}] User Query: {payload.prompt}")
             logger.info(f"[COPILOT DEBUG] [Request ID: {request_id}] Detected Intent: {intent}")
             logger.info(f"[COPILOT DEBUG] [Request ID: {request_id}] Context Length: {len(prompt_content)} chars")
-
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            body = {
-                "contents": [{"parts": [{"text": prompt_content}]}],
-                "generationConfig": {"responseMimeType": "application/json"}
-            }
-
-            req = urllib.request.Request(
-                url, data=json.dumps(body).encode("utf-8"),
-                headers={"Content-Type": "application/json"}, method="POST"
-            )
             try:
-                with urllib.request.urlopen(req, timeout=12) as response:
-                    res_body = json.loads(response.read().decode("utf-8"))
-                    text_out = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
-                    
-                    latency = time.time() - start_time
-                    logger.info(json.dumps({
-                        "event": "gemini_api_call",
-                        "request_id": request_id,
-                        "user_prompt": payload.prompt,
-                        "prompt_length": len(payload.prompt),
-                        "context_size": len(prompt_content),
-                        "model_name": "gemini-1.5-flash",
-                        "latency_seconds": round(latency, 3),
-                        "success": True
-                    }))
+                text_out = gemini_service.generate_content(
+                    prompt=prompt_content,
+                    response_mime_type="application/json"
+                )
+                
+                latency = time.time() - start_time
+                logger.info(json.dumps({
+                    "event": "gemini_api_call",
+                    "request_id": request_id,
+                    "user_prompt": payload.prompt,
+                    "prompt_length": len(payload.prompt),
+                    "context_size": len(prompt_content),
+                    "model_name": "gemini-1.5-flash",
+                    "latency_seconds": round(latency, 3),
+                    "success": True
+                }))
 
-                    if text_out.startswith("```"):
-                        text_out = text_out.split("\n", 1)[1].rsplit("\n", 1)[0]
-                    ans_dict = json.loads(text_out)
-                    if not ans_dict.get("districts") and rankings:
-                        ans_dict["districts"] = rankings[:6]
-                    return ans_dict
+                if text_out.startswith("```"):
+                    text_out = text_out.split("\n", 1)[1].rsplit("\n", 1)[0]
+                ans_dict = json.loads(text_out)
+                if not ans_dict.get("districts") and rankings:
+                    ans_dict["districts"] = rankings[:6]
+                return ans_dict
             except Exception as api_err:
                 latency = time.time() - start_time
                 logger.error(json.dumps({
