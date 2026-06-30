@@ -56,6 +56,9 @@ async function apiFetch<T>(path: string, options: RequestInit = {}, retries = 2)
     } catch (error) {
       clearTimeout(timeoutId);
       if (attempt === retries) {
+        if (path.startsWith("/copilot/")) {
+          throw error;
+        }
         console.warn(`[API Fallback] Fetch failed for path: ${path}. Falling back to client-side mock data.`);
         return getMockDataForPath(path) as T;
       }

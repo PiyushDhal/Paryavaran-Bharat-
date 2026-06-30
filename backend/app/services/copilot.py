@@ -11,6 +11,7 @@ from app.models.climate import District, State, RiskScore, ClimateAlert, Weather
 from app.schemas.climate import CopilotRequest
 from app.services.prediction import DisasterPredictionService
 from app.services.simulation import ScenarioSimulator
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +95,8 @@ class ClimateCopilot:
                         if s not in history_states:
                             history_states.append(s)
 
-        api_key = os.environ.get("GEMINI_API_KEY")
+        settings = get_settings()
+        api_key = os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
         intent = self._detect_intent(payload.prompt, api_key)
 
         # Memory contextualization & Resolution of Pronouns/Missing entities
@@ -191,28 +193,42 @@ class ClimateCopilot:
             }
 
         # Check for Gemini API key
-        if api_key:
-            response_data = self._call_gemini_api(payload, target_district_1, target_state_1, rankings, db, api_key, intent, target_district_2, target_state_2, db_errors)
-            if response_data:
-                # Sanitize the output values
-                if isinstance(response_data, dict):
-                    if "explanation" in response_data:
-                        response_data["explanation"] = sanitize_ai_jargon(response_data["explanation"])
-                    if "risk_analysis" in response_data:
-                        response_data["risk_analysis"] = sanitize_ai_jargon(response_data["risk_analysis"])
-                return response_data
-            else:
-                logger.info("[COPILOT DEBUG] Fallback Condition Triggered: Gemini response generation returned empty or failed.")
+        if not api_key:
+            logger.warning("[AI] GEMINI_API_KEY is not configured. Returning unconfigured error response.")
+            return {
+                "explanation": "### AI Copilot Offline\n\nThe Climate Copilot is temporarily offline because the Gemini API key is not configured. Please contact your system administrator to configure the GEMINI_API_KEY environment variable.",
+                "risk_analysis": "AI Service Unconfigured",
+                "recommended_actions": ["Configure GEMINI_API_KEY environment variable.", "Restart the backend server."],
+                "chart": {"type": "bar", "data": []},
+                "districts": rankings[:6] if rankings else [],
+                "action": None,
+                "suggestions": ["Configure Gemini API Key"],
+                "explainable_risk": None,
+                "insights": ["AI Copilot offline."]
+            }
 
-        # Fallback to local expert engine if Gemini is not configured or fails
-        logger.info("[COPILOT DEBUG] Fallback Condition Triggered: Invoking local offline fallback answer generator.")
-        response_data = self._generate_offline_answer(payload, target_district_1, target_state_1, rankings, db, intent, target_district_2, target_state_2, db_errors)
-        if isinstance(response_data, dict):
-            if "explanation" in response_data:
-                response_data["explanation"] = sanitize_ai_jargon(response_data["explanation"])
-            if "risk_analysis" in response_data:
-                response_data["risk_analysis"] = sanitize_ai_jargon(response_data["risk_analysis"])
-        return response_data
+        response_data = self._call_gemini_api(payload, target_district_1, target_state_1, rankings, db, api_key, intent, target_district_2, target_state_2, db_errors)
+        if response_data:
+            # Sanitize the output values
+            if isinstance(response_data, dict):
+                if "explanation" in response_data:
+                    response_data["explanation"] = sanitize_ai_jargon(response_data["explanation"])
+                if "risk_analysis" in response_data:
+                    response_data["risk_analysis"] = sanitize_ai_jargon(response_data["risk_analysis"])
+            return response_data
+        else:
+            logger.error("[LLM ERROR] Gemini API call failed or timed out. Returning service unavailable error response.")
+            return {
+                "explanation": "### AI Service Temporarily Unavailable\n\nThe AI Copilot is temporarily unavailable due to a network connection timeout or API rate limit. Please try again in a few moments.",
+                "risk_analysis": "AI Service Temporarily Unavailable",
+                "recommended_actions": ["Verify network connectivity.", "Retry the query in a few moments."],
+                "chart": {"type": "bar", "data": []},
+                "districts": rankings[:6] if rankings else [],
+                "action": None,
+                "suggestions": ["Retry request"],
+                "explainable_risk": None,
+                "insights": ["Gemini API request failed."]
+            }
 
     def _detect_intent(self, prompt: str, api_key: str | None) -> str:
         text = prompt.lower().strip()
@@ -638,6 +654,8 @@ class ClimateCopilot:
                 "- Timeline Intelligence Agent (analyzes historical decadal trends and patterns)\n"
                 "- Data Quality Agent (scores confidence levels and lists data provenance details)\n\n"
                 "You must coordinate with the relevant sub-agents to analyze the context, verify the data sources, score your confidence, and generate a response that strictly adheres to the requested intent mode.\n"
+                "CRITICAL SCIENTIFIC ACCURACY REQUIREMENT:\n"
+                "You must clearly distinguish between observed, historical, simulated, and predicted data. Do not hallucinate government observations that are not provided in the context.\n"
                 "CRITICAL DESIGN REQUIREMENT: Your response MUST always address the following four operational questions clearly in the text:\n"
                 "1. WHAT IS HAPPENING? (Current state of parameters, observed rainfall/temperature, or active hazard alerts)\n"
                 "2. WHY IS IT HAPPENING? (Root causes, satellite index anomalies like NDVI/LST, or historical baseline deviations)\n"
@@ -826,37 +844,63 @@ class ClimateCopilot:
                 f"Generate JSON for User Query: {payload.prompt}"
             )
 
+            import time
+            import uuid
+            start_time = time.time()
+            request_id = str(uuid.uuid4())
+
             # Log LLM Request details
-            logger.info(f"[COPILOT DEBUG] User Query: {payload.prompt}")
-            logger.info(f"[COPILOT DEBUG] Detected Intent: {intent}")
-            logger.info(f"[COPILOT DEBUG] Retrieved Context: {context['data_summary']}")
-            logger.info(f"[COPILOT DEBUG] Gemini Request Prompt:\n{prompt_content}")
+            logger.info(f"[COPILOT DEBUG] [Request ID: {request_id}] User Query: {payload.prompt}")
+            logger.info(f"[COPILOT DEBUG] [Request ID: {request_id}] Detected Intent: {intent}")
+            logger.info(f"[COPILOT DEBUG] [Request ID: {request_id}] Context Length: {len(prompt_content)} chars")
 
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
             body = {
                 "contents": [{"parts": [{"text": prompt_content}]}],
                 "generationConfig": {"responseMimeType": "application/json"}
             }
-            
-            logger.info(f"[COPILOT DEBUG] Gemini API Request Body:\n{json.dumps(body)}")
 
             req = urllib.request.Request(
                 url, data=json.dumps(body).encode("utf-8"),
                 headers={"Content-Type": "application/json"}, method="POST"
             )
-            with urllib.request.urlopen(req, timeout=12) as response:
-                res_body = json.loads(response.read().decode("utf-8"))
-                text_out = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
-                
-                # Log LLM response details
-                logger.info(f"[COPILOT DEBUG] Gemini Raw Response:\n{text_out}")
-                
-                if text_out.startswith("```"):
-                    text_out = text_out.split("\n", 1)[1].rsplit("\n", 1)[0]
-                ans_dict = json.loads(text_out)
-                if not ans_dict.get("districts") and rankings:
-                    ans_dict["districts"] = rankings[:6]
-                return ans_dict
+            try:
+                with urllib.request.urlopen(req, timeout=12) as response:
+                    res_body = json.loads(response.read().decode("utf-8"))
+                    text_out = res_body["candidates"][0]["content"]["parts"][0]["text"].strip()
+                    
+                    latency = time.time() - start_time
+                    logger.info(json.dumps({
+                        "event": "gemini_api_call",
+                        "request_id": request_id,
+                        "user_prompt": payload.prompt,
+                        "prompt_length": len(payload.prompt),
+                        "context_size": len(prompt_content),
+                        "model_name": "gemini-1.5-flash",
+                        "latency_seconds": round(latency, 3),
+                        "success": True
+                    }))
+
+                    if text_out.startswith("```"):
+                        text_out = text_out.split("\n", 1)[1].rsplit("\n", 1)[0]
+                    ans_dict = json.loads(text_out)
+                    if not ans_dict.get("districts") and rankings:
+                        ans_dict["districts"] = rankings[:6]
+                    return ans_dict
+            except Exception as api_err:
+                latency = time.time() - start_time
+                logger.error(json.dumps({
+                    "event": "gemini_api_call",
+                    "request_id": request_id,
+                    "user_prompt": payload.prompt,
+                    "prompt_length": len(payload.prompt),
+                    "context_size": len(prompt_content),
+                    "model_name": "gemini-1.5-flash",
+                    "latency_seconds": round(latency, 3),
+                    "success": False,
+                    "error_detail": str(api_err)
+                }))
+                raise api_err
         except Exception as e:
             logger.error(f"[LLM ERROR] Error calling Gemini API: {e}")
             return None

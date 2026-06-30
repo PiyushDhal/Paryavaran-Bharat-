@@ -305,24 +305,7 @@ export function getMockDataForPath(path: string): any {
   }
 
   if (pathname.endsWith("/copilot/chat")) {
-    return {
-      explanation: "I am currently running in client-side simulation mode. Based on local climate twin metrics, central and southern zones of India are experiencing elevated composite risk due to delayed monsoon precipitation trends. I recommend implementing watershed harvesting strategies and heat stress limits for municipal construction.",
-      risk_analysis: "Composite Risk: 42% (Elevated). Drivers include soil moisture deficits (-12% vs baseline) and elevated daily max temperatures (+1.8°C).",
-      recommended_actions: [
-        "Implement rain-water harvesting mandates for commercial building plans.",
-        "Configure shaded municipal resting hubs during peak daylight hours.",
-        "Initiate reservoir discharge throttling plans."
-      ],
-      chart: {
-        type: "bar",
-        data: [
-          { district: "Mumbai", risk: 55 },
-          { district: "Jaipur", risk: 62 },
-          { district: "Bengaluru", risk: 38 }
-        ]
-      },
-      districts: MOCK_RANKINGS.slice(0, 3)
-    };
+    throw new Error("AI service is temporarily offline. Fallback client-side mock data is disabled.");
   }
 
   if (pathname.endsWith("/climate/timeline")) {

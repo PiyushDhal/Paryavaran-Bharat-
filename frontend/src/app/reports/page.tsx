@@ -89,6 +89,7 @@ export default function ReportsPage() {
     setSelectedStateName, 
     setActiveLayer, 
     activeYear, 
+    setActiveYear,
     setCurrentGeneratedReport 
   } = useClimate();
 
@@ -119,10 +120,16 @@ export default function ReportsPage() {
   const [startDate, setStartDate] = useState<string>("2026-06-01");
   const [endDate, setEndDate] = useState<string>("2026-12-31");
 
-  // Sync with global activeYear
+  // Sync with global activeYear and propagate changes back
   useEffect(() => {
     setYear(activeYear);
   }, [activeYear]);
+
+  useEffect(() => {
+    if (year && year !== activeYear) {
+      setActiveYear(year);
+    }
+  }, [year, activeYear]);
 
   // Comparison Mode states
   const [isComparison, setIsComparison] = useState<boolean>(false);

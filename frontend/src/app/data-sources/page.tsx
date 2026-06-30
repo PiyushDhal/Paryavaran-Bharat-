@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layers3, Activity, CloudRain, Wind, AlertTriangle, Droplet, ShieldAlert, Sparkles, CheckCircle } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useClimate } from '@/store/useClimateStore';
 
 const staticSources = [
   {
@@ -68,6 +69,7 @@ const staticSources = [
 ];
 
 export default function DataSourcesPage() {
+  const { selectedDataset, setSelectedDataset } = useClimate();
   const [dynamicData, setDynamicData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -143,9 +145,22 @@ export default function DataSourcesPage() {
                       </h2>
                       <p className="text-xs text-muted-foreground mt-0.5">{source.organization}</p>
                     </div>
-                    <div className="flex items-center gap-1.5 font-mono text-[10px] bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/[0.04]">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span className="text-slate-300 font-bold uppercase">{liveInfo.status}</span>
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-1.5 font-mono text-[10px] bg-slate-950/80 px-2.5 py-1 rounded-lg border border-white/[0.04]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="text-slate-300 font-bold uppercase">{liveInfo.status}</span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedDataset(source.id)}
+                        className={`text-[9px] font-bold uppercase tracking-wider h-7 px-3 rounded-lg transition-all border ${
+                          selectedDataset === source.id
+                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.15)] cursor-default"
+                            : "border-white/[0.08] bg-slate-950/50 hover:bg-slate-900 text-slate-400 hover:text-white hover:border-white/20 active:scale-95 cursor-pointer"
+                        }`}
+                        disabled={selectedDataset === source.id}
+                      >
+                        {selectedDataset === source.id ? "Active Source" : "Activate Source"}
+                      </button>
                     </div>
                   </div>
 

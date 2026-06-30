@@ -215,7 +215,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setTheme,
     setCurrentDashboard,
     selectedVillageId,
-    setSelectedVillageId
+    setSelectedVillageId,
+    selectedDataset
   } = useClimate();
 
   const toggleTheme = () => {
@@ -432,9 +433,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5">
+            <div className="hidden rounded-md border border-white/[0.08] bg-brand-blue/10 px-3 py-1.5 text-xs text-emerald-100 sm:flex items-center gap-1.5 shadow-[0_0_10px_rgba(34,211,238,0.05)]">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-blue animate-pulse" />
-              Live feeds active
+              <span>Telemetry: <strong className="uppercase font-bold text-cyan-300">{selectedDataset || "IMD"}</strong></span>
             </div>
 
 

@@ -24,7 +24,7 @@ type TimelineEvent = {
 };
 
 export default function TimelinePage() {
-  const { selectedDistrictId, setSelectedDistrictId } = useClimate();
+  const { selectedDistrictId, setSelectedDistrictId, selectedStateId, activeYear, setActiveYear, timelineStep, setTimelineStep } = useClimate();
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtId, setDistrictId] = useState<number>(selectedDistrictId || 0);
   const [activeEventIndex, setActiveEventIndex] = useState<number>(3); // 2026 selected by default (index 3 of [2010, 2015, 2020, 2026, 2030, 2040, 2050])
@@ -53,12 +53,24 @@ export default function TimelinePage() {
       .catch(() => undefined);
   }, []);
 
-  // Sync global selectedDistrictId changes down to local state
+  // Sync global selectedDistrictId and selectedStateId changes down to local state
   useEffect(() => {
-    if (selectedDistrictId && selectedDistrictId !== districtId) {
-      setDistrictId(selectedDistrictId);
+    if (selectedDistrictId) {
+      if (selectedDistrictId !== districtId) {
+        setDistrictId(selectedDistrictId);
+      }
+    } else if (selectedStateId && districts.length > 0) {
+      const items = districts.filter(d => d.state_id === Number(selectedStateId));
+      if (items.length > 0) {
+        const currentInState = items.some(item => item.id === districtId);
+        if (!currentInState) {
+          const defaultId = items[0].id;
+          setDistrictId(defaultId);
+          setSelectedDistrictId(defaultId);
+        }
+      }
     }
-  }, [selectedDistrictId]);
+  }, [selectedDistrictId, selectedStateId, districts]);
 
   // Sync local districtId changes back to global context
   useEffect(() => {
@@ -66,6 +78,29 @@ export default function TimelinePage() {
       setSelectedDistrictId(districtId);
     }
   }, [districtId]);
+
+  // Sync global activeYear to local activeEventIndex
+  useEffect(() => {
+    if (timelineEvents.length > 0) {
+      const idx = timelineEvents.findIndex((ev) => ev.year === activeYear);
+      if (idx !== -1 && idx !== activeEventIndex) {
+        setActiveEventIndex(idx);
+      }
+    }
+  }, [activeYear, timelineEvents]);
+
+  const handleSelectEventIndex = (index: number) => {
+    setActiveEventIndex(index);
+    const selectedYear = timelineEvents[index]?.year;
+    if (selectedYear && selectedYear !== activeYear) {
+      setActiveYear(selectedYear);
+      if (selectedYear === 2030) {
+        setTimelineStep("2030");
+      } else if (selectedYear === 2026) {
+        setTimelineStep("today");
+      }
+    }
+  };
 
   useEffect(() => {
     if (!districtId) return;
@@ -94,6 +129,11 @@ export default function TimelinePage() {
       };
     });
   }, [timelineEvents]);
+
+  const filteredDistrictsList = useMemo(() => {
+    if (!selectedStateId) return districts;
+    return districts.filter((d) => d.state_id === Number(selectedStateId));
+  }, [districts, selectedStateId]);
 
   const district = districts.find((d) => d.id === districtId);
   const activeEvent = timelineData[activeEventIndex] || {
@@ -129,7 +169,7 @@ export default function TimelinePage() {
             onChange={(e) => setDistrictId(Number(e.target.value))}
             className="w-full bg-surface/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-white/[0.08] transition-all text-sm"
           >
-            {districts.map((d) => (
+            {filteredDistrictsList.map((d) => (
               <option key={d.id} value={d.id}>{d.name}, {d.state_name}</option>
             ))}
           </select>
@@ -164,7 +204,7 @@ export default function TimelinePage() {
                 return (
                   <div
                     key={ev.year}
-                    onClick={() => setActiveEventIndex(index)}
+                    onClick={() => handleSelectEventIndex(index)}
                     className={`flex items-start gap-4 md:gap-6 cursor-pointer group transition-all duration-300 ${
                       isSelected ? "translate-x-1" : "hover:translate-x-0.5"
                     }`}

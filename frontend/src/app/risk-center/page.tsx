@@ -16,13 +16,17 @@ import { useClimate } from "@/store/useClimateStore";
 import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommendations";
 
 export default function RiskCenterPage() {
-  const { activeYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
-  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId);
+  const { activeYear, selectedDistrictId, setSelectedDistrictId, selectedStateId, activeRisk, setActiveRisk } = useClimate();
+  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 101);
   const [risk, setRisk] = useState<RiskScore | null>(null);
   const [trends, setTrends] = useState<Array<Record<string, number | string>>>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);
 
-  const [selectedHazard, setSelectedHazard] = useState<"Flood" | "Drought" | "Heatwave" | "Water Stress">("Flood");
+  const [selectedHazard, setSelectedHazard] = useState<"Flood" | "Drought" | "Heatwave" | "Water Stress">(
+    activeRisk === "drought" ? "Drought" :
+    activeRisk === "heatwave" ? "Heatwave" :
+    activeRisk === "water_stress" ? "Water Stress" : "Flood"
+  );
 
   const getDecisionDetails = () => {
     const score = risk ? (
@@ -55,12 +59,27 @@ export default function RiskCenterPage() {
     return { score, level, ...details[selectedHazard] };
   };
 
-  // Sync global selectedDistrictId changes down to local state
+  // Sync global selectedDistrictId and selectedStateId changes down to local state
   useEffect(() => {
-    if (selectedDistrictId && selectedDistrictId !== districtId) {
-      setDistrictId(selectedDistrictId);
+    if (selectedDistrictId) {
+      if (selectedDistrictId !== districtId) {
+        setDistrictId(selectedDistrictId);
+      }
+    } else if (selectedStateId) {
+      api.districts(selectedStateId)
+        .then((items) => {
+          if (items.length > 0) {
+            const currentInState = items.some(item => item.id === districtId);
+            if (!currentInState) {
+              const defaultId = items[0].id;
+              setDistrictId(defaultId);
+              setSelectedDistrictId(defaultId);
+            }
+          }
+        })
+        .catch(() => undefined);
     }
-  }, [selectedDistrictId]);
+  }, [selectedDistrictId, selectedStateId]);
 
   // Sync local districtId changes back to global context
   useEffect(() => {
@@ -68,6 +87,26 @@ export default function RiskCenterPage() {
       setSelectedDistrictId(districtId);
     }
   }, [districtId]);
+
+  // Sync global activeRisk to local selectedHazard
+  useEffect(() => {
+    if (activeRisk) {
+      const hazard = activeRisk === "drought" ? "Drought" :
+                     activeRisk === "heatwave" ? "Heatwave" :
+                     activeRisk === "water_stress" ? "Water Stress" : "Flood";
+      if (selectedHazard !== hazard) {
+        setSelectedHazard(hazard);
+      }
+    }
+  }, [activeRisk]);
+
+  const handleHazardChange = (hazard: "Flood" | "Drought" | "Heatwave" | "Water Stress") => {
+    setSelectedHazard(hazard);
+    const mapped = hazard === "Drought" ? "drought" :
+                   hazard === "Heatwave" ? "heatwave" :
+                   hazard === "Water Stress" ? "water_stress" : "flood";
+    setActiveRisk(mapped);
+  };
 
   useEffect(() => {
     api.rankings(100, activeYear).then(setRankings).catch(() => undefined);
@@ -117,7 +156,7 @@ export default function RiskCenterPage() {
           </p>
         </div>
         <div className="w-full max-w-md">
-          <DistrictSelector value={districtId} onChange={setDistrictId} />
+          <DistrictSelector value={districtId} stateId={selectedStateId} onChange={setDistrictId} />
         </div>
       </div>
 
@@ -213,7 +252,7 @@ export default function RiskCenterPage() {
                   key={hazard}
                   variant={selectedHazard === hazard ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedHazard(hazard)}
+                  onClick={() => handleHazardChange(hazard)}
                   className={selectedHazard === hazard ? "bg-cyan-600 text-white hover:bg-cyan-700" : "border-slate-700 text-slate-300 hover:bg-slate-800"}
                 >
                   {hazard}

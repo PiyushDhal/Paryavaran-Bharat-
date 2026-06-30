@@ -81,7 +81,7 @@ function LiveClock() {
 }
 
 export default function DashboardPage() {
-  const { selectedDistrictId, activeYear, rankings } = useClimate();
+  const { selectedDistrictId, selectedStateName, selectedStateId, activeYear, rankings, activeSimulation } = useClimate();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [alerts, setAlerts] = useState<ClimateAlert[]>([]);
 
@@ -122,27 +122,69 @@ export default function DashboardPage() {
       .catch(() => undefined);
   }, [activeYear]);
 
-  // ─── Dynamic Metrics derived from existing APIs ────────────────────────────
-  const nationalRiskScore = useMemo(() => {
-    if (!rankings.length) return 58;
-    return Math.round(rankings.reduce((sum, r) => sum + r.composite_risk, 0) / rankings.length);
-  }, [rankings]);
+  // ─── Dynamic Filtering Memos ────────────────────────────────────────────────
+  const filteredRankings = useMemo(() => {
+    if (!selectedStateName) return rankings;
+    return rankings.filter(
+      (r) => r.state_name.toLowerCase() === selectedStateName.toLowerCase()
+    );
+  }, [rankings, selectedStateName]);
+
+  const filteredAlerts = useMemo(() => {
+    if (!selectedStateName) return alerts;
+    return alerts.filter(
+      (a) => a.state.toLowerCase() === selectedStateName.toLowerCase()
+    );
+  }, [alerts, selectedStateName]);
+
+  const selectedDistrictData = useMemo(() => {
+    if (!selectedDistrictId || !rankings.length) return null;
+    return rankings.find(r => r.district_id === selectedDistrictId);
+  }, [rankings, selectedDistrictId]);
+
+  const isSimulationActive = useMemo(() => {
+    return !!activeSimulation;
+  }, [activeSimulation]);
+
+  const displayRiskScore = useMemo(() => {
+    if (isSimulationActive && activeSimulation) {
+      return activeSimulation.composite_risk;
+    }
+    if (selectedDistrictData) {
+      return selectedDistrictData.composite_risk;
+    }
+    if (!filteredRankings.length) return 58;
+    return Math.round(filteredRankings.reduce((sum, r) => sum + r.composite_risk, 0) / filteredRankings.length);
+  }, [isSimulationActive, activeSimulation, selectedDistrictData, filteredRankings]);
 
   const activeAlertsCount = useMemo(() => {
-    return alerts.length;
-  }, [alerts]);
+    return filteredAlerts.length;
+  }, [filteredAlerts]);
 
   const populationAtRiskMillions = useMemo(() => {
-    if (!rankings.length) return 142.5;
-    // Calculate based on districts with high composite risk (> 60)
-    const highRiskDistricts = rankings.filter(r => r.composite_risk > 60);
-    return Math.round(highRiskDistricts.length * 4.8 * 10) / 10 || 142.5;
-  }, [rankings]);
+    if (isSimulationActive && activeSimulation) {
+      return Math.round(((activeSimulation.population_at_risk || 0) / 1e6) * 10) / 10 || 1.2;
+    }
+    if (selectedDistrictData) {
+      return selectedDistrictData.composite_risk > 60 ? 4.8 : 1.2;
+    }
+    if (!filteredRankings.length) return 142.5;
+    const highRiskDistricts = filteredRankings.filter(r => r.composite_risk > 60);
+    return Math.round(highRiskDistricts.length * 4.8 * 10) / 10 || 0;
+  }, [isSimulationActive, activeSimulation, selectedDistrictData, filteredRankings]);
 
   const highRiskDistrictsCount = useMemo(() => {
-    if (!rankings.length) return 12;
-    return rankings.filter(r => r.composite_risk > 60).length;
-  }, [rankings]);
+    if (isSimulationActive && activeSimulation) {
+      return activeSimulation.composite_risk > 60 ? 1 : 0;
+    }
+    if (selectedDistrictData) {
+      return selectedDistrictData.composite_risk > 60 ? 1 : 0;
+    }
+    if (!filteredRankings.length) return 12;
+    return filteredRankings.filter(r => r.composite_risk > 60).length;
+  }, [isSimulationActive, activeSimulation, selectedDistrictData, filteredRankings]);
+
+  const nationalRiskScore = displayRiskScore;
 
 
   const dynamicBrief = useMemo(() => {
@@ -206,7 +248,7 @@ export default function DashboardPage() {
             </div>
             <CardContent className="p-6">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
-                <span>National Climate Risk Score</span>
+                <span>{isSimulationActive ? "Simulated District Risk" : selectedDistrictId ? "District Climate Risk" : selectedStateName ? `${selectedStateName} Avg Risk` : "National Climate Risk Score"}</span>
                 <span className="opacity-0 group-hover:opacity-100 text-brand-blue text-[8px] transition-opacity">View Risk Center →</span>
               </p>
               <div className="mt-2.5 flex items-baseline gap-1 text-4xl font-extrabold text-brand-titanium tracking-tight glow-blue">
@@ -214,8 +256,8 @@ export default function DashboardPage() {
                 <span className="text-lg font-bold text-muted-foreground">/100</span>
               </div>
               <div className="mt-2 flex items-center gap-1.5">
-                <span className="rounded-full bg-brand-blue/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-blue border border-white/[0.08]">
-                  {nationalRiskScore >= 60 ? "Elevated" : "Standard"}
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider border ${isSimulationActive ? "bg-purple-500/10 text-purple-300 border-purple-500/20 shadow-[0_0_8px_rgba(139,92,246,0.2)] animate-pulse" : "bg-brand-blue/10 text-brand-blue border-white/[0.08]"}`}>
+                  {isSimulationActive ? "Simulated Model Active" : nationalRiskScore >= 60 ? "Elevated" : "Standard"}
                 </span>
               </div>
             </CardContent>
@@ -279,15 +321,19 @@ export default function DashboardPage() {
             </div>
             <CardContent className="p-6">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center justify-between">
-                <span>High-Risk Districts</span>
+                <span>{selectedDistrictId ? "Vulnerability Status" : "High-Risk Districts"}</span>
                 <span className="opacity-0 group-hover:opacity-100 text-purple-300 text-[8px] transition-opacity">Open Analytics →</span>
               </p>
               <div className="mt-2.5 text-4xl font-extrabold text-purple-300 tracking-tight glow-purple">
-                <AnimatedCounter value={highRiskDistrictsCount} />
+                {selectedDistrictId ? (
+                  <span className="text-xl font-bold uppercase tracking-wide">{displayRiskScore >= 60 ? "Critical" : "Standard"}</span>
+                ) : (
+                  <AnimatedCounter value={highRiskDistrictsCount} />
+                )}
               </div>
               <div className="mt-2 flex items-center gap-1.5">
                 <span className="rounded-full bg-purple-400/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-purple-300 border border-purple-400/10">
-                  Mitigation Focus
+                  {selectedDistrictId ? "Local Metric" : "Mitigation Focus"}
                 </span>
               </div>
             </CardContent>
