@@ -43,15 +43,15 @@ def chat(
         logger.error(f"[COPILOT API] Unhandled exception in chat endpoint: {err}")
         # Build immediate safe fallback payload
         fallback_res = {
-            "explanation": "### Climate Copilot Interface\n\nThe Climate Copilot is currently running in local offline safety mode due to an unexpected system warning. Active monitoring registries remain operational.",
-            "risk_analysis": "Operational status is stable. Database queries are being bypassed.",
-            "recommended_actions": ["Refresh the dashboard console.", "Check telemetry service connections."],
+            "explanation": "### AI Service Temporarily Unavailable\n\nThe AI Copilot is temporarily unavailable due to a network connection timeout or API rate limit. Please try again in a few moments.",
+            "risk_analysis": "AI Service Temporarily Unavailable",
+            "recommended_actions": ["Verify network connectivity.", "Retry the query in a few moments."],
             "chart": {"type": "bar", "data": []},
             "districts": [],
             "action": None,
-            "suggestions": ["Show Platform Help"],
-            "explainable_risk": {"confidence": 100, "drivers": ["System Fallback"], "actions": [], "sources": ["Local Safety Engine"]},
-            "insights": ["Copilot safety mode engaged."]
+            "suggestions": ["Retry request"],
+            "explainable_risk": None,
+            "insights": ["Gemini API request failed."]
         }
         return CopilotResponse(**fallback_res)
 

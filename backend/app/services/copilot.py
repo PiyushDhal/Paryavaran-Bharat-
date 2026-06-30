@@ -15,6 +15,31 @@ from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
+def get_dynamic_api_key() -> str | None:
+    key = os.environ.get("GEMINI_API_KEY")
+    if key:
+        return key
+    try:
+        from pathlib import Path
+        env_path = Path("c:/Users/Asus/Bharat Climate-Twin/Bharat-Climate-Twin/backend/.env")
+        if env_path.exists():
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                if line.strip().startswith("GEMINI_API_KEY="):
+                    val = line.split("=", 1)[1].strip()
+                    if val.startswith('"') and val.endswith('"'):
+                        val = val[1:-1]
+                    if val.startswith("'") and val.endswith("'"):
+                        val = val[1:-1]
+                    if val:
+                        return val
+    except Exception:
+        pass
+    try:
+        settings = get_settings()
+        return settings.gemini_api_key
+    except Exception:
+        return None
+
 def sanitize_ai_jargon(text: str) -> str:
     jargon_replacements = {
         "telemetry": "monitored observation data",
@@ -95,8 +120,7 @@ class ClimateCopilot:
                         if s not in history_states:
                             history_states.append(s)
 
-        settings = get_settings()
-        api_key = os.environ.get("GEMINI_API_KEY") or settings.gemini_api_key
+        api_key = get_dynamic_api_key()
         intent = self._detect_intent(payload.prompt, api_key)
 
         # Memory contextualization & Resolution of Pronouns/Missing entities
