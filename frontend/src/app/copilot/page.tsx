@@ -383,12 +383,12 @@ function CopilotPageContent() {
         }
       }, 10);
 
-    } catch (err) {
-      // Clean fallback if API fails
+    } catch (err: any) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       const fallbackMsg: ChatMessage = {
         id: "bot-error-" + Date.now(),
         sender: "bot",
-        text: "Unable to reach the Paryavaran Copilot service. Please check your network connection or verify if the backend server is running.",
+        text: `Paryavaran Copilot Service Error: ${errMsg}`,
         timestamp: new Date()
       };
       

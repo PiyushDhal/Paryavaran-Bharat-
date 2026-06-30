@@ -41,19 +41,11 @@ def chat(
         return CopilotResponse(**response)
     except Exception as err:
         logger.error(f"[COPILOT API] Unhandled exception in chat endpoint: {err}")
-        # Build immediate safe fallback payload
-        fallback_res = {
-            "explanation": "### AI Service Temporarily Unavailable\n\nThe AI Copilot is temporarily unavailable due to a network connection timeout or API rate limit. Please try again in a few moments.",
-            "risk_analysis": "AI Service Temporarily Unavailable",
-            "recommended_actions": ["Verify network connectivity.", "Retry the query in a few moments."],
-            "chart": {"type": "bar", "data": []},
-            "districts": [],
-            "action": None,
-            "suggestions": ["Retry request"],
-            "explainable_risk": None,
-            "insights": ["Gemini API request failed."]
-        }
-        return CopilotResponse(**fallback_res)
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=400,
+            detail=f"Gemini Copilot Service Error: {str(err)}"
+        )
 
 
 @router.get("/history")
