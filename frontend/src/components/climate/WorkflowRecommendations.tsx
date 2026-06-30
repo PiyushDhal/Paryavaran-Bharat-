@@ -480,4 +480,3 @@ export function WorkflowRecommendations({ currentPage, currentMetric }: Workflow
     </div>
   );
 }
-
