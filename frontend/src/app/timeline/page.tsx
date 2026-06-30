@@ -2,9 +2,9 @@
 
 import { useEffect, useState, useMemo } from "react";
 import {
-  AlertTriangle, CalendarRange, Clock, CloudRain, Flame,
-  History, ThermometerSun, Droplets, BarChart3, Database,
-  ArrowUp, ArrowDown, Minus, TrendingUp
+  AlertTriangle, CalendarRange, Clock,
+  ThermometerSun, Droplets, Database,
+  ArrowUp, ArrowDown, Minus
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -155,7 +155,14 @@ export default function TimelinePage() {
   }, [districts, selectedStateId]);
 
   const district = districts.find((d) => d.id === districtId);
-  const activeEvent = timelineEvents[activeEventIndex] || timelineEvents[3];
+  const SAFE_DEFAULT_EVENT: TimelineEvent = {
+    year: 2026, label: "Present Baseline", type: "current",
+    description: "Loading district climate data...",
+    avgTemp: "--", avgRain: "--", riskScore: 0, alert: "",
+    tempDelta: "Observed baseline", dataSource: "Loading..."
+  };
+  const activeEvent: TimelineEvent = timelineEvents[activeEventIndex] || timelineEvents[3] || SAFE_DEFAULT_EVENT;
+
 
   const getRiskLabel = (score: number) => {
     if (score >= 75) return "CRITICAL HAZARD";
