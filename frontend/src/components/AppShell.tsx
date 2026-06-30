@@ -74,7 +74,7 @@ const navSections = [
     label: "Operations",
     items: [
       { href: "/simulator", label: "Scenario Simulator", icon: FilledSimulator },
-      { href: "/timeline", label: "Climate Timeline", icon: FilledTimeline },
+      { href: "/timeline", label: "Paryavaran Timeline", icon: FilledTimeline },
       { href: "/copilot", label: "Paryavaran Copilot", icon: FilledCopilot },
       { href: "/reports", label: "AI Report", icon: FilledReport }
     ]

@@ -156,8 +156,8 @@ export default function TimelinePage() {
     <div className="grid gap-5">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <Badge>Climate Projection Timeline</Badge>
-          <h1 className="mt-3 text-3xl font-semibold text-white font-sans tracking-tight">Climate Evolution Timeline</h1>
+          <Badge>Paryavaran Projection Timeline</Badge>
+          <h1 className="mt-3 text-3xl font-semibold text-white font-sans tracking-tight">Paryavaran Evolution Timeline</h1>
           <p className="mt-2 max-w-3xl text-sm text-secondary-foreground">
             Trace the transition of district hazard vulnerabilities from historical observation logs (2018) through future deep-forcing projections (2050).
           </p>

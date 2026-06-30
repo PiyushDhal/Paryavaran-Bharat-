@@ -280,7 +280,7 @@ function CopilotPageContent() {
         setTimeout(() => router.push("/risk-center"), 1200);
         break;
       case "open_timeline":
-        triggerToast("Opening Climate Timeline...");
+        triggerToast("Opening Paryavaran Timeline...");
         setTimeout(() => router.push("/timeline"), 1200);
         break;
       case "view_analytics":
@@ -305,7 +305,7 @@ function CopilotPageContent() {
       case "download_report":
       case "generate_report": return "Generate PDF Report";
       case "open_risk": return "Open Risk Center";
-      case "open_timeline": return "Open Climate Timeline";
+      case "open_timeline": return "Open Paryavaran Timeline";
       case "view_analytics": return "View Analytics";
       default: return "Execute Action";
     }
