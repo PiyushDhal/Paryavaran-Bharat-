@@ -106,6 +106,11 @@ const GOVERNMENT_SOURCES = [
 export default function ClimateIntelligenceCenter() {
   const climateContext = useClimate();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Basic lists
   const [states, setStates] = useState<State[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -702,7 +707,7 @@ export default function ClimateIntelligenceCenter() {
                 </Link>
               </div>
             <div className="h-52 w-full">
-              {loadingMetrics ? (
+              {!mounted || loadingMetrics ? (
                 <Skeleton className="h-full w-full" />
               ) : errorMetrics ? (
                 <div className="flex h-full items-center justify-center text-xs text-slate-400">Dataset temporarily unavailable.</div>
@@ -738,7 +743,7 @@ export default function ClimateIntelligenceCenter() {
                 </Link>
               </div>
             <div className="h-52 w-full">
-              {loadingMetrics ? (
+              {!mounted || loadingMetrics ? (
                 <Skeleton className="h-full w-full" />
               ) : errorMetrics ? (
                 <div className="flex h-full items-center justify-center text-xs text-slate-400">Dataset temporarily unavailable.</div>

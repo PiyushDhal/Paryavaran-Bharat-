@@ -1,5 +1,4 @@
-"use client";
-
+import { useState, useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -26,6 +25,15 @@ export function TrendAreaChart({
   color: string;
   unit?: string;
 }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-[260px] w-full animate-pulse bg-slate-800/40 rounded-xl border border-white/[0.04]" />;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={260}>
       <AreaChart data={data}>
@@ -60,6 +68,15 @@ export function TrendAreaChart({
 }
 
 export function RiskLineChart({ data }: { data: Array<Record<string, number | string>> }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-[300px] w-full animate-pulse bg-slate-800/40 rounded-xl border border-white/[0.04]" />;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
@@ -88,6 +105,15 @@ export function RiskLineChart({ data }: { data: Array<Record<string, number | st
 }
 
 export function RankingBarChart({ data }: { data: Array<{ district: string; risk: number }> }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-[250px] w-full animate-pulse bg-slate-800/40 rounded-xl border border-white/[0.04]" />;
+  }
+
   return (
     <ResponsiveContainer width="100%" height={250}>
       <BarChart data={data}>

@@ -92,6 +92,11 @@ export default function ReportsPage() {
     setCurrentGeneratedReport 
   } = useClimate();
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [districts, setDistricts] = useState<District[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);

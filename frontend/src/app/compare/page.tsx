@@ -14,6 +14,11 @@ import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommenda
 
 export default function ComparePage() {
   const { activeYear, selectedDistrictId, setSelectedDistrictId } = useClimate();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [districts, setDistricts] = useState<District[]>([]);
   const [districtIdA, setDistrictIdA] = useState<number | undefined>(undefined);
   const [districtIdB, setDistrictIdB] = useState<number | undefined>(undefined);
@@ -279,24 +284,28 @@ export default function ComparePage() {
             <CardDescription>Side-by-side risk parameter scorecards mapped from spatial models.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
-                <XAxis dataKey="name" stroke="#C0C8D4" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#C0C8D4" tick={{ fontSize: 11 }} domain={[0, 100]} />
-                <Tooltip
-                  contentStyle={{
-                    background: "#07111f",
-                    border: "1px solid rgba(103,232,249,0.25)",
-                    borderRadius: 8,
-                    color: "#e0f2fe"
-                  }}
-                />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                <Bar dataKey={districtA.name} fill="#4DA8DA" radius={[4, 4, 0, 0]} />
-                <Bar dataKey={districtB.name} fill="#22C55E" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {!mounted ? (
+              <div className="h-[320px] w-full animate-pulse bg-slate-800/40 rounded-xl border border-white/[0.04]" />
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid stroke="rgba(148,163,184,0.08)" vertical={false} />
+                  <XAxis dataKey="name" stroke="#C0C8D4" tick={{ fontSize: 11 }} />
+                  <YAxis stroke="#C0C8D4" tick={{ fontSize: 11 }} domain={[0, 100]} />
+                  <Tooltip
+                    contentStyle={{
+                      background: "#07111f",
+                      border: "1px solid rgba(103,232,249,0.25)",
+                      borderRadius: 8,
+                      color: "#e0f2fe"
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
+                  <Bar dataKey={districtA.name} fill="#4DA8DA" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey={districtB.name} fill="#22C55E" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
