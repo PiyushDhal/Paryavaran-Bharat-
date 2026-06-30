@@ -58,7 +58,6 @@ const YEAR_COLORS = {
 export default function TimelinePage() {
   const { selectedDistrictId, setSelectedDistrictId, selectedStateId, activeYear, setActiveYear, timelineStep, setTimelineStep } = useClimate();
   const [districts, setDistricts] = useState<District[]>([]);
-  const [districtId, setDistrictId] = useState<number>(selectedDistrictId || 0);
   const [activeEventIndex, setActiveEventIndex] = useState<number>(3);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([
     { year: 2010, label: "Loading...", type: "historical", description: "", avgTemp: "--", avgRain: "--", riskScore: 0, alert: "" },
@@ -71,46 +70,30 @@ export default function TimelinePage() {
   ]);
   const [loading, setLoading] = useState(false);
 
+  // Load districts on mount
   useEffect(() => {
     api.districts()
       .then((data) => {
         setDistricts(data);
-        if (data.length > 0) {
-          if (selectedDistrictId) {
-            setDistrictId(selectedDistrictId);
-          } else {
-            setDistrictId(data[0].id);
-          }
+        if (data.length > 0 && !selectedDistrictId) {
+          setSelectedDistrictId(data[0].id);
         }
       })
       .catch(() => undefined);
   }, []);
 
-  // Sync global selectedDistrictId and selectedStateId changes down to local state
+  // Sync state selection to select a default district in that state
   useEffect(() => {
-    if (selectedDistrictId) {
-      if (selectedDistrictId !== districtId) {
-        setDistrictId(selectedDistrictId);
-      }
-    } else if (selectedStateId && districts.length > 0) {
-      const items = districts.filter(d => d.state_id === Number(selectedStateId));
-      if (items.length > 0) {
-        const currentInState = items.some(item => item.id === districtId);
+    if (selectedStateId && districts.length > 0) {
+      const stateDistricts = districts.filter(d => d.state_id === Number(selectedStateId));
+      if (stateDistricts.length > 0) {
+        const currentInState = selectedDistrictId && stateDistricts.some(d => d.id === selectedDistrictId);
         if (!currentInState) {
-          const defaultId = items[0].id;
-          setDistrictId(defaultId);
-          setSelectedDistrictId(defaultId);
+          setSelectedDistrictId(stateDistricts[0].id);
         }
       }
     }
-  }, [selectedDistrictId, selectedStateId, districts]);
-
-  // Sync local districtId changes back to global context
-  useEffect(() => {
-    if (districtId && selectedDistrictId !== districtId) {
-      setSelectedDistrictId(districtId);
-    }
-  }, [districtId]);
+  }, [selectedStateId, districts, selectedDistrictId, setSelectedDistrictId]);
 
   // Sync global activeYear to local activeEventIndex
   useEffect(() => {
@@ -120,7 +103,7 @@ export default function TimelinePage() {
         setActiveEventIndex(idx);
       }
     }
-  }, [activeYear, timelineEvents]);
+  }, [activeYear, timelineEvents, activeEventIndex]);
 
   const handleSelectEventIndex = (index: number) => {
     setActiveEventIndex(index);
@@ -135,10 +118,11 @@ export default function TimelinePage() {
     }
   };
 
+  // Load timeline events when district changes
   useEffect(() => {
-    if (!districtId) return;
+    if (!selectedDistrictId) return;
     setLoading(true);
-    api.timeline(districtId)
+    api.timeline(selectedDistrictId)
       .then((data) => {
         setTimelineEvents(data);
         // Auto-select 2026 (current) on load
@@ -147,14 +131,14 @@ export default function TimelinePage() {
       })
       .catch(() => undefined)
       .finally(() => setLoading(false));
-  }, [districtId]);
+  }, [selectedDistrictId]);
 
   const filteredDistrictsList = useMemo(() => {
     if (!selectedStateId) return districts;
     return districts.filter((d) => d.state_id === Number(selectedStateId));
   }, [districts, selectedStateId]);
 
-  const district = districts.find((d) => d.id === districtId);
+  const district = districts.find((d) => d.id === selectedDistrictId);
   const SAFE_DEFAULT_EVENT: TimelineEvent = {
     year: 2026, label: "Present Baseline", type: "current",
     description: "Loading district climate data...",
@@ -210,8 +194,8 @@ export default function TimelinePage() {
         <div className="w-full max-w-xs">
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">Select District</label>
           <select
-            value={districtId}
-            onChange={(e) => setDistrictId(Number(e.target.value))}
+            value={selectedDistrictId || ""}
+            onChange={(e) => setSelectedDistrictId(Number(e.target.value))}
             className="w-full bg-surface/50 border border-slate-700 rounded-lg py-2.5 px-4 text-white focus:outline-none focus:border-white/[0.08] transition-all text-sm"
           >
             {filteredDistrictsList.map((d) => (
