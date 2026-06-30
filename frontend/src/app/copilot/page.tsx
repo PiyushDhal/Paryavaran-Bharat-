@@ -89,11 +89,20 @@ function CopilotPageContent() {
     selectedStateId,
     selectedDataset,
     activeRisk,
-    currentGeneratedReport
+    currentGeneratedReport,
+    currentAIConversation,
+    setCurrentAIConversation
   } = useClimate();
   
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const messages = currentAIConversation || [];
+  const setMessages = (newMessages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+    if (typeof newMessages === "function") {
+      setCurrentAIConversation(newMessages(messages));
+    } else {
+      setCurrentAIConversation(newMessages);
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   
@@ -789,7 +798,7 @@ function CopilotPageContent() {
                             <div>
                               <h4 className="text-[9px] font-bold uppercase tracking-widest text-cyan-400 mb-2">Mitigation and Operational Directives</h4>
                               <div className="grid gap-2 sm:grid-cols-2">
-                                {msg.data.recommended_actions.map((action, idx) => {
+                                {msg.data.recommended_actions.map((action: string, idx: number) => {
                                   const isHydro = idx % 2 === 0;
                                   return (
                                     <div key={action} className="p-3 rounded-lg border border-white/[0.06] bg-slate-900/30 text-emerald-300">
@@ -862,7 +871,7 @@ function CopilotPageContent() {
                           {/* Suggested follow-ups */}
                           {msg.data.suggestions && msg.data.suggestions.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/[0.04]">
-                              {msg.data.suggestions.map((sug) => (
+                              {msg.data.suggestions.map((sug: string) => (
                                 <button
                                   key={sug}
                                   onClick={() => handleSend(sug)}

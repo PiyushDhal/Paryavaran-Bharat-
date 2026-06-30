@@ -315,7 +315,7 @@ export default function SimulatorPage() {
   const [viewTab, setViewTab] = useState<ViewTab>("results");
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [payload, setPayload] = useState<ScenarioPayload>({ ...DEFAULT_PAYLOAD });
-  const [result, setResult] = useState<SimulationResult | null>(null);
+  const [result, setResult] = useState<SimulationResult | null>(activeSimulation || null);
   const [baselineResult, setBaselineResult] = useState<SimulationResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
@@ -324,6 +324,13 @@ export default function SimulatorPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [expandedSliders, setExpandedSliders] = useState(true);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync global activeSimulation with local result state
+  useEffect(() => {
+    if (activeSimulation) {
+      setResult(activeSimulation);
+    }
+  }, [activeSimulation]);
 
   // Load baseline results when district changes
   useEffect(() => {

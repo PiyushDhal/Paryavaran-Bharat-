@@ -451,7 +451,12 @@ export default function ReportsPage() {
     setGenerating(true);
     setTimeout(() => {
       const ref = `BCT-REP-${district.code.toUpperCase()}-${year}-${Math.floor(100 + Math.random() * 900)}`;
-      const newReport: PersistentReport = {
+      const newReport: PersistentReport & {
+        generationTime: string;
+        includedDatasets: string[];
+        aiSummary: string;
+        recommendations: string[];
+      } = {
         id: "rep-" + Date.now(),
         name: isComparison 
           ? `Comparative Study: ${district.name} vs ${compareDistrict.name}`
@@ -468,7 +473,14 @@ export default function ReportsPage() {
         climateParameter,
         dateCompiled: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
         refNo: ref,
-        isComparison
+        isComparison,
+        generationTime: new Date().toISOString(),
+        includedDatasets: ["imd", "isro-bhuvan", "wris"],
+        aiSummary: `This dossier analyzes climate risks for ${district.name} (${district.state_name || "India"}) for target year ${year}. It highlights a composite risk index of ${ranking?.composite_risk ?? 58}/100, driven by ${ranking?.flood_risk > 60 ? "heavy precipitation anomalies" : ranking?.drought_risk > 60 ? "soil moisture depletion" : "elevated thermal anomalies"}.`,
+        recommendations: [
+          `Implement local hydrological safety protocols.`,
+          `Activate telemetry monitoring for regional agriculture stress.`
+        ]
       };
       
       saveHistory([newReport, ...history]);

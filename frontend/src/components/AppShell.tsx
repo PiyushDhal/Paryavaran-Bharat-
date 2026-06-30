@@ -102,8 +102,18 @@ function URLSyncHandler() {
     activeRisk,
     setActiveRisk,
     selectedStateId,
-    setSelectedStateId
+    setSelectedStateId,
+    setCurrentDashboard,
+    selectedVillageId,
+    setSelectedVillageId
   } = useClimate();
+
+  // Keep currentDashboard synced with path name
+  useEffect(() => {
+    if (pathname) {
+      setCurrentDashboard(pathname.replace("/", "") || "dashboard");
+    }
+  }, [pathname, setCurrentDashboard]);
 
   // 1. Sync from URL to Store on mount / query param change
   useEffect(() => {
@@ -112,6 +122,7 @@ function URLSyncHandler() {
     const qYear = searchParams.get("year");
     const qLayer = searchParams.get("layer");
     const qRisk = searchParams.get("risk");
+    const qVillageId = searchParams.get("village_id");
 
     if (qDistrictId) {
       const parsed = Number(qDistrictId);
@@ -136,6 +147,9 @@ function URLSyncHandler() {
     }
     if (qRisk && qRisk !== activeRisk) {
       setActiveRisk(qRisk);
+    }
+    if (qVillageId && qVillageId !== selectedVillageId) {
+      setSelectedVillageId(qVillageId);
     }
   }, [searchParams]);
 
@@ -165,13 +179,14 @@ function URLSyncHandler() {
     setOrDelete("year", activeYear);
     setOrDelete("layer", activeLayer);
     setOrDelete("risk", activeRisk);
+    setOrDelete("village_id", selectedVillageId);
 
     if (changed) {
       const newSearch = params.toString();
       const newUrl = `${pathname}${newSearch ? "?" + newSearch : ""}`;
       window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, "", newUrl);
     }
-  }, [selectedDistrictId, selectedStateId, activeYear, activeLayer, activeRisk, pathname]);
+  }, [selectedDistrictId, selectedStateId, activeYear, activeLayer, activeRisk, selectedVillageId, pathname]);
 
   return null;
 }
@@ -184,47 +199,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [userName, setUserName] = useState("Dr. Amit Sharma");
   const [userRole, setUserRole] = useState("Director (Ops)");
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [demoOpen, setDemoOpen] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedTheme = window.localStorage.getItem("theme") as "light" | "dark" | null;
-      if (storedTheme) {
-        setTheme(storedTheme);
-        if (storedTheme === "dark") {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
-      } else {
-        const isDark = document.documentElement.classList.contains("dark");
-        setTheme(isDark ? "dark" : "light");
-      }
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("theme", nextTheme);
-      if (nextTheme === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-    }
-  };
-
-  const toggleSidebar = () => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem("bct_sidebar_collapsed", String(newState));
-    }
-  };
 
   const { 
     activeYear, 
@@ -234,8 +210,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     selectedStateId,
     setSelectedStateId,
     setSelectedStateName,
-    rankings
+    rankings,
+    theme,
+    setTheme,
+    setCurrentDashboard,
+    selectedVillageId,
+    setSelectedVillageId
   } = useClimate();
+
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+  };
+
+  const toggleSidebar = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("bct_sidebar_collapsed", String(newState));
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {

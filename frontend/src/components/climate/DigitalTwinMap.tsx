@@ -924,6 +924,10 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
   const setMapMode = climateContext?.setMapMode ?? (() => undefined);
   const selectedStateName = climateContext?.selectedStateName ?? null;
   const setSelectedStateName = climateContext?.setSelectedStateName ?? (() => undefined);
+  const mapPosition = climateContext?.mapPosition ?? { lat: 22.5937, lng: 78.9629 };
+  const setMapPosition = climateContext?.setMapPosition ?? (() => undefined);
+  const zoomLevel = climateContext?.zoomLevel ?? 4.2;
+  const setZoomLevel = climateContext?.setZoomLevel ?? (() => undefined);
  
   const [lastTooltipCoords, setLastTooltipCoords] = useState<{ x: number; y: number } | null>(null);
   const [lastSelectedStateName, setLastSelectedStateName] = useState<string | null>(null);
@@ -1151,12 +1155,21 @@ export function DigitalTwinMap({ compact = false }: { compact?: boolean }) {
     const map = new mapboxgl.Map({
       container: mapNode.current,
       style: initialStyle,
-      center: [78.9629, 22.5937],
-      zoom: compact ? 3.2 : 4.2,
+      center: mapPosition ? [mapPosition.lng, mapPosition.lat] : [78.9629, 22.5937],
+      zoom: zoomLevel ? zoomLevel : (compact ? 3.2 : 4.2),
       projection: { name: "globe" },
       attributionControl: false
     });
     mapRef.current = map;
+
+    map.on("moveend", () => {
+      const center = map.getCenter();
+      setMapPosition({ lat: center.lat, lng: center.lng });
+    });
+
+    map.on("zoomend", () => {
+      setZoomLevel(map.getZoom());
+    });
 
     map.on("load", () => {
       if (!map.getSource("mapbox-dem")) {
