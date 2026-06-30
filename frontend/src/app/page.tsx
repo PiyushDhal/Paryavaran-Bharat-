@@ -743,7 +743,7 @@ export default function LandingPage() {
                   { name: "Digital Twin Map", href: "/map" },
                   { name: "Risk Center", href: "/risk-center" },
                   { name: "Simulator", href: "/simulator" },
-                  { name: "Paryavaran Intelligence", href: "/copilot" }
+                  { name: "Paryavaran Copilot", href: "/copilot" }
                 ].map((item) => (
                   <Link key={item.name} href={item.href} className="text-sm text-muted-foreground hover:text-brand-titanium transition-colors">
                     {item.name}
