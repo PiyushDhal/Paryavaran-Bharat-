@@ -110,7 +110,7 @@ export default function ReportsPage() {
   const [selectedStateId, setSelectedStateId] = useState<string>("all");
   const [compareStateId, setCompareStateId] = useState<string>("all");
   
-  const [districtId, setDistrictId] = useState<number>(101);
+  const [districtId, setDistrictId] = useState<number>(selectedDistrictId || 1);
   const [year, setYear] = useState<number>(2026);
   const [sector, setSector] = useState<string>("water");
   const [reportType, setReportType] = useState<string>("district_climate");
@@ -133,7 +133,7 @@ export default function ReportsPage() {
 
   // Comparison Mode states
   const [isComparison, setIsComparison] = useState<boolean>(false);
-  const [compareDistrictId, setCompareDistrictId] = useState<number>(102);
+  const [compareDistrictId, setCompareDistrictId] = useState<number>(2);
 
   // Generation status
   const [generating, setGenerating] = useState(false);

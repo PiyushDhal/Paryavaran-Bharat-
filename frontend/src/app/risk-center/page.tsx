@@ -17,7 +17,7 @@ import { WorkflowRecommendations } from "@/components/climate/WorkflowRecommenda
 
 export default function RiskCenterPage() {
   const { activeYear, selectedDistrictId, setSelectedDistrictId, selectedStateId, activeRisk, setActiveRisk } = useClimate();
-  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 101);
+  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 1);
   const [risk, setRisk] = useState<RiskScore | null>(null);
   const [trends, setTrends] = useState<Array<Record<string, number | string>>>([]);
   const [rankings, setRankings] = useState<Ranking[]>([]);

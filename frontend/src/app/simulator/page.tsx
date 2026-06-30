@@ -297,7 +297,7 @@ export default function SimulatorPage() {
     selectedStateId
   } = useClimate();
 
-  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 101);
+  const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 1);
 
   // Sync global selectedDistrictId and selectedStateId changes down to local state
   useEffect(() => {
@@ -350,7 +350,6 @@ export default function SimulatorPage() {
 
   // Load baseline results when district changes
   useEffect(() => {
-    if (!districtId) return;
     api.simulate({ district_id: districtId, ...ZERO_PAYLOAD })
       .then((res) => {
         setBaselineResult(res.results);
