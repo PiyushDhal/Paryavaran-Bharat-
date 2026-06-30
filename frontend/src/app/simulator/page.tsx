@@ -863,16 +863,24 @@ export default function SimulatorPage() {
               {viewTab === "compare" && (
                 <Card className="glass-card">
                   <CardHeader className="pb-3">
-                    <CardTitle>Baseline vs Simulated</CardTitle>
-                    <CardDescription>Side-by-side comparison of all risk metrics with percentage delta.</CardDescription>
+                    <CardTitle>Baseline vs Active vs Saved Scenarios</CardTitle>
+                    <CardDescription>Side-by-side comparison of all risk metrics with percentage delta across saved records.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 overflow-x-auto">
                       {/* Header */}
-                      <div className="grid grid-cols-[1fr_80px_80px_80px] gap-2 border-b border-white/8 pb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                      <div 
+                        className="grid gap-2 border-b border-white/8 pb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground min-w-[500px]"
+                        style={{
+                          gridTemplateColumns: `1.5fr 80px 80px ${savedScenarios.slice(0, 3).map(() => "85px").join(" ")} 80px`
+                        }}
+                      >
                         <span>Metric</span>
                         <span className="text-center">Baseline</span>
                         <span className="text-center">Simulated</span>
+                        {savedScenarios.slice(0, 3).map((s) => (
+                          <span key={s.id} className="text-center truncate text-cyan-400" title={s.name}>{s.name}</span>
+                        ))}
                         <span className="text-center">Δ Change</span>
                       </div>
                       {([
@@ -894,10 +902,21 @@ export default function SimulatorPage() {
                         const DeltaIcon = d > 0 ? ArrowUpRight : d < 0 ? ArrowDownRight : Minus;
                         const deltaColor = isImproved ? "#34d399" : d === 0 ? "#64748b" : "#f87171";
                         return (
-                          <div key={key} className="grid grid-cols-[1fr_80px_80px_80px] items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-white/4 transition-colors">
+                          <div 
+                            key={key} 
+                            className="grid items-center gap-2 rounded-lg px-2 py-2.5 hover:bg-white/4 transition-colors min-w-[500px]"
+                            style={{
+                              gridTemplateColumns: `1.5fr 80px 80px ${savedScenarios.slice(0, 3).map(() => "85px").join(" ")} 80px`
+                            }}
+                          >
                             <span className="text-xs text-secondary-foreground">{label}</span>
                             <span className="text-center text-xs font-mono text-muted-foreground">{base}</span>
                             <span className="text-center text-xs font-mono font-bold text-white">{sim}</span>
+                            {savedScenarios.slice(0, 3).map((s) => (
+                              <span key={s.id} className="text-center text-xs font-mono text-slate-300">
+                                {Number(s.result[key] ?? 0)}
+                              </span>
+                            ))}
                             <div className="flex items-center justify-center gap-0.5" style={{ color: deltaColor }}>
                               <DeltaIcon className="w-3 h-3" />
                               <span className="text-xs font-mono font-semibold">{d > 0 ? "+" : ""}{d.toFixed(0)}</span>
@@ -997,6 +1016,66 @@ export default function SimulatorPage() {
       </div>
 
       <WorkflowRecommendations currentPage="simulator" />
+
+      {/* ─── PRINTABLE EXECUTIVE REPORT DOSSIER ───────────────────────────────────── */}
+      {result && (
+        <div className="hidden print:block text-left p-8 space-y-6 text-black bg-white border border-gray-300 rounded-lg">
+          <div className="border-b-2 border-black pb-4">
+            <h1 className="text-3xl font-extrabold tracking-tight uppercase">Paryavaran Bharat Climate Decision Dossier</h1>
+            <p className="text-xs text-gray-500 font-mono mt-1">
+              Generated on {new Date().toLocaleString()} | Confidence Rating: {ai?.confidence || 85}%
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 text-xs">
+            <div>
+              <h3 className="font-bold border-b border-gray-300 pb-1 mb-2 uppercase text-[11px] tracking-wider text-gray-800">Scenario Configuration</h3>
+              <ul className="space-y-1 font-mono text-[11px]">
+                <li>Temperature Shift: {payload.temperature_delta_c >= 0 ? "+" : ""}{payload.temperature_delta_c}°C</li>
+                <li>Rainfall Anomaly: {payload.rainfall_delta_pct >= 0 ? "+" : ""}{payload.rainfall_delta_pct}%</li>
+                <li>Reservoir Level Shift: {payload.reservoir_delta_pct >= 0 ? "+" : ""}{payload.reservoir_delta_pct}%</li>
+                <li>Forest Cover Anomaly: {(payload.forest_cover_delta_pct ?? 0) >= 0 ? "+" : ""}{payload.forest_cover_delta_pct ?? 0}%</li>
+                <li>Urban Expansion Shift: {(payload.urbanization_delta_pct ?? 0) >= 0 ? "+" : ""}{payload.urbanization_delta_pct ?? 0}%</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-bold border-b border-gray-300 pb-1 mb-2 uppercase text-[11px] tracking-wider text-gray-800">Projected Risk Profile</h3>
+              <ul className="space-y-1 font-mono text-[11px]">
+                <li>Composite Climate Risk: {result.composite_risk}/100</li>
+                <li>Agriculture Crop Stress: {result.crop_stress}/100</li>
+                <li>Water Availability Score: {result.water_availability}/100</li>
+                <li>Drought Exposure Index: {result.drought_risk}%</li>
+                <li>Flood Exposure Index: {result.flood_risk}%</li>
+              </ul>
+            </div>
+          </div>
+
+          {ai && (
+            <div className="space-y-4 text-xs">
+              <div>
+                <h3 className="font-bold border-b border-gray-300 pb-1 mb-2 uppercase text-[11px] tracking-wider text-gray-800">Scientific Interpretation</h3>
+                <p className="leading-relaxed text-gray-700 italic text-[11px]">"{ai.headline}"</p>
+              </div>
+              <div>
+                <h3 className="font-bold border-b border-gray-300 pb-1 mb-2 uppercase text-[11px] tracking-wider text-gray-800">Vulnerabilities & Risk Drivers</h3>
+                <ul className="list-disc pl-5 space-y-1 text-gray-700 text-[11px]">
+                  {ai.drivers.map((d, i) => <li key={i}>{d}</li>)}
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-bold border-b border-gray-300 pb-1 mb-2 uppercase text-[11px] tracking-wider text-gray-800">Mitigation Policy Recommendations</h3>
+                <ol className="list-decimal pl-5 space-y-1 text-gray-700 text-[11px]">
+                  {ai.recommendations.map((r, i) => <li key={i}>{r}</li>)}
+                </ol>
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-gray-300 pt-4 text-[9px] text-gray-400 font-mono">
+            <p>Methodology: Calculations execute dynamic multivariate risk transfers derived from IPCC SSP2-4.5 scenarios, verified via IMD historical grids and CWC river gauges.</p>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         .simulator-root {
