@@ -293,17 +293,33 @@ export default function SimulatorPage() {
     selectedDistrictId, 
     setSelectedDistrictId,
     activeSimulation,
-    setActiveSimulation 
+    setActiveSimulation,
+    selectedStateId
   } = useClimate();
 
   const [districtId, setDistrictId] = useState<number | undefined>(selectedDistrictId || 101);
 
-  // Sync global selectedDistrictId changes down to local state
+  // Sync global selectedDistrictId and selectedStateId changes down to local state
   useEffect(() => {
-    if (selectedDistrictId && selectedDistrictId !== districtId) {
-      setDistrictId(selectedDistrictId);
+    if (selectedDistrictId) {
+      if (selectedDistrictId !== districtId) {
+        setDistrictId(selectedDistrictId);
+      }
+    } else if (selectedStateId) {
+      api.districts(selectedStateId)
+        .then((items) => {
+          if (items.length > 0) {
+            const currentInState = items.some(item => item.id === districtId);
+            if (!currentInState) {
+              const defaultId = items[0].id;
+              setDistrictId(defaultId);
+              setSelectedDistrictId(defaultId);
+            }
+          }
+        })
+        .catch(() => undefined);
     }
-  }, [selectedDistrictId]);
+  }, [selectedDistrictId, selectedStateId]);
 
   // Sync local districtId changes back to global context
   useEffect(() => {
@@ -634,7 +650,7 @@ export default function SimulatorPage() {
             <CardContent className="grid gap-4">
               <div className="grid gap-1.5">
                 <Label className="text-xs text-muted-foreground">Target District</Label>
-                <DistrictSelector value={districtId} onChange={(id) => { setDistrictId(id); setPayload((p) => ({ ...p, district_id: id })); }} />
+                <DistrictSelector value={districtId} stateId={selectedStateId} onChange={(id) => { setDistrictId(id); setPayload((p) => ({ ...p, district_id: id })); }} />
               </div>
 
               {expandedSliders && (
