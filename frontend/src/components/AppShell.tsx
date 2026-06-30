@@ -17,7 +17,6 @@ import {
   LockKeyhole,
   Map,
   Menu,
-  Settings,
   ShieldCheck,
   SlidersHorizontal,
   TrendingUp,
@@ -48,7 +47,6 @@ import {
   FilledCopilot,
   FilledReport,
   FilledDataSources,
-  FilledSettings,
   FilledProfile
 } from "@/components/icons/FilledIcons";
 
@@ -83,7 +81,6 @@ const navSections = [
     label: "System",
     items: [
       { href: "/data-sources", label: "Data Sources", icon: FilledDataSources },
-      { href: "/admin", label: "Settings", icon: FilledSettings },
       { href: "/register", label: "Profile", icon: FilledProfile }
     ]
   }
