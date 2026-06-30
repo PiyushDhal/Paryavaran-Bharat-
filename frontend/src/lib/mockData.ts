@@ -350,5 +350,9 @@ export function getMockDataForPath(path: string): any {
     };
   }
 
+  if (pathname.endsWith("/copilot/history")) {
+    return [];
+  }
+
   return {};
 }
