@@ -251,7 +251,7 @@ export default function TimelinePage() {
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl z-10">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <TrendingUp className="h-4 w-4 animate-pulse text-brand-blue" />
+                  <Clock className="h-4 w-4 animate-pulse text-brand-blue" />
                   Computing climate timeline...
                 </div>
               </div>
