@@ -109,23 +109,27 @@ export function generateMockHistory(districtId: number): ClimateObservation[] {
   const startYear = 2020;
   const endYear = 2026;
   const seed = districtId;
+  const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
   
   for (let year = startYear; year <= endYear; year++) {
-    const rainfall = 800 + (seed % 10) * 120 + (year % 3) * 50;
-    const temp = 24.5 + (seed % 5) * 0.8 + (year % 2) * 0.3;
-    results.push({
-      observed_on: `${year}-12-31`,
-      rainfall_mm: rainfall,
-      rainfall_deficit_pct: (seed % 2 === 0) ? -(seed % 15) : (seed % 15),
-      temperature_c: Number(temp.toFixed(1)),
-      humidity_pct: 60 + (seed % 4) * 5,
-      river_level_m: 2.1 + (seed % 5) * 0.5,
-      soil_moisture_pct: 35 + (seed % 6) * 6,
-      aqi: 50 + (seed % 8) * 20 + (year % 2) * 10,
-      ndvi: 0.45 + (seed % 5) * 0.05,
-      reservoir_level_pct: 65 + (seed % 3) * 8,
-      data_source: "synthetic-simulation"
-    });
+    for (let m = 0; m < 12; m++) {
+      const monthStr = months[m];
+      const rainfall = 20 + (seed % 5) * 10 + (m >= 5 && m <= 8 ? 200 + (seed % 5) * 50 : 0);
+      const temp = 20 + (seed % 5) * 2 + Math.sin(m / 2) * 6;
+      results.push({
+        observed_on: `${year}-${monthStr}-28`,
+        rainfall_mm: Number(rainfall.toFixed(1)),
+        rainfall_deficit_pct: (seed % 2 === 0) ? -(seed % 15) : (seed % 15),
+        temperature_c: Number(temp.toFixed(1)),
+        humidity_pct: 60 + (seed % 4) * 5,
+        river_level_m: 2.1 + (seed % 5) * 0.5,
+        soil_moisture_pct: 35 + (seed % 6) * 6,
+        aqi: 50 + (seed % 8) * 20 + (m % 2) * 10,
+        ndvi: 0.45 + (seed % 5) * 0.05 + Math.sin(m / 4) * 0.1,
+        reservoir_level_pct: 65 + (seed % 3) * 8 - (m >= 3 && m <= 5 ? 15 : 0),
+        data_source: "synthetic-simulation"
+      });
+    }
   }
   return results;
 }
@@ -162,7 +166,13 @@ export function getMockDataForPath(path: string): any {
     const parts = pathname.split("/");
     const histIdx = parts.indexOf("history");
     const id = Number(parts[histIdx - 1]);
-    return generateMockHistory(isNaN(id) ? 101 : id);
+    const yearStr = searchParams.get("year");
+    const yearVal = yearStr ? Number(yearStr) : undefined;
+    const allHist = generateMockHistory(isNaN(id) ? 101 : id);
+    if (yearVal) {
+      return allHist.filter(obs => new Date(obs.observed_on).getFullYear() === yearVal);
+    }
+    return allHist;
   }
 
   if (pathname.endsWith("/climate/map/layers")) {
@@ -235,9 +245,14 @@ export function getMockDataForPath(path: string): any {
     if (isTrends) {
       const trendsList = [];
       for (let y = 2020; y <= 2026; y++) {
+        const factor = (y - 2020) * 2.5 * (id % 2 === 0 ? 1 : -1);
         trendsList.push({
-          year: y,
-          composite_risk: Math.round(ranking.composite_risk + (y - 2020) * 2.5 * (id % 2 === 0 ? 1 : -1))
+          date: `${y}-06-15`,
+          flood: Math.max(0, Math.min(100, Math.round(ranking.flood_risk + factor))),
+          drought: Math.max(0, Math.min(100, Math.round(ranking.drought_risk - factor))),
+          heatwave: Math.max(0, Math.min(100, Math.round(ranking.heatwave_risk + factor * 0.8))),
+          water_stress: Math.max(0, Math.min(100, Math.round(ranking.water_stress_risk - factor * 1.2))),
+          composite: Math.max(0, Math.min(100, Math.round(ranking.composite_risk + factor))),
         });
       }
       return trendsList;
@@ -321,11 +336,60 @@ export function getMockDataForPath(path: string): any {
   }
 
   if (pathname.endsWith("/climate/analytics/metrics")) {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthlyData = months.map((m, i) => ({
+      date: m,
+      observed_on: `2026-${String(i+1).padStart(2, '0')}-15`,
+      temperature_c: 20 + Math.sin(i / 2) * 8 + Math.random() * 2,
+      rainfall_mm: 10 + (i >= 5 && i <= 8 ? 150 + Math.random() * 80 : Math.random() * 20),
+      aqi: 80 + Math.cos(i / 2) * 30 + Math.random() * 10,
+      reservoir_level_pct: 60 + Math.sin(i / 3) * 15,
+      ndvi: 0.4 + Math.sin(i / 4) * 0.15,
+      soil_moisture_pct: 30 + Math.sin(i / 3) * 10
+    }));
+
+    const metrics = {
+      avgTemp: 27.2,
+      avgRain: 104.5,
+      avgAqi: 80,
+      avgReservoir: 50,
+      avgNdvi: 0.52,
+      avgSoil: 30,
+      compositeIndex: 52,
+      envHealthScore: 50,
+      waterSustainability: 50,
+      forestHealth: 50,
+      biodiversity: 50,
+      airQualityScore: 50,
+      carbonImpact: 50,
+      renewableEnergy: 50,
+      climateResilience: 50,
+      waterStress: 50,
+      greenInfrastructure: 50,
+      avgRisk: 50,
+      avgFlood: 50,
+      avgDrought: 50,
+      avgHeat: 50,
+      avgWater: 50,
+    };
+
+    const aiInsights = {
+      summary: "Ecosystem displays moderate baseline climate resilience under the specified filters.",
+      drivers: ["Thermal variations pushing grid adaptations", "Hydrological storage conditions", "Vegetative carbon capture variance"],
+      positives: ["Baseline air quality index within targets", "Safe boundaries for reservoir headroom"],
+      negatives: ["Rising convective heat waves during pre-monsoon", "Depleting ground moisture indicators"],
+      recommendations: [
+        "Launch extensive Miyawaki mini-forest grids near high-density blocks to optimize carbon capture.",
+        "Deploy localized block-level rainwater harvesting basins to arrest hydrological depletion.",
+        "Incentivize grid-connected solar power transitions to reduce industrial carbon loads.",
+        "Restrict groundwater drafts in semi-arid zones to safeguard aquifer pressures."
+      ]
+    };
+
     return {
-      avg_temp: 27.2,
-      avg_precip: 104.5,
-      water_stress_pct: 42,
-      vulnerability_index: 0.52
+      monthlyData,
+      metrics,
+      aiInsights
     };
   }
 
